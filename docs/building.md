@@ -53,10 +53,10 @@ cargo build --locked --release --package bta-anywhere-relay
 python3 scripts/cross_language_e2e.py \
   --relay-binary target/release/bta-anywhere-relay \
   --tunnel-jar tunnel-client/build/libs/bta-anywhere-tunnel-0.1.0-all.jar \
-  --concurrency-waves 10
+  --concurrency-waves 100
 ```
 
-`--concurrency-waves` accepts 1-100 waves of eight simultaneous byte-exact streams. CI uses 10; larger values are useful for local transport stress testing.
+`--concurrency-waves` accepts 1-100 waves of eight simultaneous byte-exact streams. CI uses the maximum 100-wave stress gate.
 
 On Windows, supply `target\release\bta-anywhere-relay.exe` and use the portable JDK's `java.exe` with `--java` when Java is not on `PATH`.
 

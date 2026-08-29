@@ -60,7 +60,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 			input.release();
 		}
 		if (!parseHeader(context)) {
-			context.read();
+			requestRead(context);
 		}
 	}
 
@@ -175,7 +175,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 			} else if (quicInputShutdown) {
 				scheduleLocalOutputShutdown();
 			} else {
-				quicContext.read();
+				requestRead(quicContext);
 			}
 		});
 	}
@@ -194,7 +194,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 				if (quicInputShutdown) {
 					scheduleLocalOutputShutdown();
 				} else {
-					quicContext.read();
+					requestRead(quicContext);
 				}
 			} else {
 				closePair(quicContext.channel(), local);
@@ -302,7 +302,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 					if (localInputShutdown) {
 						scheduleQuicOutputShutdown();
 					} else {
-						context.read();
+						requestRead(context);
 					}
 				} else {
 					closePair(context.channel(), quicChannel);
@@ -372,5 +372,15 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 	private static void closePair(Channel first, Channel second) {
 		first.close();
 		second.close();
+	}
+
+	private static void requestRead(ChannelHandlerContext context) {
+		// A write future may complete synchronously while Netty is still inside the current
+		// manual-read loop. Deferring avoids losing the read needed to observe a following EOF.
+		context.executor().execute(() -> {
+			if (context.channel().isActive()) {
+				context.read();
+			}
+		});
 	}
 }
