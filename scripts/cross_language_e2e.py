@@ -464,7 +464,7 @@ def main() -> int:
             for reader in tunnel_readers:
                 reader.join(timeout=2)
             if output_lines:
-                print("\n".join(output_lines[-200:]))
+                print("\n".join(output_lines[-1_000:]))
             raise
         finally:
             stop_process(tunnel, graceful_stdin=True)
