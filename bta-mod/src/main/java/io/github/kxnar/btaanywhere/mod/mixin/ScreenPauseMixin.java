@@ -27,7 +27,8 @@ public abstract class ScreenPauseMixin {
 		screen.buttons.add(new ButtonElement(
 			HOST_BUTTON_ID,
 			screen.width / 2 - 100,
-			screen.height / 4 + 56,
+			// Vanilla occupies rows through +104; Mod Menu also claims +56.
+			screen.height / 4 + 128,
 			label
 		));
 	}
