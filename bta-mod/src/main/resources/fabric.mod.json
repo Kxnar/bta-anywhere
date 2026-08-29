@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "btaanywhere",
+  "version": "${version}",
+  "name": "BTA Anywhere",
+  "description": "Safely hosts a single-player BTA world through LAN, direct port mapping, or a self-hosted relay.",
+  "authors": [
+    "Kenar Narayaka"
+  ],
+  "contact": {
+    "homepage": "https://github.com/Kxnar/bta-anywhere",
+    "sources": "https://github.com/Kxnar/bta-anywhere",
+    "issues": "https://github.com/Kxnar/bta-anywhere/issues"
+  },
+  "license": "Apache-2.0",
+  "environment": "client",
+  "entrypoints": {
+    "main": [
+      "io.github.kxnar.btaanywhere.mod.BtaAnywhereMod"
+    ]
+  },
+  "mixins": [
+    "btaanywhere.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${fabricloader}",
+    "minecraft": "8.0.1",
+    "halplibe": ">=${halplibe}",
+    "java": ">=${java}"
+  }
+}
