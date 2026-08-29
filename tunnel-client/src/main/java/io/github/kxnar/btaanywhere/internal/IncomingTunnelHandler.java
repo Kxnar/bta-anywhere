@@ -281,9 +281,8 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 
 		@Override
 		public void channelInactive(ChannelHandlerContext context) {
-			if (quicChannel.isActive()) {
-				quicChannel.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
-			}
+			localInputShutdown = true;
+			shutdownQuicOutputIfReady();
 		}
 
 		@Override

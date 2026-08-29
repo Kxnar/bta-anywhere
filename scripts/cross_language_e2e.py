@@ -21,25 +21,66 @@ from pathlib import Path
 
 class EchoHandler(socketserver.BaseRequestHandler):
     def handle(self) -> None:
+        trace_id = self.server.trace_open(self.client_address)
         received = bytearray()
         while True:
             chunk = self.request.recv(64 * 1024)
             if not chunk:
                 break
             received.extend(chunk)
+            self.server.trace_update(trace_id, "reading", received)
             if len(received) > 2 * 1024 * 1024:
                 raise RuntimeError("test client exceeded the echo-service safety limit")
+        self.server.trace_update(trace_id, "responding", received)
         try:
             self.request.sendall(received)
             self.request.shutdown(socket.SHUT_WR)
+            self.server.trace_update(trace_id, "complete", received)
         except OSError:
             # Quota/slow-client cases intentionally close test guests early.
-            pass
+            self.server.trace_update(trace_id, "peer-closed", received)
 
 
 class ThreadingEchoServer(socketserver.ThreadingTCPServer):
     allow_reuse_address = True
     daemon_threads = True
+    # Keep the synthetic local service above the relay's eight-guest session limit.
+    # socketserver's default backlog is five and made the relay load test intermittent.
+    request_queue_size = 64
+
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        super().__init__(*args, **kwargs)
+        self.trace_lock = threading.Lock()
+        self.trace_sequence = 0
+        self.traces: dict[int, dict[str, object]] = {}
+
+    def trace_open(self, remote: tuple[str, int]) -> int:
+        with self.trace_lock:
+            self.trace_sequence += 1
+            trace_id = self.trace_sequence
+            self.traces[trace_id] = {
+                "remote": f"{remote[0]}:{remote[1]}",
+                "state": "connected",
+                "bytes": 0,
+                "label": "",
+            }
+            return trace_id
+
+    def trace_update(self, trace_id: int, state: str, received: bytearray) -> None:
+        label_bytes = bytes(received[:32]).partition(b":")[0]
+        label = label_bytes.decode("ascii", errors="replace") if label_bytes else ""
+        with self.trace_lock:
+            trace = self.traces.get(trace_id)
+            if trace is not None:
+                trace.update(state=state, bytes=len(received), label=label)
+
+    def reset_traces(self) -> None:
+        with self.trace_lock:
+            self.traces.clear()
+
+    def trace_snapshot(self) -> list[dict[str, object]]:
+        with self.trace_lock:
+            return [dict(trace_id=trace_id, **details) for trace_id, details in self.traces.items()]
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -47,7 +88,11 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--relay-binary", required=True, type=Path)
     parser.add_argument("--tunnel-jar", required=True, type=Path)
     parser.add_argument("--java", default="java")
-    return parser.parse_args()
+    parser.add_argument("--concurrency-waves", type=int, default=1)
+    arguments = parser.parse_args()
+    if not 1 <= arguments.concurrency_waves <= 100:
+        parser.error("--concurrency-waves must be between 1 and 100")
+    return arguments
 
 
 def start_reader(
@@ -113,7 +158,12 @@ def echo_round_trip(public_port: int, payload: bytes, timeout: float = 15.0) -> 
         guest.shutdown(socket.SHUT_WR)
         received = bytearray()
         while True:
-            chunk = guest.recv(64 * 1024)
+            try:
+                chunk = guest.recv(64 * 1024)
+            except TimeoutError as failure:
+                raise TimeoutError(
+                    f"received {len(received)} of {len(payload)} bytes before the stream stalled"
+                ) from failure
             if not chunk:
                 break
             received.extend(chunk)
@@ -150,6 +200,15 @@ def wait_metric(metric: str, minimum: float, timeout: float = 10.0) -> None:
     raise TimeoutError(f"metric {metric} did not reach {minimum}")
 
 
+def wait_metric_equal(metric: str, expected: float, timeout: float = 10.0) -> None:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if metric_value(wait_http("/metrics"), metric) == expected:
+            return
+        time.sleep(0.1)
+    raise TimeoutError(f"metric {metric} did not become {expected}")
+
+
 def main() -> int:
     arguments = parse_arguments()
     relay_binary = arguments.relay_binary.resolve()
@@ -176,7 +235,13 @@ def main() -> int:
         configuration = relay_config.read_text(encoding="utf-8")
         if "tcp_port_end = 30100" not in configuration:
             raise AssertionError("development config did not contain the expected port range")
-        relay_config.write_text(configuration.replace("tcp_port_end = 30100", "tcp_port_end = 30000"), encoding="utf-8")
+        configuration = configuration.replace("tcp_port_end = 30100", "tcp_port_end = 30000")
+        if arguments.concurrency_waves > 1:
+            expected_rate = "max_accepts_per_minute = 30"
+            if expected_rate not in configuration:
+                raise AssertionError("development config did not contain the expected source rate limit")
+            configuration = configuration.replace(expected_rate, "max_accepts_per_minute = 10000")
+        relay_config.write_text(configuration, encoding="utf-8")
 
         echo = ThreadingEchoServer(("127.0.0.1", 0), EchoHandler)
         echo_thread = threading.Thread(target=echo.serve_forever, name="e2e-echo", daemon=True)
@@ -333,22 +398,35 @@ def main() -> int:
                     with contextlib.suppress(OSError):
                         guest.shutdown(socket.SHUT_RDWR)
                     guest.close()
-            deadline = time.monotonic() + 10
-            while time.monotonic() < deadline:
-                if metric_value(wait_http("/metrics"), "bta_anywhere_active_connections") == 0:
-                    break
-                time.sleep(0.1)
-            else:
-                raise TimeoutError("slow guest streams did not clean up")
+            wait_metric_equal("bta_anywhere_active_connections", 0)
 
-            payloads = [
-                (f"connection-{index}:".encode("ascii") + os.urandom(32 * 1024 + index * 4096))
-                for index in range(8)
-            ]
-            with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
-                futures = [pool.submit(echo_round_trip, public_port, payload) for payload in payloads]
-                for future in futures:
-                    future.result(timeout=20)
+            for wave in range(arguments.concurrency_waves):
+                echo.reset_traces()
+                payloads = [
+                    (
+                        f"wave-{wave}-connection-{index}:".encode("ascii")
+                        + os.urandom(32 * 1024 + index * 4096)
+                    )
+                    for index in range(8)
+                ]
+                with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+                    futures = [pool.submit(echo_round_trip, public_port, payload) for payload in payloads]
+                    for index, future in enumerate(futures):
+                        try:
+                            future.result(timeout=20)
+                        except Exception as failure:
+                            metrics = wait_http("/metrics")
+                            diagnostics = {
+                                "active": metric_value(metrics, "bta_anywhere_active_connections"),
+                                "guest_to_host": metric_value(metrics, "bta_anywhere_bytes_guest_to_host_total"),
+                                "host_to_guest": metric_value(metrics, "bta_anywhere_bytes_host_to_guest_total"),
+                                "echo": echo.trace_snapshot(),
+                            }
+                            raise RuntimeError(
+                                f"concurrent byte-exact wave {wave} stream {index} failed; "
+                                f"diagnostics={diagnostics}"
+                            ) from failure
+                wait_metric_equal("bta_anywhere_active_connections", 0)
 
             metrics = wait_http("/metrics")
             for metric in (
@@ -374,7 +452,8 @@ def main() -> int:
             tunnel = None
             print(
                 "Cross-language QUIC test passed: authentication, port exhaustion, slow-client quota, "
-                "8 byte-exact streams, clean shutdown, and relay restart recovery."
+                f"{arguments.concurrency_waves} wave(s) of 8 byte-exact streams, clean shutdown, "
+                "and relay restart recovery."
             )
             return 0
         except BaseException:

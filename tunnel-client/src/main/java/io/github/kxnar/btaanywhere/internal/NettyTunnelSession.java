@@ -173,6 +173,7 @@ public final class NettyTunnelSession implements TunnelSession {
 				}
 			})
 			.streamOption(ChannelOption.AUTO_READ, false)
+			.streamOption(ChannelOption.ALLOW_HALF_CLOSURE, true)
 			.option(ChannelOption.CONNECT_TIMEOUT_MILLIS,
 				(int) Math.max(1, Math.min(Integer.MAX_VALUE, config.connectTimeout().toMillis())))
 			.remoteAddress(new InetSocketAddress(descriptor.host(), descriptor.port()))
