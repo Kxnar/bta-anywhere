@@ -104,4 +104,4 @@ jobs:
           python3 scripts/cross_language_e2e.py
           --relay-binary target/release/bta-anywhere-relay
           --tunnel-jar tunnel-client/build/libs/bta-anywhere-tunnel-0.1.0-all.jar
-          --concurrency-waves 10
+          --concurrency-waves 100
