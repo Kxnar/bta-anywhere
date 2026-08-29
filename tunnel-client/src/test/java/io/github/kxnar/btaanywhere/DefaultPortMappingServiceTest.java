@@ -14,6 +14,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
 final class DefaultPortMappingServiceTest {
@@ -44,7 +45,7 @@ final class DefaultPortMappingServiceTest {
 		}
 	}
 
-	@Test
+	@RepeatedTest(20)
 	void renewsHalfLeaseAndRemovesMappingOnShutdown() throws Exception {
 		CountDownLatch renewed = new CountDownLatch(1);
 		FakeLease refreshed = new FakeLease("8.8.8.8", 25_565, 3_600);

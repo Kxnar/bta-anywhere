@@ -168,13 +168,16 @@ public final class DefaultPortMappingService implements PortMappingService {
 			expiresAt = Instant.now().plusSeconds(Math.max(0, lease.lifetimeSeconds()));
 		}
 
-		void scheduleRenewal() {
+		synchronized void scheduleRenewal() {
+			if (mappingClosed.get()) {
+				return;
+			}
 			long halfLeaseMillis = Duration.ofSeconds(Math.max(0, lease.get().lifetimeSeconds() / 2)).toMillis();
 			long delayMillis = Math.max(renewalFloor.toMillis(), halfLeaseMillis);
 			renewal = executor.schedule(this::renew, delayMillis, TimeUnit.MILLISECONDS);
 		}
 
-		private void renew() {
+		private synchronized void renew() {
 			if (mappingClosed.get()) {
 				return;
 			}
@@ -231,7 +234,7 @@ public final class DefaultPortMappingService implements PortMappingService {
 			}
 		}
 
-		private boolean closeInternal() {
+		private synchronized boolean closeInternal() {
 			if (!mappingClosed.compareAndSet(false, true)) {
 				return false;
 			}
