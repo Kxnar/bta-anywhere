@@ -39,6 +39,7 @@ dependencies {
 
 	testImplementation(platform(libs.junit.bom))
 	testImplementation(libs.junit.jupiter)
+	testImplementation("org.bouncycastle:bcpkix-jdk15on:1.70")
 	testRuntimeOnly(libs.junit.platform.launcher)
 }
 

@@ -151,9 +151,22 @@ def stop_process(process: subprocess.Popen[str] | None, graceful_stdin: bool = F
         process.wait(timeout=5)
 
 
-def echo_round_trip(public_port: int, payload: bytes, timeout: float = 15.0) -> None:
+def payload_label(payload: bytes) -> str:
+    return payload[:48].partition(b":")[0].decode("ascii", errors="replace")
+
+
+def echo_round_trip(
+    public_port: int,
+    payload: bytes,
+    timeout: float = 15.0,
+    guest_ports: dict[str, int] | None = None,
+) -> None:
+    label = payload_label(payload)
     with socket.create_connection(("127.0.0.1", public_port), timeout=timeout) as guest:
         guest.settimeout(timeout)
+        guest_port = guest.getsockname()[1]
+        if guest_ports is not None:
+            guest_ports[label] = guest_port
         guest.sendall(payload)
         guest.shutdown(socket.SHUT_WR)
         received = bytearray()
@@ -162,7 +175,8 @@ def echo_round_trip(public_port: int, payload: bytes, timeout: float = 15.0) -> 
                 chunk = guest.recv(64 * 1024)
             except TimeoutError as failure:
                 raise TimeoutError(
-                    f"received {len(received)} of {len(payload)} bytes before the stream stalled"
+                    f"label={label} guest_source_port={guest_port} received {len(received)} "
+                    f"of {len(payload)} bytes before the stream stalled"
                 ) from failure
             if not chunk:
                 break
@@ -248,6 +262,9 @@ def main() -> int:
         echo_thread = threading.Thread(target=echo.serve_forever, name="e2e-echo", daemon=True)
         echo_thread.start()
         local_port = echo.server_address[1]
+        relay_environment = os.environ.copy()
+        # Temporary EOF diagnostics: bounded relay records are emitted only by this harness.
+        relay_environment["BTA_ANYWHERE_RELAY_TRACE"] = "1"
 
         def launch_relay() -> subprocess.Popen[str]:
             process = subprocess.Popen(
@@ -257,6 +274,7 @@ def main() -> int:
                 stderr=subprocess.PIPE,
                 text=True,
                 bufsize=1,
+                env=relay_environment,
             )
             assert process.stdout is not None and process.stderr is not None
             start_reader(process.stdout, "relay-out", output_lines, events)
@@ -404,6 +422,7 @@ def main() -> int:
 
             for wave in range(arguments.concurrency_waves):
                 echo.reset_traces()
+                guest_ports: dict[str, int] = {}
                 payloads = [
                     (
                         f"wave-{wave}-connection-{index}:".encode("ascii")
@@ -412,7 +431,10 @@ def main() -> int:
                     for index in range(8)
                 ]
                 with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
-                    futures = [pool.submit(echo_round_trip, public_port, payload) for payload in payloads]
+                    futures = [
+                        pool.submit(echo_round_trip, public_port, payload, 15.0, guest_ports)
+                        for payload in payloads
+                    ]
                     for index, future in enumerate(futures):
                         try:
                             future.result(timeout=20)
@@ -422,6 +444,7 @@ def main() -> int:
                                 "active": metric_value(metrics, "bta_anywhere_active_connections"),
                                 "guest_to_host": metric_value(metrics, "bta_anywhere_bytes_guest_to_host_total"),
                                 "host_to_guest": metric_value(metrics, "bta_anywhere_bytes_host_to_guest_total"),
+                                "guest_source_ports": guest_ports,
                                 "echo": echo.trace_snapshot(),
                             }
                             raise RuntimeError(

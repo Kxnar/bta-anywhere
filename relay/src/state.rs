@@ -29,6 +29,36 @@ use crate::{
     token,
 };
 
+// The diagnostic harness creates at most 100 waves of eight streams plus setup probes.
+// This cap retains every phase record from one complete harness run while still bounding logs.
+const FORWARD_TRACE_LIMIT: usize = 8_192;
+static FORWARD_TRACE_ENABLED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+static FORWARD_TRACE_SEQUENCE: AtomicUsize = AtomicUsize::new(0);
+static FORWARD_TASK_SEQUENCE: AtomicU64 = AtomicU64::new(0);
+
+fn trace_forwarding(
+    task: u64,
+    connection_id: Option<&str>,
+    guest_port: u16,
+    quic_stream: Option<String>,
+    phase: &'static str,
+    success: Option<bool>,
+) {
+    if !*FORWARD_TRACE_ENABLED
+        .get_or_init(|| std::env::var_os("BTA_ANYWHERE_RELAY_TRACE").is_some())
+    {
+        return;
+    }
+    let sequence = FORWARD_TRACE_SEQUENCE.fetch_add(1, Ordering::Relaxed);
+    if sequence >= FORWARD_TRACE_LIMIT {
+        return;
+    }
+    info!(
+        trace_sequence = sequence,
+        task, connection_id, guest_port, quic_stream, phase, success, "relay forwarding trace"
+    );
+}
+
 #[derive(Clone)]
 pub struct RelayState {
     inner: Arc<RelayStateInner>,
@@ -329,15 +359,25 @@ impl RelayState {
         self.inner.metrics.connections_total.inc();
         self.inner.metrics.active_connections.inc();
         let state = self.clone();
+        let task = FORWARD_TASK_SEQUENCE.fetch_add(1, Ordering::Relaxed);
         tokio::spawn(async move {
-            if let Err(error) = state
-                .forward_guest(session.clone(), connection, stream, remote)
-                .await
-            {
+            let result = state
+                .forward_guest(session.clone(), connection, stream, remote, task)
+                .await;
+            let succeeded = result.is_ok();
+            if let Err(error) = result {
                 debug!(port = session.public_port, %remote, %error, "guest tunnel closed with an error");
             }
             session.active_connections.fetch_sub(1, Ordering::SeqCst);
             state.inner.metrics.active_connections.dec();
+            trace_forwarding(
+                task,
+                None,
+                remote.port(),
+                None,
+                "task_exit_gauge_decrement",
+                Some(succeeded),
+            );
         });
     }
 
@@ -371,28 +411,72 @@ impl RelayState {
         connection: Connection,
         stream: TcpStream,
         remote: SocketAddr,
+        task: u64,
     ) -> Result<()> {
         let (mut quic_send, mut quic_recv) =
             time::timeout(Duration::from_secs(10), connection.open_bi())
                 .await
                 .context("timed out opening QUIC stream")??;
+        let quic_stream = quic_send.id().to_string();
         let header = ConnectionOpen {
             version: PROTOCOL_VERSION,
             session_id: session.id.clone(),
             connection_id: token::generate(),
             remote_address: remote.to_string(),
         };
+        trace_forwarding(
+            task,
+            Some(&header.connection_id),
+            remote.port(),
+            Some(quic_stream.clone()),
+            "connection_open_sent",
+            Some(true),
+        );
         write_json(&mut quic_send, &header).await?;
 
         let (mut tcp_read, mut tcp_write) = stream.into_split();
         let guest_to_host = async {
             let bytes = copy(&mut tcp_read, &mut quic_send).await?;
-            quic_send.finish()?;
+            trace_forwarding(
+                task,
+                Some(&header.connection_id),
+                remote.port(),
+                Some(quic_stream.clone()),
+                "guest_tcp_eof",
+                Some(true),
+            );
+            let finish = quic_send.finish();
+            trace_forwarding(
+                task,
+                Some(&header.connection_id),
+                remote.port(),
+                Some(quic_stream.clone()),
+                "quic_send_finish",
+                Some(finish.is_ok()),
+            );
+            finish?;
             Ok::<u64, anyhow::Error>(bytes)
         };
         let host_to_guest = async {
             let bytes = copy(&mut quic_recv, &mut tcp_write).await?;
-            tcp_write.shutdown().await?;
+            trace_forwarding(
+                task,
+                Some(&header.connection_id),
+                remote.port(),
+                Some(quic_stream.clone()),
+                "quic_receive_eof",
+                Some(true),
+            );
+            let shutdown = tcp_write.shutdown().await;
+            trace_forwarding(
+                task,
+                Some(&header.connection_id),
+                remote.port(),
+                Some(quic_stream.clone()),
+                "guest_tcp_write_half_shutdown",
+                Some(shutdown.is_ok()),
+            );
+            shutdown?;
             Ok::<u64, anyhow::Error>(bytes)
         };
         let (guest_bytes, host_bytes) = tokio::try_join!(guest_to_host, host_to_guest)?;

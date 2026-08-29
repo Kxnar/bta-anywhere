@@ -16,6 +16,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.incubator.codec.quic.QuicStreamChannel;
 import io.netty.util.ReferenceCountUtil;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
@@ -26,6 +27,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 	private static final int TRACE_CAPACITY = 2_048;
 	private static final AtomicLong TRACE_SEQUENCE = new AtomicLong();
 	private static final AtomicReferenceArray<String> TRACE_EVENTS = new AtomicReferenceArray<>(TRACE_CAPACITY);
+	private static final ConcurrentHashMap<String, String> TRACE_CORRELATIONS = new ConcurrentHashMap<>();
 
 	static {
 		if (TRACE_BRIDGE) {
@@ -43,6 +45,8 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 	private volatile boolean quicInputShutdown;
 	private volatile ChannelFuture lastLocalWrite;
 	private boolean localOutputShutdownScheduled;
+	private final StringBuilder tracePayloadPrefix = new StringBuilder(48);
+	private boolean tracePayloadLabelLogged;
 
 	IncomingTunnelHandler(NettyTunnelSession session) {
 		this.session = session;
@@ -64,6 +68,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 			return;
 		}
 		if (localChannel != null) {
+			tracePayloadLabel(context.channel(), input);
 			writeToLocal(context, input);
 			return;
 		}
@@ -124,6 +129,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 			throw new IllegalArgumentException("connection stream identifiers are invalid");
 		}
 		validateRemoteAddress(remoteAddress);
+		traceCorrelation(context.channel(), connectionId, remoteAddress);
 		if (headerBuffer.isReadable()) {
 			pendingPayload = headerBuffer.readRetainedSlice(headerBuffer.readableBytes());
 		}
@@ -185,10 +191,12 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 				return;
 			}
 			localChannel = future.channel();
+			copyTraceCorrelation(quicContext.channel(), future.channel());
 			trace(quicContext.channel(), "local-connected " + future.channel().localAddress());
 			if (pendingPayload != null) {
 				ByteBuf payload = pendingPayload;
 				pendingPayload = null;
+				tracePayloadLabel(quicContext.channel(), payload);
 				writeToLocal(quicContext, payload);
 			} else if (quicInputShutdown) {
 				scheduleLocalOutputShutdown();
@@ -225,6 +233,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 	@Override
 	public void channelInactive(ChannelHandlerContext context) {
 		trace(context.channel(), "quic-inactive");
+		clearTraceCorrelation(context.channel());
 		releasePending();
 		if (headerBuffer != null) {
 			headerBuffer.release();
@@ -343,6 +352,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 		@Override
 		public void channelInactive(ChannelHandlerContext context) {
 			trace(quicChannel, "local-inactive");
+			clearTraceCorrelation(context.channel());
 			localInputShutdown = true;
 			scheduleQuicOutputShutdown();
 		}
@@ -425,9 +435,69 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 			long sequence = TRACE_SEQUENCE.getAndIncrement();
 			TRACE_EVENTS.set(
 				(int) (sequence % TRACE_CAPACITY),
-				sequence + " bridge[" + channel.id().asShortText() + "] " + event
+				sequence + " bridge[channel=" + channel.id().asShortText()
+					+ quicStreamIdentity(channel) + TRACE_CORRELATIONS.getOrDefault(
+						channel.id().asShortText(), ""
+					) + "] " + event
 			);
 		}
+	}
+
+	private static void traceCorrelation(Channel channel, String connectionId, String remoteAddress) {
+		if (!TRACE_BRIDGE) {
+			return;
+		}
+		int separator = remoteAddress.lastIndexOf(':');
+		String guestPort = remoteAddress.substring(separator + 1);
+		TRACE_CORRELATIONS.put(
+			channel.id().asShortText(),
+			" connection_id=" + connectionId + " guest_port=" + guestPort
+		);
+		trace(channel, "connection-open-received");
+	}
+
+	private static void copyTraceCorrelation(Channel source, Channel target) {
+		if (!TRACE_BRIDGE) {
+			return;
+		}
+		String correlation = TRACE_CORRELATIONS.get(source.id().asShortText());
+		if (correlation != null) {
+			TRACE_CORRELATIONS.put(target.id().asShortText(), correlation);
+			target.closeFuture().addListener(ignored -> clearTraceCorrelation(target));
+		}
+	}
+
+	private static void clearTraceCorrelation(Channel channel) {
+		if (TRACE_BRIDGE) {
+			TRACE_CORRELATIONS.remove(channel.id().asShortText());
+		}
+	}
+
+	private void tracePayloadLabel(Channel channel, ByteBuf payload) {
+		if (!TRACE_BRIDGE || tracePayloadLabelLogged || tracePayloadPrefix.length() >= 48) {
+			return;
+		}
+		int length = Math.min(payload.readableBytes(), 48 - tracePayloadPrefix.length());
+		for (int index = 0; index < length; index++) {
+			int value = payload.getUnsignedByte(payload.readerIndex() + index);
+			if (value < 0x20 || value > 0x7E) {
+				return;
+			}
+			tracePayloadPrefix.append((char) value);
+			if (value == ':') {
+				break;
+			}
+		}
+		String value = tracePayloadPrefix.toString();
+		int separator = value.indexOf(':');
+		if (separator > 0 && value.startsWith("wave-") && value.substring(0, separator).matches("wave-\\d+-connection-\\d+")) {
+			trace(channel, "payload_label=" + value.substring(0, separator));
+			tracePayloadLabelLogged = true;
+		}
+	}
+
+	private static String quicStreamIdentity(Channel channel) {
+		return channel instanceof QuicStreamChannel stream ? " quic_stream=" + stream.streamId() : "";
 	}
 
 	private static void dumpTrace() {
