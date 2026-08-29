@@ -203,25 +203,29 @@ def main() -> int:
 
             bad_token = working / "bad.token"
             bad_token.write_text("deliberately-invalid-test-token\n", encoding="utf-8")
-            rejected = subprocess.run(
-                [
-                    arguments.java,
-                    "-jar",
-                    str(tunnel_jar),
-                    "expose",
-                    "--relay",
-                    "localhost:25575",
-                    "--ca",
-                    str(development / "ca.pem"),
-                    "--token-file",
-                    str(bad_token),
-                    "--local",
-                    f"127.0.0.1:{local_port}",
-                ],
-                text=True,
-                capture_output=True,
-                timeout=20,
-            )
+            try:
+                rejected = subprocess.run(
+                    [
+                        arguments.java,
+                        "-jar",
+                        str(tunnel_jar),
+                        "expose",
+                        "--relay",
+                        "127.0.0.1:25575",
+                        "--ca",
+                        str(development / "ca.pem"),
+                        "--token-file",
+                        str(bad_token),
+                        "--local",
+                        f"127.0.0.1:{local_port}",
+                    ],
+                    text=True,
+                    capture_output=True,
+                    timeout=20,
+                )
+            except subprocess.TimeoutExpired as failure:
+                output = f"{failure.stdout or ''}{failure.stderr or ''}"
+                raise AssertionError(f"invalid-token client did not terminate; output: {output}") from failure
             if rejected.returncode == 0 or "authentication_failed" not in (rejected.stdout + rejected.stderr):
                 raise AssertionError("relay did not reject an invalid access token")
             if "deliberately-invalid-test-token" in (rejected.stdout + rejected.stderr):
@@ -234,7 +238,7 @@ def main() -> int:
                     str(tunnel_jar),
                     "expose",
                     "--relay",
-                    "localhost:25575",
+                    "127.0.0.1:25575",
                     "--ca",
                     str(development / "ca.pem"),
                     "--token-file",
@@ -280,7 +284,7 @@ def main() -> int:
                     str(tunnel_jar),
                     "expose",
                     "--relay",
-                    "localhost:25575",
+                    "127.0.0.1:25575",
                     "--ca",
                     str(development / "ca.pem"),
                     "--token-file",

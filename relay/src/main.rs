@@ -366,6 +366,7 @@ async fn send_error(
     )
     .await?;
     send.finish()?;
+    let _ = time::timeout(Duration::from_secs(2), send.stopped()).await;
     Ok(())
 }
 
