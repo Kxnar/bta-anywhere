@@ -50,7 +50,10 @@ Relay mode has no default endpoint. Close BTA and edit `<game-directory>/config/
 }
 ```
 
-`relayTrustedCertificate` is resolved beneath the game directory and must name a PEM CA or trusted certificate file. There is no insecure certificate-verification switch. Treat the JSON file as a secret because v0.1 stores the relay token in it.
+`relayTrustedCertificate` is resolved beneath the game directory and must name a PEM trust bundle.
+Include the configured relay leaf certificate followed by its issuer chain; the development relay
+generates this as `trust.pem`. There is no insecure certificate-verification switch. Treat the JSON
+file as a secret because v0.1 stores the relay token in it.
 
 ## What to send guests
 

@@ -4,7 +4,9 @@ import io.github.kxnar.btaanywhere.RelayDescriptor;
 import io.github.kxnar.btaanywhere.Secret;
 import io.github.kxnar.btaanywhere.TunnelClient;
 import io.github.kxnar.btaanywhere.TunnelConfig;
+import io.github.kxnar.btaanywhere.TunnelEvent;
 import io.github.kxnar.btaanywhere.TunnelSession;
+import io.github.kxnar.btaanywhere.TunnelState;
 import java.net.InetSocketAddress;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -53,7 +55,8 @@ public final class TunnelCli {
 			TunnelConfig config = TunnelConfig.defaults(relay, clientId);
 			TunnelSession session;
 			try {
-				session = client.open(config, localAddress).toCompletableFuture().join();
+				session = client.open(config, localAddress, TunnelCli::reportStartupEvent)
+					.toCompletableFuture().join();
 			} catch (CompletionException failure) {
 				System.err.println("Failed to open tunnel: " + failure.getCause().getMessage());
 				System.exit(1);
@@ -71,6 +74,17 @@ public final class TunnelCli {
 				System.exit(1);
 			}
 		}
+	}
+
+	private static void reportStartupEvent(TunnelEvent event) {
+		if (event.cause() == null || event.state() != TunnelState.RECONNECTING) {
+			return;
+		}
+		String detail = event.cause().getMessage();
+		if (detail == null || detail.isBlank()) {
+			detail = event.cause().getClass().getSimpleName();
+		}
+		System.err.println(event.message() + ": " + detail);
 	}
 
 	private static void startConsoleControl(TunnelSession session) {
@@ -131,7 +145,7 @@ public final class TunnelCli {
 		System.err.println("Usage:");
 		System.err.println("  java -jar bta-anywhere-tunnel-all.jar doctor");
 		System.err.println("  java -jar bta-anywhere-tunnel-all.jar expose \\");
-		System.err.println("    --relay localhost:25575 --ca .dev/relay/ca.pem \\");
+		System.err.println("    --relay localhost:25575 --ca .dev/relay/trust.pem \\");
 		System.err.println("    --token-file .dev/relay/access.token --local 127.0.0.1:8000");
 	}
 }

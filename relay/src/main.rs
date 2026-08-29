@@ -460,7 +460,11 @@ async fn init_dev(output: &Path) -> Result<()> {
         bail!("{} already exists and is not empty", output.display());
     }
     tokio::fs::create_dir_all(output).await?;
+    let now = time_crate::OffsetDateTime::now_utc();
+    let not_before = now - time_crate::Duration::days(1);
     let mut ca_params = CertificateParams::new(Vec::new())?;
+    ca_params.not_before = not_before;
+    ca_params.not_after = now + time_crate::Duration::days(3_650);
     ca_params.is_ca = IsCa::Ca(BasicConstraints::Unconstrained);
     ca_params
         .distinguished_name
@@ -475,6 +479,8 @@ async fn init_dev(output: &Path) -> Result<()> {
     let issuer = Issuer::new(ca_params, ca_key);
 
     let mut server_params = CertificateParams::new(vec!["localhost".into(), "127.0.0.1".into()])?;
+    server_params.not_before = not_before;
+    server_params.not_after = now + time_crate::Duration::days(397);
     server_params
         .distinguished_name
         .push(DnType::CommonName, "localhost");
@@ -496,6 +502,10 @@ async fn init_dev(output: &Path) -> Result<()> {
 
     tokio::fs::write(output.join("server.pem"), &certificate_pem).await?;
     tokio::fs::write(output.join("ca.pem"), ca_certificate.pem()).await?;
+    // Netty QUIC's native verifier accepts a PEM collection as its explicit trust store. Include
+    // the pinned development leaf as well as its private CA so the same bundle works consistently
+    // with the BoringSSL-backed classifiers on every supported operating system.
+    tokio::fs::write(output.join("trust.pem"), &certificate_pem).await?;
     write_private(
         &output.join("ca-key.pem"),
         issuer.key().serialize_pem().as_bytes(),
@@ -510,7 +520,11 @@ async fn init_dev(output: &Path) -> Result<()> {
     tokio::fs::write(output.join("relay.toml"), toml::to_string_pretty(&config)?).await?;
 
     println!("Development relay files written to {}", output.display());
-    println!("Trust certificate: {}", output.join("ca.pem").display());
+    println!("Development CA: {}", output.join("ca.pem").display());
+    println!(
+        "Client trust bundle: {}",
+        output.join("trust.pem").display()
+    );
     println!("Access token: {}", output.join("access.token").display());
     println!(
         "Run: bta-anywhere-relay run --config {}",

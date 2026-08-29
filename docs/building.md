@@ -65,10 +65,14 @@ bta-anywhere-relay run --config .dev/relay/relay.toml
 python3 -m http.server 8000 --bind 127.0.0.1
 java -jar bta-anywhere-tunnel-0.1.0-all.jar expose \
   --relay localhost:25575 \
-  --ca .dev/relay/ca.pem \
+  --ca .dev/relay/trust.pem \
   --token-file .dev/relay/access.token \
   --local 127.0.0.1:8000
 ```
+
+`init-dev` keeps the CA-only certificate in `ca.pem` and writes `trust.pem` for clients. The client
+bundle contains the pinned localhost leaf followed by the development CA; it is public certificate
+material, not a private key. Regenerate the whole development directory when the leaf expires.
 
 Open the printed relay TCP endpoint from another terminal. Type `stop` in the CLI to close it cleanly.
 

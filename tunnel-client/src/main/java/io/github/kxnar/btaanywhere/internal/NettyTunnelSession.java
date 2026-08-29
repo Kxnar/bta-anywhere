@@ -41,11 +41,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 public final class NettyTunnelSession implements TunnelSession {
 	private final NioEventLoopGroup group;
 	private final TunnelConfig config;
 	private final InetSocketAddress localTarget;
+	private final Consumer<TunnelEvent> eventObserver;
 	private final SubmissionPublisher<TunnelEvent> publisher = new SubmissionPublisher<>();
 	private final CompletableFuture<TunnelSession> opened = new CompletableFuture<>();
 	private final CompletableFuture<Void> closed = new CompletableFuture<>();
@@ -66,10 +68,16 @@ public final class NettyTunnelSession implements TunnelSession {
 	private volatile ScheduledFuture<?> heartbeatTask;
 	private volatile ScheduledFuture<?> reconnectTask;
 
-	public NettyTunnelSession(NioEventLoopGroup group, TunnelConfig config, InetSocketAddress localTarget) {
+	public NettyTunnelSession(
+		NioEventLoopGroup group,
+		TunnelConfig config,
+		InetSocketAddress localTarget,
+		Consumer<TunnelEvent> eventObserver
+	) {
 		this.group = Objects.requireNonNull(group, "group");
 		this.config = Objects.requireNonNull(config, "config");
 		this.localTarget = Objects.requireNonNull(localTarget, "localTarget");
+		this.eventObserver = Objects.requireNonNull(eventObserver, "eventObserver");
 	}
 
 	public CompletionStage<TunnelSession> start() {
@@ -386,7 +394,13 @@ public final class NettyTunnelSession implements TunnelSession {
 
 	private void emit(TunnelState newState, String message, Throwable failure) {
 		state.set(newState);
-		publisher.submit(new TunnelEvent(Instant.now(), newState, message, failure));
+		TunnelEvent event = new TunnelEvent(Instant.now(), newState, message, failure);
+		try {
+			eventObserver.accept(event);
+		} catch (RuntimeException ignored) {
+			// Observability must never interfere with tunnel state transitions.
+		}
+		publisher.submit(event);
 	}
 
 	String sessionId() {

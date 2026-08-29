@@ -104,7 +104,10 @@ Apply firewall rules with your provider and OS firewall for UDP 25575 and TCP 30
 
 ## Configure a host
 
-Copy the public CA chain (never the private key) beneath the BTA game directory and configure `config/bta-anywhere.json` as shown in [Quick-start](quick-start.md). If using a publicly trusted certificate, still point the mod at the PEM trust file; v0.1 intentionally uses explicit relay trust.
+Copy a public PEM trust bundle containing the relay leaf followed by its issuer chain (never the
+private key) beneath the BTA game directory and configure `config/bta-anywhere.json` as shown in
+[Quick-start](quick-start.md). Even with a publicly trusted certificate, v0.1 intentionally requires
+an explicit relay trust file.
 
 ## Development relay
 
@@ -115,7 +118,9 @@ bta-anywhere-relay init-dev --output .dev/relay
 bta-anywhere-relay run --config .dev/relay/relay.toml
 ```
 
-`init-dev` creates a private test CA, its private key, a CA-signed localhost certificate, and a token. The directory is ignored by Git. Do not reuse development credentials on a public relay.
+`init-dev` creates a private test CA, its private key, a CA-signed localhost certificate, a client
+`trust.pem` bundle, and a token. The directory is ignored by Git. Do not reuse development
+credentials on a public relay.
 
 ## Operations
 

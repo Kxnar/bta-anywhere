@@ -24,8 +24,11 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 	private final NettyTunnelSession session;
 	private ByteBuf headerBuffer;
 	private int expectedLength = -1;
-	private Channel localChannel;
+	private volatile Channel localChannel;
 	private ByteBuf pendingPayload;
+	private volatile boolean quicInputShutdown;
+	private volatile boolean localWritePending;
+	private boolean localOutputShutdown;
 
 	IncomingTunnelHandler(NettyTunnelSession session) {
 		this.session = session;
@@ -170,6 +173,8 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 				ByteBuf payload = pendingPayload;
 				pendingPayload = null;
 				writeToLocal(quicContext, payload);
+			} else if (quicInputShutdown) {
+				shutdownLocalOutputIfReady();
 			} else {
 				quicContext.read();
 			}
@@ -183,9 +188,15 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 			quicContext.close();
 			return;
 		}
+		localWritePending = true;
 		local.writeAndFlush(payload).addListener(result -> {
+			localWritePending = false;
 			if (result.isSuccess()) {
-				quicContext.read();
+				if (quicInputShutdown) {
+					shutdownLocalOutputIfReady();
+				} else {
+					quicContext.read();
+				}
 			} else {
 				quicContext.close();
 			}
@@ -207,12 +218,21 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 	@Override
 	public void userEventTriggered(ChannelHandlerContext context, Object event) throws Exception {
 		if (event == ChannelInputShutdownEvent.INSTANCE || event == ChannelInputShutdownReadComplete.INSTANCE) {
-			if (localChannel instanceof DuplexChannel duplex && localChannel.isActive()) {
-				duplex.shutdownOutput();
-			}
+			quicInputShutdown = true;
+			shutdownLocalOutputIfReady();
 			return;
 		}
 		super.userEventTriggered(context, event);
+	}
+
+	private synchronized void shutdownLocalOutputIfReady() {
+		if (!quicInputShutdown || localWritePending || localOutputShutdown) {
+			return;
+		}
+		if (localChannel instanceof DuplexChannel duplex && localChannel.isActive()) {
+			localOutputShutdown = true;
+			duplex.shutdownOutput();
+		}
 	}
 
 	@Override
@@ -229,6 +249,9 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 
 	private static final class LocalToQuicHandler extends ChannelInboundHandlerAdapter {
 		private final Channel quicChannel;
+		private volatile boolean localInputShutdown;
+		private volatile boolean quicWritePending;
+		private boolean quicOutputShutdown;
 
 		LocalToQuicHandler(Channel quicChannel) {
 			this.quicChannel = quicChannel;
@@ -241,9 +264,15 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 
 		@Override
 		public void channelRead(ChannelHandlerContext context, Object message) {
+			quicWritePending = true;
 			quicChannel.writeAndFlush(message).addListener(result -> {
+				quicWritePending = false;
 				if (result.isSuccess()) {
-					context.read();
+					if (localInputShutdown) {
+						shutdownQuicOutputIfReady();
+					} else {
+						context.read();
+					}
 				} else {
 					context.close();
 				}
@@ -260,12 +289,21 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 		@Override
 		public void userEventTriggered(ChannelHandlerContext context, Object event) throws Exception {
 			if (event == ChannelInputShutdownEvent.INSTANCE || event == ChannelInputShutdownReadComplete.INSTANCE) {
-				if (quicChannel instanceof DuplexChannel duplex && quicChannel.isActive()) {
-					duplex.shutdownOutput();
-				}
+				localInputShutdown = true;
+				shutdownQuicOutputIfReady();
 				return;
 			}
 			super.userEventTriggered(context, event);
+		}
+
+		private synchronized void shutdownQuicOutputIfReady() {
+			if (!localInputShutdown || quicWritePending || quicOutputShutdown) {
+				return;
+			}
+			if (quicChannel instanceof DuplexChannel duplex && quicChannel.isActive()) {
+				quicOutputShutdown = true;
+				duplex.shutdownOutput();
+			}
 		}
 
 		@Override

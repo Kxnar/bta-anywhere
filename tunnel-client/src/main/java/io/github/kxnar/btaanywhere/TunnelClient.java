@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 /** Entry point for opening relay tunnels to arbitrary local TCP services. */
 public final class TunnelClient implements AutoCloseable {
@@ -35,15 +36,29 @@ public final class TunnelClient implements AutoCloseable {
 	}
 
 	public CompletionStage<TunnelSession> open(TunnelConfig config, InetSocketAddress localTarget) {
+		return open(config, localTarget, ignored -> { });
+	}
+
+	/**
+	 * Opens a tunnel and observes lifecycle events, including connection failures that happen before
+	 * the public endpoint is assigned. The observer runs on a tunnel event-loop thread, must return
+	 * quickly, and cannot interrupt the tunnel if it throws.
+	 */
+	public CompletionStage<TunnelSession> open(
+		TunnelConfig config,
+		InetSocketAddress localTarget,
+		Consumer<TunnelEvent> eventObserver
+	) {
 		Objects.requireNonNull(config, "config");
 		Objects.requireNonNull(localTarget, "localTarget");
+		Objects.requireNonNull(eventObserver, "eventObserver");
 		if (closed.get()) {
 			return CompletableFuture.failedFuture(new IllegalStateException("tunnel client is closed"));
 		}
 		if (localTarget.getPort() < 1 || localTarget.getPort() > 65_535) {
 			return CompletableFuture.failedFuture(new IllegalArgumentException("invalid local target port"));
 		}
-		NettyTunnelSession session = new NettyTunnelSession(eventLoopGroup, config, localTarget);
+		NettyTunnelSession session = new NettyTunnelSession(eventLoopGroup, config, localTarget, eventObserver);
 		sessions.add(session);
 		session.closed().whenComplete((ignored, failure) -> sessions.remove(session));
 		return session.start();

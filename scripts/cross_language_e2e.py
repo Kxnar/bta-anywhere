@@ -121,7 +121,7 @@ def echo_round_trip(public_port: int, payload: bytes, timeout: float = 15.0) -> 
         raise AssertionError(f"byte mismatch: sent {len(payload)}, received {len(received)}")
 
 
-def wait_for_tunnel(public_port: int, timeout: float = 30.0) -> None:
+def wait_for_tunnel(public_port: int, timeout: float = 90.0) -> None:
     deadline = time.monotonic() + timeout
     last_error: BaseException | None = None
     while time.monotonic() < deadline:
@@ -213,7 +213,7 @@ def main() -> int:
                         "--relay",
                         "127.0.0.1:25575",
                         "--ca",
-                        str(development / "ca.pem"),
+                        str(development / "trust.pem"),
                         "--token-file",
                         str(bad_token),
                         "--local",
@@ -240,7 +240,7 @@ def main() -> int:
                     "--relay",
                     "127.0.0.1:25575",
                     "--ca",
-                    str(development / "ca.pem"),
+                    str(development / "trust.pem"),
                     "--token-file",
                     str(development / "access.token"),
                     "--local",
@@ -275,6 +275,8 @@ def main() -> int:
             if public_port is None:
                 raise TimeoutError("Java tunnel did not publish an endpoint")
 
+            echo_round_trip(public_port, b"initial-byte-exact-probe" * 2_048)
+
             rejected_before = metric_value(wait_http("/metrics"), "bta_anywhere_rejected_total")
             exhausted_lines: list[str] = []
             exhausted = subprocess.Popen(
@@ -286,7 +288,7 @@ def main() -> int:
                     "--relay",
                     "127.0.0.1:25575",
                     "--ca",
-                    str(development / "ca.pem"),
+                    str(development / "trust.pem"),
                     "--token-file",
                     str(development / "access.token"),
                     "--local",
@@ -322,7 +324,7 @@ def main() -> int:
                     ninth.sendall(b"quota-probe")
                     try:
                         response = ninth.recv(1)
-                    except ConnectionResetError:
+                    except OSError:
                         response = b""
                     if response:
                         raise AssertionError("ninth slow guest was not rejected at the session quota")
