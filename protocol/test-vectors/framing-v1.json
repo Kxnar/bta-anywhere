@@ -1,0 +1,55 @@
+{
+  "protocolVersion": 1,
+  "alpn": "bta-anywhere/1",
+  "encoding": "four-byte big-endian length followed by UTF-8 JSON",
+  "frames": [
+    {
+      "name": "register",
+      "json": "{\"type\":\"register\",\"version\":1,\"accessToken\":\"test-access-token\",\"clientInstanceId\":\"11111111-2222-3333-4444-555555555555\"}",
+      "payloadLength": 123,
+      "frameHex": "0000007b7b2274797065223a227265676973746572222c2276657273696f6e223a312c22616363657373546f6b656e223a22746573742d6163636573732d746f6b656e222c22636c69656e74496e7374616e63654964223a2231313131313131312d323232322d333333332d343434342d353535353535353535353535227d"
+    },
+    {
+      "name": "register-resume",
+      "json": "{\"type\":\"register\",\"version\":1,\"accessToken\":\"test-access-token\",\"clientInstanceId\":\"11111111-2222-3333-4444-555555555555\",\"resumeToken\":\"resume-token\"}",
+      "payloadLength": 152,
+      "frameHex": "000000987b2274797065223a227265676973746572222c2276657273696f6e223a312c22616363657373546f6b656e223a22746573742d6163636573732d746f6b656e222c22636c69656e74496e7374616e63654964223a2231313131313131312d323232322d333333332d343434342d353535353535353535353535222c22726573756d65546f6b656e223a22726573756d652d746f6b656e227d"
+    },
+    {
+      "name": "registered",
+      "json": "{\"type\":\"registered\",\"sessionId\":\"session-token\",\"publicHost\":\"relay.example.test\",\"publicPort\":30000,\"resumeToken\":\"resume-token\",\"leaseSeconds\":90}",
+      "payloadLength": 149,
+      "frameHex": "000000957b2274797065223a2272656769737465726564222c2273657373696f6e4964223a2273657373696f6e2d746f6b656e222c227075626c6963486f7374223a2272656c61792e6578616d706c652e74657374222c227075626c6963506f7274223a33303030302c22726573756d65546f6b656e223a22726573756d652d746f6b656e222c226c656173655365636f6e6473223a39307d"
+    },
+    {
+      "name": "ping",
+      "json": "{\"type\":\"ping\",\"sequence\":42}",
+      "payloadLength": 29,
+      "frameHex": "0000001d7b2274797065223a2270696e67222c2273657175656e6365223a34327d"
+    },
+    {
+      "name": "pong",
+      "json": "{\"type\":\"pong\",\"sequence\":42}",
+      "payloadLength": 29,
+      "frameHex": "0000001d7b2274797065223a22706f6e67222c2273657175656e6365223a34327d"
+    },
+    {
+      "name": "close",
+      "json": "{\"type\":\"close\",\"reason\":\"host stopped\"}",
+      "payloadLength": 40,
+      "frameHex": "000000287b2274797065223a22636c6f7365222c22726561736f6e223a22686f73742073746f70706564227d"
+    },
+    {
+      "name": "error",
+      "json": "{\"type\":\"error\",\"code\":\"authentication_failed\",\"message\":\"access token was not accepted\",\"retryable\":false}",
+      "payloadLength": 107,
+      "frameHex": "0000006b7b2274797065223a226572726f72222c22636f6465223a2261757468656e7469636174696f6e5f6661696c6564222c226d657373616765223a2261636365737320746f6b656e20776173206e6f74206163636570746564222c22726574727961626c65223a66616c73657d"
+    },
+    {
+      "name": "connection-open",
+      "json": "{\"version\":1,\"sessionId\":\"session-token\",\"connectionId\":\"connection-token\",\"remoteAddress\":\"203.0.113.9:49152\"}",
+      "payloadLength": 111,
+      "frameHex": "0000006f7b2276657273696f6e223a312c2273657373696f6e4964223a2273657373696f6e2d746f6b656e222c22636f6e6e656374696f6e4964223a22636f6e6e656374696f6e2d746f6b656e222c2272656d6f746541646472657373223a223230332e302e3131332e393a3439313532227d"
+    }
+  ]
+}

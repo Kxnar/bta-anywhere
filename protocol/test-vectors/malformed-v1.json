@@ -1,0 +1,25 @@
+{
+  "maximumPayloadBytes": 65536,
+  "cases": [
+    {
+      "name": "oversized-prefix",
+      "frameHex": "00010001",
+      "expected": "reject before allocating payload"
+    },
+    {
+      "name": "invalid-json",
+      "frameHex": "000000017b",
+      "expected": "reject as invalid JSON"
+    },
+    {
+      "name": "empty-json",
+      "frameHex": "00000000",
+      "expected": "reject as invalid JSON"
+    },
+    {
+      "name": "unsupported-version",
+      "frameHex": "0000007b7b2274797065223a227265676973746572222c2276657273696f6e223a322c22616363657373546f6b656e223a22746573742d6163636573732d746f6b656e222c22636c69656e74496e7374616e63654964223a2231313131313131312d323232322d333333332d343434342d353535353535353535353535227d",
+      "expected": "error unsupported_version"
+    }
+  ]
+}
