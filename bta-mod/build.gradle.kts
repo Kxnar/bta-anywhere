@@ -10,7 +10,12 @@ base.archivesName = "bta-anywhere"
 version = "0.1.0+bta8.0.1"
 
 val shadowBundle = configurations.create("shadowBundle")
-val lwjglNatives = resolveLwjglNatives()
+val buildOs = System.getProperty("os.name")
+val buildArchitecture = System.getProperty("os.arch")
+require(buildOs.startsWith("Windows") && buildArchitecture in setOf("amd64", "x86_64")) {
+	"BTA Anywhere v0.1 builds require Windows x86-64; detected $buildOs/$buildArchitecture"
+}
+val lwjglNatives = "natives-windows"
 
 loom {
 	customMinecraftMetadata.set(
@@ -103,26 +108,4 @@ configurations.configureEach {
 	exclude(group = "net.java.jinput")
 	exclude(group = "net.sf.jopt-simple")
 	exclude(group = "net.minecraft", module = "launchwrapper")
-}
-
-fun resolveLwjglNatives(): String {
-	val name = System.getProperty("os.name")
-	val architecture = System.getProperty("os.arch")
-	return when {
-		name.startsWith("Linux") || name.startsWith("SunOS") || name.startsWith("Unit") ->
-			if (architecture.startsWith("arm") || architecture.startsWith("aarch64")) {
-				"natives-linux${if (architecture.contains("64") || architecture.startsWith("armv8")) "-arm64" else "-arm32"}"
-			} else {
-				"natives-linux"
-			}
-		name.startsWith("Mac OS X") || name.startsWith("Darwin") ->
-			"natives-macos${if (architecture.startsWith("aarch64")) "-arm64" else ""}"
-		name.startsWith("Windows") ->
-			if (architecture.contains("64")) {
-				"natives-windows${if (architecture.startsWith("aarch64")) "-arm64" else ""}"
-			} else {
-				"natives-windows-x86"
-			}
-		else -> error("Unsupported platform: $name/$architecture")
-	}
 }

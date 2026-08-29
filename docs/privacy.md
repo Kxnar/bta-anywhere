@@ -28,7 +28,7 @@ The mod stores:
 - process identity and recovery paths in `recovery.json`;
 - a high-entropy supervisor control secret in a private managed control file.
 
-POSIX files containing secrets are restricted to the owner where supported. On Windows they inherit ACLs from the user's game directory. Protect backups and logs like the original save. Server logs may contain usernames, chat, commands, addresses, or mod-specific data.
+Files containing secrets inherit Windows ACLs from the user's game directory. Protect backups and logs like the original save. Server logs may contain usernames, chat, commands, addresses, or mod-specific data.
 
 ## Metrics and logs
 

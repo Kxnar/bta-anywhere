@@ -5,6 +5,8 @@ BTA Anywhere turns a Better Than Adventure! 8.0.1 single-player world into a tem
 > [!IMPORTANT]
 > BTA Anywhere does not operate a public relay. Direct mode depends on the host's router and ISP. Relay mode works only after you configure a relay you trust.
 
+v0.1 supports Windows x86-64 only. On Windows ARM64, use an x86-64 Java/BTA runtime under Windows emulation.
+
 ## Hosting modes
 
 | Mode | Address shown | Best for | Important limitation |
@@ -26,10 +28,10 @@ Live mode closes the client world before the dedicated server opens it and creat
 ## What v0.1 includes
 
 - A Rust 2024 relay using Tokio, Quinn QUIC, per-session public TCP ports, hashed access tokens, quotas, leases, health checks, and Prometheus metrics.
-- A Minecraft-independent Java 17 tunnel API and CLI with bounded Netty bridges, half-close support, reconnect/resume, explicit CA trust, and native QUIC libraries for Linux and macOS x86-64/ARM64 plus Windows x86-64.
+- A Minecraft-independent Java 17 tunnel API and CLI with bounded Netty bridges, half-close support, reconnect/resume, explicit CA trust, and a Windows x86-64 native QUIC transport.
 - A client-only Babric/HalpLibe mod with safe world handoff, atomic backups, showcase copies, official-server verification, mod mirroring, readiness detection, authenticated process supervision, and crash recovery.
 
-Netty QUIC 0.0.73.Final does not publish a Windows ARM64 native classifier. Windows ARM64 users must currently run the x86-64 Java/BTA stack under platform emulation; Linux and macOS ARM64 natives are included.
+Netty QUIC 0.0.73.Final does not publish a Windows ARM64 native classifier, so every v0.1 artifact targets Windows x86-64.
 
 ## Repository layout
 
@@ -44,14 +46,14 @@ Netty QUIC 0.0.73.Final does not publish a Windows ARM64 native classifier. Wind
 
 Use JDK 21 to run Gradle, Java release 17 for compiled code, and Rust 1.85 or newer:
 
-```text
-./gradlew check build
+```powershell
+.\gradlew.bat check build
 cargo fmt --all -- --check
 cargo clippy --locked --all-targets -- -D warnings
 cargo test --locked --all
 ```
 
-Windows developers can install the pinned, checksum-verified portable Temurin build with `scripts/bootstrap-jdk.ps1`. Complete setup and integration-test commands are in [Building](docs/building.md).
+Install the pinned, checksum-verified portable Temurin build with `scripts/bootstrap-jdk.ps1`. Complete setup and integration-test commands are in [Building](docs/building.md).
 
 ## Security and privacy
 

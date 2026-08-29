@@ -1,5 +1,7 @@
 # Building and testing
 
+v0.1 builds and tests on Windows x86-64 only.
+
 ## Toolchains
 
 - Gradle wrapper 9.3.1, run on JDK 21.
@@ -19,27 +21,27 @@ $env:JAVA_HOME = (Resolve-Path .\.tools\jdk-21)
 .\gradlew.bat --version
 ```
 
-The bootstrap script downloads Temurin 21.0.12.1+1 for Windows x86-64 and verifies SHA-256 `f9d6e191ab098c0d416e7d588a24420a8621cd2f4720dab2459b8b7b2d2d8b4e` before extraction. Other platforms should install a trusted JDK 21 distribution normally.
+The bootstrap script downloads Temurin 21.0.12.1+1 for Windows x86-64 and verifies SHA-256 `f9d6e191ab098c0d416e7d588a24420a8621cd2f4720dab2459b8b7b2d2d8b4e` before extraction.
 
 ## Automated gates
 
-```text
+```powershell
 cargo fmt --all -- --check
-python3 scripts/check_rust_licenses.py
+python scripts\check_rust_licenses.py
 cargo clippy --locked --all-targets -- -D warnings
 cargo test --locked --all
-./gradlew --no-daemon check build
+.\gradlew.bat --no-daemon check build
 ```
 
-On Windows, replace `./gradlew` with `.\gradlew.bat`. Build outputs are:
+Build outputs are:
 
-- `relay/../target/release/bta-anywhere-relay[.exe]`
+- `target/release/bta-anywhere-relay.exe`
 - `tunnel-client/build/libs/bta-anywhere-tunnel-0.1.0-all.jar`
 - `bta-mod/build/libs/bta-anywhere-0.1.0+bta8.0.1.jar`
 
-Run the shaded-native smoke test on every target OS:
+Run the shaded-native Windows smoke test:
 
-```text
+```powershell
 java -jar tunnel-client/build/libs/bta-anywhere-tunnel-0.1.0-all.jar doctor
 ```
 
@@ -47,12 +49,13 @@ java -jar tunnel-client/build/libs/bta-anywhere-tunnel-0.1.0-all.jar doctor
 
 Build the release relay and tunnel CLI, then let the standard-library integration harness create a private development CA/token, start an echo service, open eight concurrent streams, verify byte-exact half-closes and metrics, restart the relay, and verify recovery:
 
-```text
+```powershell
 cargo build --locked --release --package bta-anywhere-relay
-./gradlew --no-daemon :tunnel-client:shadowJar
-python3 scripts/cross_language_e2e.py \
-  --relay-binary target/release/bta-anywhere-relay \
-  --tunnel-jar tunnel-client/build/libs/bta-anywhere-tunnel-0.1.0-all.jar \
+.\gradlew.bat --no-daemon :tunnel-client:shadowJar
+python scripts\cross_language_e2e.py `
+  --relay-binary target\release\bta-anywhere-relay.exe `
+  --tunnel-jar tunnel-client\build\libs\bta-anywhere-tunnel-0.1.0-all.jar `
+  --java .tools\jdk-21\bin\java.exe `
   --concurrency-waves 100
 ```
 
@@ -78,18 +81,16 @@ python scripts\windows_half_close_smoke.py `
 45,076-byte regression size. Failure output includes the iteration label, guest
 source port, relay metrics, and bounded process logs.
 
-On Windows, supply `target\release\bta-anywhere-relay.exe` and use the portable JDK's `java.exe` with `--java` when Java is not on `PATH`.
-
 ## Manual tunnel test
 
-```text
+```powershell
 bta-anywhere-relay init-dev --output .dev/relay
 bta-anywhere-relay run --config .dev/relay/relay.toml
-python3 -m http.server 8000 --bind 127.0.0.1
-java -jar bta-anywhere-tunnel-0.1.0-all.jar expose \
-  --relay localhost:25575 \
-  --ca .dev/relay/trust.pem \
-  --token-file .dev/relay/access.token \
+python -m http.server 8000 --bind 127.0.0.1
+java -jar bta-anywhere-tunnel-0.1.0-all.jar expose `
+  --relay localhost:25575 `
+  --ca .dev/relay/trust.pem `
+  --token-file .dev/relay/access.token `
   --local 127.0.0.1:8000
 ```
 
@@ -101,6 +102,6 @@ Open the printed relay TCP endpoint from another terminal. Type `stop` in the CL
 
 ## BTA development launch
 
-`./gradlew :bta-mod:runClient` downloads development-only BTA artifacts through Loom and opens a client. Use a disposable game directory/world. Do not publish anything from `run/` or the Gradle/Loom caches.
+`.\gradlew.bat :bta-mod:runClient` downloads development-only BTA artifacts through Loom and opens a client. Use a disposable game directory/world. Do not publish anything from `run/` or the Gradle/Loom caches.
 
 Before a release, complete the manual matrix in [Releasing](releasing.md). Automated tests do not prove that every third-party gameplay mod is dedicated-server compatible.

@@ -50,8 +50,8 @@ Do not bypass the guard while a matching managed server or supervisor is alive. 
 
 ## Native QUIC library fails to load
 
-The release JAR contains Linux and macOS x86-64/ARM64 natives and a Windows x86-64 native. Run a Java architecture matching one of those classifiers. Netty QUIC 0.0.73.Final does not publish Windows ARM64; use an x86-64 Java/BTA runtime under Windows ARM64 emulation.
+The release JAR contains the Windows x86-64 native. Use an x86-64 Java runtime. Netty QUIC 0.0.73.Final does not publish Windows ARM64; use an x86-64 Java/BTA runtime under Windows ARM64 emulation.
 
 ## Information for a bug report
 
-Include the OS/architecture, BTA/Babric/HalpLibe versions, network/world mode, exact failure state, sanitized server/mod logs, and steps using a disposable world. Remove tokens, private keys, public/private player data, IP addresses, and saves unless a maintainer asks for a minimal private reproduction.
+Include the Windows version and architecture, BTA/Babric/HalpLibe versions, network/world mode, exact failure state, sanitized server/mod logs, and steps using a disposable world. Remove tokens, private keys, public/private player data, IP addresses, and saves unless a maintainer asks for a minimal private reproduction.

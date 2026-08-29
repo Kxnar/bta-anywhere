@@ -29,6 +29,7 @@ The relay access token controls who may allocate relay ports. It is not a guest 
 
 ## Known limitations
 
+- v0.1 builds, tests, and releases only for Windows x86-64.
 - Guest game traffic is not end-to-end encrypted and can be inspected or changed by the relay.
 - v0.1 has no guest companion authentication layer, broker, multi-region routing, DDoS absorption, hole punching, or public relay service.
 - Source-IP quotas are in-memory and per relay process. Restarting the process clears them.

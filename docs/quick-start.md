@@ -2,6 +2,8 @@
 
 This guide is for a host using the released BTA mod. Relay operators should also read [Self-hosting](self-hosting.md).
 
+v0.1 supports Windows x86-64. Windows ARM64 hosts must use an x86-64 Java/BTA runtime under Windows emulation.
+
 ## Before the first session
 
 1. Back up anything irreplaceable and start with a disposable world. v0.1 has automated safety checks, but its manual compatibility matrix still depends on the installed mod set and machine.

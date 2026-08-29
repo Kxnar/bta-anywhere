@@ -4,20 +4,20 @@ A release is allowed only after automated gates, disposable-world manual gates, 
 
 ## 1. Prepare the tree
 
-```text
+```powershell
 git status --short
 cargo fmt --all -- --check
-python3 scripts/check_rust_licenses.py
+python scripts\check_rust_licenses.py
 cargo clippy --locked --all-targets -- -D warnings
 cargo test --locked --all
-./gradlew --no-daemon clean check build
+.\gradlew.bat --no-daemon clean check build
 ```
 
-Run `scripts/cross_language_e2e.py` as documented in [Building](building.md), and run the shaded CLI `doctor` on Windows, Linux, and macOS CI.
+Run `scripts/cross_language_e2e.py` and `scripts/windows_half_close_smoke.py` as documented in [Building](building.md), and run the shaded CLI `doctor` on Windows CI.
 
 ## 2. Manual disposable-world matrix
 
-Record the OS, architecture, Java runtime, BTA profile, and mod list with each result.
+Record the Windows version, architecture, Java runtime, BTA profile, and mod list with each result.
 
 - [ ] Live mode preserves inventory, position, achievements, player UUID data, and world state after hosting and reopening.
 - [ ] Showcase mode leaves a pre-session hash/tree snapshot of the original world byte-for-byte unchanged.
@@ -79,7 +79,7 @@ The release workflow builds:
 
 - the BTA mod JAR;
 - the Java tunnel fat JAR;
-- relay binaries for Linux x86-64, Windows x86-64, and macOS x86-64/ARM64;
+- the Windows x86-64 relay executable;
 - `SHA256SUMS`, `LICENSE`, `THIRD_PARTY_NOTICES.md`, and the generated Rust dependency inventory and full notice text bundle.
 
 After publication, download every asset from GitHub, verify `SHA256SUMS`, run the CLI doctor, inspect the mod metadata again, and confirm the release contains no game/server archive. A release is not complete merely because the workflow uploaded files.

@@ -25,16 +25,8 @@ dependencies {
 		exclude(group = "org.slf4j", module = "slf4j-simple")
 	}
 
-	listOf(
-		"linux-x86_64",
-		"linux-aarch_64",
-		"osx-x86_64",
-		"osx-aarch_64",
-		"windows-x86_64"
-	).forEach { classifier ->
-		implementation("io.netty.incubator:netty-incubator-codec-native-quic:${libs.versions.nettyQuic.get()}:$classifier") {
-			exclude(group = "io.netty")
-		}
+	implementation("io.netty.incubator:netty-incubator-codec-native-quic:${libs.versions.nettyQuic.get()}:windows-x86_64") {
+		exclude(group = "io.netty")
 	}
 
 	testImplementation(platform(libs.junit.bom))
