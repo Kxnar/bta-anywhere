@@ -17,8 +17,8 @@ pub fn hash_hex(token: &str) -> String {
     hex::encode(hash(token))
 }
 
-pub fn matches(token: &str, expected: &[u8; 32]) -> bool {
-    bool::from(hash(token).ct_eq(expected))
+pub fn matches_hash(candidate: &[u8; 32], expected: &[u8; 32]) -> bool {
+    bool::from(candidate.ct_eq(expected))
 }
 
 #[cfg(test)]
@@ -37,7 +37,7 @@ mod tests {
     #[test]
     fn matches_only_original_token() {
         let expected = hash("correct");
-        assert!(matches("correct", &expected));
-        assert!(!matches("wrong", &expected));
+        assert!(matches_hash(&hash("correct"), &expected));
+        assert!(!matches_hash(&hash("wrong"), &expected));
     }
 }

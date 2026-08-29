@@ -128,7 +128,7 @@ impl RelayState {
         self.inner
             .token_hashes
             .iter()
-            .find(|configured| bool::from(candidate.ct_eq(*configured)))
+            .find(|configured| token::matches_hash(&candidate, configured))
             .copied()
     }
 

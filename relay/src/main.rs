@@ -6,7 +6,6 @@ mod token;
 
 use std::{
     io::BufRead,
-    net::SocketAddr,
     path::{Path, PathBuf},
     sync::Arc,
     time::Duration,
@@ -287,9 +286,10 @@ async fn handle_connection(state: RelayState, connection: quinn::Connection) -> 
                     break Err(error.into());
                 }
             }
-            Ok(Ok(ClientControl::Close { reason: _ })) => {
+            Ok(Ok(ClientControl::Close { reason })) => {
                 info!(
                     port = registration.session.public_port,
+                    reason_length = reason.len(),
                     "host closed session"
                 );
                 immediate = true;
@@ -485,10 +485,12 @@ async fn init_dev(output: &Path) -> Result<()> {
     let certificate_pem = format!("{}{}", server_certificate.pem(), ca_certificate.pem());
     let key_pem = server_key.serialize_pem();
     let token = token::generate();
-    let mut config = RelayConfig::default();
-    config.certificate_path = "server.pem".into();
-    config.private_key_path = "server-key.pem".into();
-    config.access_token_hashes = vec![token::hash_hex(&token)];
+    let config = RelayConfig {
+        certificate_path: "server.pem".into(),
+        private_key_path: "server-key.pem".into(),
+        access_token_hashes: vec![token::hash_hex(&token)],
+        ..RelayConfig::default()
+    };
     config.validate()?;
 
     tokio::fs::write(output.join("server.pem"), &certificate_pem).await?;
@@ -521,7 +523,6 @@ async fn write_private(path: &Path, contents: &[u8]) -> Result<()> {
     options.write(true).create_new(true);
     #[cfg(unix)]
     {
-        use std::os::unix::fs::OpenOptionsExt;
         options.mode(0o600);
     }
     let mut file = options
