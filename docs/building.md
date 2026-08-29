@@ -58,6 +58,26 @@ python3 scripts/cross_language_e2e.py \
 
 `--concurrency-waves` accepts 1-100 waves of eight simultaneous byte-exact streams. CI uses the maximum 100-wave stress gate.
 
+## Windows half-close smoke test
+
+Run the serial smoke test to validate the complete Windows relay-to-tunnel path.
+It starts temporary development credentials, exposes one local echo socket
+through the production tunnel, and sends exactly one labelled bidirectional
+stream at a time. Each iteration asserts byte-exact payload delivery, TCP EOF,
+and relay task cleanup before the next connection.
+
+```powershell
+python scripts\windows_half_close_smoke.py `
+  --relay-binary target\release\bta-anywhere-relay.exe `
+  --tunnel-jar tunnel-client\build\libs\bta-anywhere-tunnel-0.1.0-all.jar `
+  --java .tools\jdk-21\bin\java.exe `
+  --iterations 100 --event-loop-threads 1
+```
+
+`--payload-bytes` is the complete labelled transfer length and defaults to the
+45,076-byte regression size. Failure output includes the iteration label, guest
+source port, relay metrics, and bounded process logs.
+
 On Windows, supply `target\release\bta-anywhere-relay.exe` and use the portable JDK's `java.exe` with `--java` when Java is not on `PATH`.
 
 ## Manual tunnel test
