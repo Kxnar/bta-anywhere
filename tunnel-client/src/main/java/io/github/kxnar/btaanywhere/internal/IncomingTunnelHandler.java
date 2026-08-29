@@ -16,10 +16,25 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.incubator.codec.quic.QuicStreamChannel;
 import io.netty.util.ReferenceCountUtil;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /** Parses one connection header and then bridges the remaining stream to the local service. */
 final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 	private static final Gson GSON = new Gson();
+	private static final boolean TRACE_BRIDGE = Boolean.getBoolean("btaanywhere.bridgeTrace");
+	private static final int TRACE_CAPACITY = 2_048;
+	private static final AtomicLong TRACE_SEQUENCE = new AtomicLong();
+	private static final AtomicReferenceArray<String> TRACE_EVENTS = new AtomicReferenceArray<>(TRACE_CAPACITY);
+
+	static {
+		if (TRACE_BRIDGE) {
+			Runtime.getRuntime().addShutdownHook(new Thread(
+				IncomingTunnelHandler::dumpTrace,
+				"bta-anywhere-bridge-trace"
+			));
+		}
+	}
 	private final NettyTunnelSession session;
 	private ByteBuf headerBuffer;
 	private int expectedLength = -1;
@@ -35,6 +50,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 
 	@Override
 	public void channelActive(ChannelHandlerContext context) {
+		trace(context.channel(), "quic-active");
 		context.channel().config().setAutoRead(false);
 		headerBuffer = context.alloc().buffer(256, ControlFrameDecoder.MAX_FRAME_SIZE + Integer.BYTES);
 		context.read();
@@ -60,7 +76,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 			input.release();
 		}
 		if (!parseHeader(context)) {
-			context.read();
+			requestRead(context);
 		}
 	}
 
@@ -158,6 +174,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 			.connect(session.localTarget());
 		future.addListener(result -> {
 			if (!result.isSuccess()) {
+				trace(quicContext.channel(), "local-connect-failed " + result.cause());
 				releasePending();
 				quicContext.close();
 				return;
@@ -168,6 +185,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 				return;
 			}
 			localChannel = future.channel();
+			trace(quicContext.channel(), "local-connected " + future.channel().localAddress());
 			if (pendingPayload != null) {
 				ByteBuf payload = pendingPayload;
 				pendingPayload = null;
@@ -175,7 +193,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 			} else if (quicInputShutdown) {
 				scheduleLocalOutputShutdown();
 			} else {
-				quicContext.read();
+				requestRead(quicContext);
 			}
 		});
 	}
@@ -187,14 +205,16 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 			quicContext.close();
 			return;
 		}
+		trace(quicContext.channel(), "local-write-start bytes=" + payload.readableBytes());
 		ChannelFuture write = local.writeAndFlush(payload);
 		lastLocalWrite = write;
 		write.addListener(result -> {
+			trace(quicContext.channel(), "local-write-done success=" + result.isSuccess());
 			if (result.isSuccess()) {
 				if (quicInputShutdown) {
 					scheduleLocalOutputShutdown();
 				} else {
-					quicContext.read();
+					requestRead(quicContext);
 				}
 			} else {
 				closePair(quicContext.channel(), local);
@@ -204,6 +224,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 
 	@Override
 	public void channelInactive(ChannelHandlerContext context) {
+		trace(context.channel(), "quic-inactive");
 		releasePending();
 		if (headerBuffer != null) {
 			headerBuffer.release();
@@ -217,6 +238,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 	@Override
 	public void userEventTriggered(ChannelHandlerContext context, Object event) throws Exception {
 		if (event == ChannelInputShutdownEvent.INSTANCE || event == ChannelInputShutdownReadComplete.INSTANCE) {
+			trace(context.channel(), "quic-input-shutdown " + event.getClass().getSimpleName());
 			quicInputShutdown = true;
 			scheduleLocalOutputShutdown();
 			return;
@@ -239,6 +261,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 			// rather than a boolean that an earlier write completion could clear.
 			tail = lastLocalWrite;
 		}
+		trace(local, "local-output-scheduled tail=" + (tail == null ? "none" : tail.isDone()));
 		if (tail == null) {
 			local.eventLoop().execute(() -> shutdownLocalOutput(duplex, local));
 		} else {
@@ -254,9 +277,12 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 
 	private static void shutdownLocalOutput(DuplexChannel duplex, Channel local) {
 		if (!local.isActive() || duplex.isOutputShutdown()) {
+			trace(local, "local-output-skip active=" + local.isActive()
+				+ " shutdown=" + duplex.isOutputShutdown());
 			return;
 		}
 		duplex.shutdownOutput().addListener(result -> {
+			trace(local, "local-output-shutdown success=" + result.isSuccess());
 			if (!result.isSuccess()) {
 				local.close();
 			}
@@ -290,19 +316,23 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 
 		@Override
 		public void channelActive(ChannelHandlerContext context) {
+			trace(quicChannel, "local-active " + context.channel().localAddress());
 			context.read();
 		}
 
 		@Override
 		public void channelRead(ChannelHandlerContext context, Object message) {
+			int bytes = message instanceof ByteBuf buffer ? buffer.readableBytes() : -1;
+			trace(quicChannel, "quic-write-start bytes=" + bytes);
 			ChannelFuture write = quicChannel.writeAndFlush(message);
 			lastQuicWrite = write;
 			write.addListener(result -> {
+				trace(quicChannel, "quic-write-done success=" + result.isSuccess());
 				if (result.isSuccess()) {
 					if (localInputShutdown) {
 						scheduleQuicOutputShutdown();
 					} else {
-						context.read();
+						requestRead(context);
 					}
 				} else {
 					closePair(context.channel(), quicChannel);
@@ -312,6 +342,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 
 		@Override
 		public void channelInactive(ChannelHandlerContext context) {
+			trace(quicChannel, "local-inactive");
 			localInputShutdown = true;
 			scheduleQuicOutputShutdown();
 		}
@@ -319,6 +350,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 		@Override
 		public void userEventTriggered(ChannelHandlerContext context, Object event) throws Exception {
 			if (event == ChannelInputShutdownEvent.INSTANCE || event == ChannelInputShutdownReadComplete.INSTANCE) {
+				trace(quicChannel, "local-input-shutdown " + event.getClass().getSimpleName());
 				localInputShutdown = true;
 				scheduleQuicOutputShutdown();
 				return;
@@ -339,6 +371,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 				// Netty's QUIC API requires FIN to follow the final stream write future.
 				tail = lastQuicWrite;
 			}
+			trace(quicChannel, "quic-output-scheduled tail=" + (tail == null ? "none" : tail.isDone()));
 			if (tail == null) {
 				quicChannel.eventLoop().execute(this::shutdownQuicOutput);
 			} else {
@@ -354,9 +387,12 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 
 		private void shutdownQuicOutput() {
 			if (!quicChannel.isActive() || quicChannel.isOutputShutdown()) {
+				trace(quicChannel, "quic-output-skip active=" + quicChannel.isActive()
+					+ " shutdown=" + quicChannel.isOutputShutdown());
 				return;
 			}
 			quicChannel.shutdownOutput().addListener(result -> {
+				trace(quicChannel, "quic-output-shutdown success=" + result.isSuccess());
 				if (!result.isSuccess()) {
 					quicChannel.close();
 				}
@@ -372,5 +408,36 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 	private static void closePair(Channel first, Channel second) {
 		first.close();
 		second.close();
+	}
+
+	private static void requestRead(ChannelHandlerContext context) {
+		// A write future may complete synchronously while Netty is still inside the current
+		// manual-read loop. Deferring avoids losing the read needed to observe a following EOF.
+		context.executor().execute(() -> {
+			if (context.channel().isActive()) {
+				context.read();
+			}
+		});
+	}
+
+	private static void trace(Channel channel, String event) {
+		if (TRACE_BRIDGE) {
+			long sequence = TRACE_SEQUENCE.getAndIncrement();
+			TRACE_EVENTS.set(
+				(int) (sequence % TRACE_CAPACITY),
+				sequence + " bridge[" + channel.id().asShortText() + "] " + event
+			);
+		}
+	}
+
+	private static void dumpTrace() {
+		long end = TRACE_SEQUENCE.get();
+		long start = Math.max(0, end - TRACE_CAPACITY);
+		for (long sequence = start; sequence < end; sequence++) {
+			String event = TRACE_EVENTS.get((int) (sequence % TRACE_CAPACITY));
+			if (event != null && event.startsWith(sequence + " ")) {
+				System.err.println(event);
+			}
+		}
 	}
 }

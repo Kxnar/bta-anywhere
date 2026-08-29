@@ -218,6 +218,7 @@ def main() -> int:
 
     relay: subprocess.Popen[str] | None = None
     tunnel: subprocess.Popen[str] | None = None
+    tunnel_readers: list[threading.Thread] = []
     output_lines: list[str] = []
     events: queue.Queue[tuple[str, str]] = queue.Queue()
 
@@ -299,6 +300,7 @@ def main() -> int:
             tunnel = subprocess.Popen(
                 [
                     arguments.java,
+                    "-Dbtaanywhere.bridgeTrace=true",
                     "-jar",
                     str(tunnel_jar),
                     "expose",
@@ -320,8 +322,8 @@ def main() -> int:
                 bufsize=1,
             )
             assert tunnel.stdout is not None and tunnel.stderr is not None
-            start_reader(tunnel.stdout, "tunnel-out", output_lines, events)
-            start_reader(tunnel.stderr, "tunnel-err", output_lines, events)
+            tunnel_readers.append(start_reader(tunnel.stdout, "tunnel-out", output_lines, events))
+            tunnel_readers.append(start_reader(tunnel.stderr, "tunnel-err", output_lines, events))
 
             endpoint_pattern = re.compile(r"^Public endpoint: (?:\[[^]]+]|[^:]+):(\d+)$")
             deadline = time.monotonic() + 30
@@ -457,6 +459,10 @@ def main() -> int:
             )
             return 0
         except BaseException:
+            stop_process(tunnel, graceful_stdin=True)
+            tunnel = None
+            for reader in tunnel_readers:
+                reader.join(timeout=2)
             if output_lines:
                 print("\n".join(output_lines[-200:]))
             raise
