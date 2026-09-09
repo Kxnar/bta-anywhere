@@ -33,16 +33,7 @@ Live mode closes the client world before the dedicated server opens it and creat
 
 Netty QUIC 0.0.73.Final does not publish a Windows ARM64 native classifier, so every v0.1 artifact targets Windows x86-64.
 
-## Repository layout
-
-- `relay/` — Rust relay executable.
-- `tunnel-client/` — Java API and standalone shaded CLI.
-- `bta-mod/` — BTA 8.0.1 client mod.
-- `protocol/test-vectors/` — shared byte-exact protocol vectors.
-- `scripts/` — local bootstrap, integration, licence, and attribution checks.
-- `docs/` — protocol, operations, privacy, security, recovery, and release guides.
-
-## Build
+## Build Instructions
 
 Use JDK 21 to run Gradle, Java release 17 for compiled code, and Rust 1.85 or newer:
 
