@@ -67,7 +67,7 @@ different observed failure shapes. A shared underlying cause has not been
 established. Earlier full-sequence stalls prompted the diagnostic profiles;
 the schema-3/4 JSON records separate failed runs, although schema 3 omitted
 its failing case.
-No schema-5 or schema-6 full baseline or two-hour soak result exists in this
+No schema-5, schema-6, or schema-7 full baseline or two-hour soak result exists in this
 worktree.
 
 The schema-4 sender counts of about 1.4–1.9 MiB per stream are near the Java
@@ -140,6 +140,29 @@ The first six historical raw JSON hashes, in table order, are:
 942D61A8E12190BE234D5A74A3E724210188B47AF8E4B4972D9E0ABB08C55B42
 ECAA5E95B26F6B2DDDDC127DB66A08ED577921C9C44809D71C5955A82A52325B
 ```
+
+## Schema 7 diagnostic instrumentation (2026-09-25)
+
+The intermittent eight-stream throughput stall still has no established cause.
+The benchmark harness now has diagnostic-only per-stream counters for bytes
+accepted by the guest TCP socket, read by the synthetic echo server, accepted
+by its reply socket, and read by the guest. It samples each stream once per
+second and retains a final snapshot even when a transfer fails. EOF transitions
+and error *class names* are included. This shows which side of the synthetic
+path ceased making progress without recording payloads, peer addresses, or raw
+exception text in the progress samples. The normal full/smoke/soak data path,
+production relay, tunnel, defaults, and thresholds were not changed.
+
+The diagnostic traffic uses a one-byte synthetic stream index so server-side
+connections can be correlated without relying on accept order. The focused
+profiles are for fault localization and must not be used as an unchanged
+performance baseline. The JSON retains at most eight streams and 90 one-second
+samples. A local unit test confirmed that an intentionally non-echoing service
+produces a failed transfer with guest/server progress retained; it does not
+reproduce the actual relay stall. The 16 benchmark unit tests and Python syntax
+check passed. The shared-port eight-stream diagnostic has **not** been run with
+this change while concurrent EOF integration work is active. Run it with the
+command in `docs/benchmarking.md` before interpreting this instrumentation.
 
 ## Open acceptance gates
 

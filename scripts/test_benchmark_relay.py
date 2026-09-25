@@ -28,6 +28,21 @@ class LateEofReply(socketserver.BaseRequestHandler):
         self.release.wait(timeout=3)
 
 
+class StalledDiagnosticEcho(socketserver.BaseRequestHandler):
+    release = threading.Event()
+    progress = None
+
+    def handle(self):
+        self.request.settimeout(1)
+        header = benchmark.read_exact(self.request, 2)
+        if header != b"D\x00":
+            raise AssertionError("diagnostic stream header missing")
+        chunk = self.request.recv(benchmark.CHUNK)
+        self.progress.mark(0, "echo_connected")
+        self.progress.advance(0, "echo_receive_bytes", len(chunk))
+        self.release.wait(timeout=1)
+
+
 class BenchmarkTests(unittest.TestCase):
     def test_percentile_interpolates_and_rejects_missing_samples(self):
         self.assertAlmostEqual(benchmark.percentile([1.0, 3.0, 5.0], 95), 4.8)
@@ -114,6 +129,75 @@ class BenchmarkTests(unittest.TestCase):
         self.assertEqual(benchmark.payload(17, 1024, 4), benchmark.payload(17, 1024, 4))
         self.assertNotEqual(benchmark.payload(17, 1024, 4), benchmark.payload(17, 1024, 5))
 
+    def test_diagnostic_progress_is_bounded_and_rejects_invalid_updates(self):
+        with self.assertRaises(ValueError):
+            benchmark.ThroughputProgress(9)
+        progress = benchmark.ThroughputProgress(2)
+        progress.advance(1, "guest_send_bytes", 17)
+        progress.mark(1, "guest_write_closed")
+        progress.error(1, "guest", TimeoutError("private path and payload"))
+        first = progress.snapshot()
+        self.assertEqual(first[1]["guest_send_bytes"], 17)
+        self.assertTrue(first[1]["guest_write_closed"])
+        self.assertEqual(first[1]["guest_error"], "TimeoutError")
+        self.assertNotIn("private", str(first))
+        first[1]["guest_send_bytes"] = 0
+        self.assertEqual(progress.snapshot()[1]["guest_send_bytes"], 17)
+        for operation in (lambda: progress.advance(2, "guest_send_bytes", 1),
+                          lambda: progress.advance(1, "bad", 1),
+                          lambda: progress.advance(1, "guest_send_bytes", -1),
+                          lambda: progress.mark(1, "bad"),
+                          lambda: progress.error(1, "bad", ValueError())):
+            with self.assertRaises(ValueError):
+                operation()
+
+    def test_diagnostic_stream_tracks_both_ends_without_payloads(self):
+        progress = benchmark.ThroughputProgress(1)
+        with benchmark.EchoServer(("127.0.0.1", 0), benchmark.EchoHandler) as server:
+            server.diagnostic_progress = progress
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                result = benchmark.throughput_stream(server.server_address[1], b"private" * 1024,
+                                                     0.02, 2, 0.01, progress, 0)
+            finally:
+                server.shutdown()
+                thread.join(timeout=2)
+        stream = progress.snapshot()[0]
+        self.assertGreater(result["guest_to_host_bytes"], 0)
+        self.assertEqual(stream["guest_send_bytes"], stream["echo_receive_bytes"])
+        self.assertEqual(stream["echo_send_bytes"], stream["guest_receive_bytes"])
+        self.assertEqual(stream["guest_receive_bytes"], result["host_to_guest_bytes"])
+        self.assertTrue(all(stream[flag] for flag in benchmark.PROGRESS_FLAGS))
+        self.assertNotIn("private", str(stream))
+
+    def test_diagnostic_timeout_retains_last_per_stream_progress(self):
+        progress = benchmark.ThroughputProgress(1)
+        StalledDiagnosticEcho.release.clear()
+        StalledDiagnosticEcho.progress = progress
+        with socketserver.ThreadingTCPServer(("127.0.0.1", 0), StalledDiagnosticEcho) as server:
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                with self.assertRaises(RuntimeError) as caught:
+                    benchmark.throughput_stream(server.server_address[1], b"x" * benchmark.CHUNK,
+                                                0.1, 0.2, 0.1, progress, 0)
+            finally:
+                StalledDiagnosticEcho.release.set()
+                server.shutdown()
+                thread.join(timeout=2)
+        stream = progress.snapshot()[0]
+        self.assertIn("timed out", str(caught.exception))
+        self.assertGreater(stream["guest_send_bytes"], 0)
+        self.assertGreater(stream["echo_receive_bytes"], 0)
+        self.assertEqual(stream["echo_send_bytes"], 0)
+        self.assertEqual(stream["guest_receive_bytes"], 0)
+        report = benchmark.markdown({"status": "FAILED", "profile": "diagnostic-eight-relay",
+                                     "commit": "abc", "failure": benchmark.bounded_failure(caught.exception),
+                                     "diagnostic_progress_final": progress.snapshot()})
+        self.assertIn("Guest sent | Echo received | Echo sent | Guest received", report)
+        self.assertIn("| 0 |", report)
+
     def test_summary_distinguishes_process_and_link_recovery(self):
         report = benchmark.markdown({
             "status": "PASS", "profile": "smoke", "commit": "abc",
@@ -180,7 +264,7 @@ class BenchmarkTests(unittest.TestCase):
         rig = SimpleNamespace(echo=echo, public_port=200, assert_idle=lambda: None)
         ports = []
 
-        def fake_stream(port, block, seconds, timeout):
+        def fake_stream(port, block, seconds, timeout, **_kwargs):
             ports.append(port)
             self.assertEqual((len(block), seconds, timeout), (65536, 60.0, 30))
             return {"seconds": 60.0, "guest_to_host_bytes": 65536,
@@ -189,7 +273,7 @@ class BenchmarkTests(unittest.TestCase):
         result = {}
         with mock.patch.object(benchmark, "throughput_stream", side_effect=fake_stream), \
              mock.patch.object(benchmark, "diagnostic_case_samples",
-                               side_effect=lambda _rig, report, _stop:
+                               side_effect=lambda _rig, report, _stop, _progress:
                                report.update(diagnostic_case_samples=[])):
             cases = benchmark.run_throughput(rig, "full", 1701, result, diagnostic_sequence=True)
         self.assertEqual(len(cases), 2)
@@ -197,6 +281,31 @@ class BenchmarkTests(unittest.TestCase):
         self.assertEqual([len(cases[1]["paths"][path]) for path in ("direct", "relay")], [1, 1])
         self.assertEqual((ports.count(100), ports.count(200)), (13, 13))
         self.assertEqual(len(result["diagnostic_case_samples"]), 0)
+        self.assertEqual(len(result["diagnostic_progress_final"]), 8)
+        self.assertIsNone(echo.diagnostic_progress)
+
+    def test_focused_diagnostic_retains_final_progress_on_concurrent_failure(self):
+        echo = SimpleNamespace(event_lock=threading.Lock(), events=[], diagnostic_progress=None)
+        rig = SimpleNamespace(echo=echo, public_port=200, assert_idle=lambda: None)
+        result = {}
+
+        def fake_stream(_port, _block, _seconds, _timeout, **kwargs):
+            progress = kwargs["progress"]
+            index = kwargs["stream_index"]
+            progress.advance(index, "guest_send_bytes", 65536)
+            if index == 3:
+                raise TimeoutError("socket timed out")
+            return {"guest_to_host_bytes": 65536, "host_to_guest_bytes": 65536}
+
+        with mock.patch.object(benchmark, "throughput_stream", side_effect=fake_stream), \
+             mock.patch.object(benchmark, "diagnostic_case_samples",
+                               side_effect=lambda _rig, report, _stop, _progress:
+                               report.update(diagnostic_case_samples=[])):
+            with self.assertRaises(benchmark.ConcurrentTransferError):
+                benchmark.run_diagnostic_eight_relay(rig, 1701, result)
+        self.assertEqual(len(result["diagnostic_progress_final"]), 8)
+        self.assertEqual(result["diagnostic_progress_final"][3]["guest_send_bytes"], 65536)
+        self.assertIsNone(echo.diagnostic_progress)
 
 
 if __name__ == "__main__":

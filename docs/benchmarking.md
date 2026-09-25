@@ -79,23 +79,33 @@ smoke run as the two-hour gate.
 
 `benchmark-results/` is ignored because results are machine-specific. Keep
 the JSON and generated Markdown with the review, not in the repository. JSON
-schema version 6 includes environment and toolchains, commit and artifact
+schema version 7 includes environment and toolchains, commit and artifact
 hashes, test configuration, raw samples, aggregate p50/p95/p99, CPU time,
 working set/peak resident memory, reconnection, failures, and run duration.
 The soak records memory samples for manual growth review; a successful data
 transfer run alone does not close that review gate.
 
-Schema 6 adds bounded per-stream failure records, the successful peer streams
+Schema 6 added bounded per-stream failure records, the successful peer streams
 in a failed concurrent wave, completed latency cases, and the last 160
 synthetic-service lifecycle events on failure. A reply that passes byte
 validation but times out waiting for TCP EOF is labelled `missing_eofs` and
 also counted as a timeout. Transfer counts describe failed streams; the report
 still exits nonzero on the first failed case. The lifecycle events contain no
 payload, peer address, token, or world path. Schema 2-5 files remain valid
-historical evidence but must not be silently pooled with schema 6 samples.
+historical evidence but must not be silently pooled with later samples.
 
 For a focused reproduction of an eight-stream relay stall, use
 `--profile diagnostic-eight-relay` with the same release artifacts and seed.
+For example:
+
+```powershell
+python scripts\benchmark_relay.py --profile diagnostic-eight-relay `
+  --relay-binary target\release\bta-anywhere-relay.exe `
+  --tunnel-jar tunnel-client\build\libs\bta-anywhere-tunnel-0.1.0-all.jar `
+  --java java `
+  --output benchmark-results\diagnostic-eight-relay.json
+```
+
 It runs exactly one 60-second relayed throughput case with the full eight
 streams and unchanged 30-second socket timeout. On failure, JSON retains the
 case, run, path, stream indices, byte counts, bounded exception chain, relay
@@ -110,13 +120,29 @@ prefix**: all latency waves, five 60-second direct/relay pairs at one stream,
 one 60-second direct run at eight streams, then the first 60-second relayed run
 at eight streams. It stops immediately after that case. This diagnostic
 profile cannot satisfy the full benchmark or soak gate. During the last case,
-schema 5 retains at most 90 one-second process/relay samples and the last 160
+schema 7 retains at most 90 one-second process/relay samples and the last 160
 synthetic-server lifecycle events. Events contain case, connection number,
 mode, first-payload size, EOF or error type; they contain no payload or peer
 address. The relay byte counters are updated only when a transfer finishes,
 so their flat value while eight streams are open cannot by itself show that
 no bytes traversed them. Keep the failed full results and diagnostic result
 separate when reviewing the cause.
+
+Schema 7 also samples diagnostic throughput byte progress at both ends of each
+stream once per second. Each JSON sample and the final snapshot names stream
+indices 0-7 and records guest TCP send/receive and synthetic echo TCP
+receive/send bytes, plus observed EOF transitions and error class names. The
+generated Markdown includes the final snapshot. These are bytes accepted by or
+read from local TCP sockets; they do not establish QUIC delivery or identify a
+transport-level cause. The diagnostic-only synthetic mode sends a one-byte
+stream index before the throughput payload so the echo service can correlate
+the four counters despite concurrent connection ordering. Normal full, smoke,
+and soak traffic is unchanged. The focused diagnostic is not a performance
+comparison against normal mode. No payload bytes, addresses, tokens, or raw
+exception messages enter the progress samples. The counter array is capped at
+eight streams and the time series at 90 samples; failed runs still exit nonzero
+and retain the final snapshot.
+
 The test config binds all services to loopback and raises only its disposable
 relay's per-source accept rate from 30 to 10,000/minute so repeated latency
 samples exercise the data path. The production default is unchanged; the

@@ -33,10 +33,16 @@ import traceback
 from datetime import datetime, timezone
 from pathlib import Path
 
-SCHEMA_VERSION = 6
+SCHEMA_VERSION = 7
 SIZES = (1024, 65536, 1048576)
 ACTIVE_METRIC = "bta_anywhere_active_connections"
 CHUNK = 65536
+MAX_DIAGNOSTIC_STREAMS = 8
+MAX_DIAGNOSTIC_SAMPLES = 90
+PROGRESS_COUNTERS = ("guest_send_bytes", "guest_receive_bytes",
+                     "echo_receive_bytes", "echo_send_bytes")
+PROGRESS_FLAGS = ("guest_connected", "guest_write_closed", "guest_read_eof",
+                  "echo_connected", "echo_read_eof", "echo_write_closed")
 
 
 class MissingEofError(TimeoutError):
@@ -124,11 +130,66 @@ def read_exact(sock: socket.socket, size: int) -> bytes:
     return bytes(data)
 
 
+class ThroughputProgress:
+    """Bounded, diagnostic-only byte counters; never retains payloads or addresses."""
+
+    def __init__(self, stream_count: int):
+        if not 1 <= stream_count <= MAX_DIAGNOSTIC_STREAMS:
+            raise ValueError("diagnostic stream count must be between 1 and 8")
+        self._lock = threading.Lock()
+        self._streams = [{"stream": index, **{key: 0 for key in PROGRESS_COUNTERS},
+                          **{key: False for key in PROGRESS_FLAGS},
+                          "guest_error": None, "echo_error": None}
+                         for index in range(stream_count)]
+
+    def _check_index(self, index: int) -> None:
+        if not isinstance(index, int) or not 0 <= index < len(self._streams):
+            raise ValueError("invalid diagnostic stream index")
+
+    def advance(self, index: int, counter: str, amount: int) -> None:
+        self._check_index(index)
+        if counter not in PROGRESS_COUNTERS or not isinstance(amount, int) or amount < 0:
+            raise ValueError("invalid diagnostic counter update")
+        with self._lock:
+            self._streams[index][counter] += amount
+
+    def mark(self, index: int, flag: str) -> None:
+        self._check_index(index)
+        if flag not in PROGRESS_FLAGS:
+            raise ValueError("invalid diagnostic state")
+        with self._lock:
+            self._streams[index][flag] = True
+
+    def error(self, index: int, role: str, failure: BaseException) -> None:
+        self._check_index(index)
+        if role not in ("guest", "echo"):
+            raise ValueError("invalid diagnostic role")
+        with self._lock:
+            self._streams[index][role + "_error"] = type(failure).__name__
+
+    def snapshot(self) -> list[dict]:
+        with self._lock:
+            return [dict(stream) for stream in self._streams]
+
+
+def send_tracked(sock: socket.socket, data: bytes, progress: ThroughputProgress,
+                 index: int, counter: str) -> None:
+    remaining = memoryview(data)
+    while remaining:
+        count = sock.send(remaining)
+        if count == 0:
+            raise ConnectionError("socket send returned zero bytes")
+        progress.advance(index, counter, count)
+        remaining = remaining[count:]
+
+
 class EchoHandler(socketserver.BaseRequestHandler):
     def handle(self) -> None:
         connection_id = self.server.next_connection_id()
         self.server.record_event(connection_id, "accepted")
         self.request.settimeout(30)
+        diagnostic_index = None
+        progress = self.server.diagnostic_progress
         try:
             mode = read_exact(self.request, 1)
             self.server.record_event(connection_id, "mode", mode=mode.decode("ascii", errors="replace"))
@@ -151,11 +212,24 @@ class EchoHandler(socketserver.BaseRequestHandler):
                         self.server.record_event(connection_id, "first_payload", bytes=len(chunk))
                         first_chunk = False
                     self.request.sendall(chunk)
+            elif mode == b"D":
+                if progress is None:
+                    raise ValueError("unexpected diagnostic throughput connection")
+                diagnostic_index = read_exact(self.request, 1)[0]
+                progress.mark(diagnostic_index, "echo_connected")
+                while chunk := self.request.recv(CHUNK):
+                    progress.advance(diagnostic_index, "echo_receive_bytes", len(chunk))
+                    send_tracked(self.request, chunk, progress, diagnostic_index, "echo_send_bytes")
+                progress.mark(diagnostic_index, "echo_read_eof")
             else:
                 raise ValueError("unknown benchmark mode")
             self.request.shutdown(socket.SHUT_WR)
+            if diagnostic_index is not None:
+                progress.mark(diagnostic_index, "echo_write_closed")
             self.server.record_event(connection_id, "eof_sent")
         except BaseException as error:
+            if diagnostic_index is not None and progress is not None:
+                progress.error(diagnostic_index, "echo", error)
             self.server.record_event(connection_id, "error", error_type=type(error).__name__)
             raise
 
@@ -172,6 +246,7 @@ class EchoServer(socketserver.ThreadingTCPServer):
         self.event_lock = threading.Lock()
         self.connection_count = 0
         self.current_case: dict = {}
+        self.diagnostic_progress: ThroughputProgress | None = None
 
     def next_connection_id(self) -> int:
         with self.event_lock:
@@ -218,7 +293,10 @@ def transfer(port: int, mode: str, data: bytes, timeout: float) -> float:
 
 
 def throughput_stream(port: int, block: bytes, seconds: float, timeout: float,
-                      pace_seconds: float = 0) -> dict[str, float | int]:
+                      pace_seconds: float = 0, progress: ThroughputProgress | None = None,
+                      stream_index: int | None = None) -> dict[str, float | int]:
+    if progress is not None:
+        progress._check_index(stream_index)
     sent = 0
     received = 0
     send_error: list[BaseException] = []
@@ -227,20 +305,31 @@ def throughput_stream(port: int, block: bytes, seconds: float, timeout: float,
     try:
         with socket.create_connection(("127.0.0.1", port), timeout=timeout) as sock:
             sock.settimeout(timeout)
-            sock.sendall(b"T")
+            if progress is None:
+                sock.sendall(b"T")
+            else:
+                sock.sendall(b"D" + bytes([stream_index]))
+                progress.mark(stream_index, "guest_connected")
             stop_at = started + seconds
 
             def send() -> None:
                 nonlocal sent
                 try:
                     while time.perf_counter() < stop_at:
-                        sock.sendall(block)
+                        if progress is None:
+                            sock.sendall(block)
+                        else:
+                            send_tracked(sock, block, progress, stream_index, "guest_send_bytes")
                         sent += len(block)
                         if pace_seconds:
                             time.sleep(pace_seconds)
                     sock.shutdown(socket.SHUT_WR)
+                    if progress is not None:
+                        progress.mark(stream_index, "guest_write_closed")
                 except BaseException as error:
                     send_error.append(error)
+                    if progress is not None:
+                        progress.error(stream_index, "guest", error)
                     with contextlib.suppress(OSError):
                         sock.shutdown(socket.SHUT_WR)
 
@@ -249,10 +338,14 @@ def throughput_stream(port: int, block: bytes, seconds: float, timeout: float,
             try:
                 try:
                     while chunk := sock.recv(CHUNK):
+                        if progress is not None:
+                            progress.advance(stream_index, "guest_receive_bytes", len(chunk))
                         shift = received % len(block)
                         if chunk != doubled_block[shift:shift + len(chunk)]:
                             raise AssertionError(f"byte mismatch starting at offset {received}")
                         received += len(chunk)
+                    if progress is not None:
+                        progress.mark(stream_index, "guest_read_eof")
                 except socket.timeout as error:
                     if not sender.is_alive() and not send_error and received == sent:
                         raise MissingEofError(f"missing EOF after {received} verified echoed bytes") from error
@@ -272,6 +365,8 @@ def throughput_stream(port: int, block: bytes, seconds: float, timeout: float,
         return {"seconds": elapsed, "guest_to_host_bytes": sent,
                 "host_to_guest_bytes": received}
     except BaseException as error:
+        if progress is not None:
+            progress.error(stream_index, "guest", error)
         raise RuntimeError(f"throughput socket failed after {time.perf_counter() - started:.3f}s "
                            f"sent={sent} received={received}: {type(error).__name__}: {error}") from error
 
@@ -749,12 +844,15 @@ def run_latency(rig: Rig, profile: str, seed: int, result: dict) -> list[dict]:
     return cases
 
 
-def diagnostic_case_samples(rig: Rig, result: dict, stop: threading.Event) -> None:
+def diagnostic_case_samples(rig: Rig, result: dict, stop: threading.Event,
+                            progress: ThroughputProgress | None = None) -> None:
     assert rig.relay and rig.tunnel
-    samples: collections.deque[dict] = collections.deque(maxlen=90)
+    samples: collections.deque[dict] = collections.deque(maxlen=MAX_DIAGNOSTIC_SAMPLES)
     result["diagnostic_case_samples"] = samples
     while not stop.is_set():
         item = {"time_monotonic": time.monotonic()}
+        if progress is not None:
+            item["streams"] = progress.snapshot()
         try:
             body = http_get(rig.admin_port, "/metrics")
             item["active_connections"] = metric(body, ACTIVE_METRIC)
@@ -790,18 +888,24 @@ def run_throughput(rig: Rig, profile: str, seed: int, result: dict,
                 observed = diagnostic_sequence and concurrency == 8 and run == 0 and path == "relay"
                 stop = threading.Event()
                 sampler = None
+                progress = ThroughputProgress(concurrency) if observed else None
                 if observed:
+                    rig.echo.diagnostic_progress = progress
                     sampler = threading.Thread(target=diagnostic_case_samples,
-                                               args=(rig, result, stop), daemon=True)
+                                               args=(rig, result, stop, progress), daemon=True)
                     sampler.start()
                 try:
-                    samples = run_concurrent(lambda _: throughput_stream(port, block, seconds, 30), concurrency,
+                    samples = run_concurrent(
+                        lambda index: throughput_stream(port, block, seconds, 30,
+                                                        progress=progress, stream_index=index), concurrency,
                                              f"throughput {concurrency=} {run=} {path=}")
                 finally:
                     if sampler:
                         stop.set()
                         sampler.join(timeout=3)
                         result["diagnostic_case_samples"] = list(result["diagnostic_case_samples"])
+                        result["diagnostic_progress_final"] = progress.snapshot()
+                        rig.echo.diagnostic_progress = None
                         with rig.echo.event_lock:
                             result["diagnostic_echo_events"] = list(rig.echo.events)
                 elapsed = max(sample["seconds"] for sample in samples)
@@ -855,13 +959,30 @@ def run_soak(rig: Rig, seed: int, duration: float, result: dict) -> dict:
 
 
 def run_diagnostic_eight_relay(rig: Rig, seed: int, result: dict) -> dict:
-    assert rig.public_port
+    assert rig.public_port and rig.echo
     block = payload(seed, CHUNK, 999)
     result["current_case"] = {"phase": "diagnostic_eight_relay", "concurrency": 8,
                               "run_index_zero_based": 0, "path": "relay", "target_seconds": 60,
                               "stream_count": 8, "payload_block_bytes": CHUNK}
-    streams = run_concurrent(lambda _: throughput_stream(rig.public_port, block, 60, 30), 8,
-                             "diagnostic eight-stream relayed throughput")
+    progress = ThroughputProgress(8)
+    rig.echo.diagnostic_progress = progress
+    stop = threading.Event()
+    sampler = threading.Thread(target=diagnostic_case_samples,
+                               args=(rig, result, stop, progress), daemon=True)
+    sampler.start()
+    try:
+        streams = run_concurrent(
+            lambda index: throughput_stream(rig.public_port, block, 60, 30,
+                                            progress=progress, stream_index=index), 8,
+            "diagnostic eight-stream relayed throughput")
+    finally:
+        stop.set()
+        sampler.join(timeout=3)
+        result["diagnostic_case_samples"] = list(result["diagnostic_case_samples"])
+        result["diagnostic_progress_final"] = progress.snapshot()
+        rig.echo.diagnostic_progress = None
+        with rig.echo.event_lock:
+            result["diagnostic_echo_events"] = list(rig.echo.events)
     rig.assert_idle()
     return {"concurrency": 8, "path": "relay", "target_seconds": 60,
             "guest_to_host_bytes": sum(stream["guest_to_host_bytes"] for stream in streams),
@@ -909,6 +1030,18 @@ def markdown(result: dict) -> str:
                          "leaked active stream gauges: {leaked_active_stream_gauges}.".format(**counts))
         if failures := result.get("stream_failures"):
             lines.append("Failed stream indices: " + ", ".join(str(item["stream"]) for item in failures) + ".")
+    if streams := result.get("diagnostic_progress_final"):
+        lines += ["", "Diagnostic throughput counters (TCP socket bytes, not QUIC acknowledgements):", "",
+                  "| Stream | Guest sent | Echo received | Echo sent | Guest received | Guest write EOF | Echo read EOF | Echo write EOF | Guest read EOF | Errors |",
+                  "|---:|---:|---:|---:|---:|---|---|---|---|---|"]
+        for stream in streams[:MAX_DIAGNOSTIC_STREAMS]:
+            errors = ", ".join(f"{role}: {stream[role + '_error']}" for role in ("guest", "echo")
+                               if stream[role + "_error"]) or "none"
+            lines.append(f"| {stream['stream']} | {stream['guest_send_bytes']} | "
+                         f"{stream['echo_receive_bytes']} | {stream['echo_send_bytes']} | "
+                         f"{stream['guest_receive_bytes']} | {stream['guest_write_closed']} | "
+                         f"{stream['echo_read_eof']} | {stream['echo_write_closed']} | "
+                         f"{stream['guest_read_eof']} | {errors} |")
     return "\n".join(lines) + "\n"
 
 
