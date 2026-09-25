@@ -134,14 +134,13 @@ These results precede the W1 typed-boundary correction and this stacked
 candidate, and their comparator could hide numeric-type mismatches. They are
 historical CPU and case-count evidence, not conformance passes for this branch.
 
-Required for this candidate: Rust and Java tests, Python generator tests,
-100-case CI smoke, at least 10,000 fixed-seed cross-language cases, the
-documented four-target long campaign, five clean sequential serial/concurrent
-integration pairs, alternating same-machine release baseline/candidate
-performance results, and the applicable two-hour soak. Record every failed,
-skipped, flaky, or unavailable result. Full raw outputs belong in an ignored
-`.dev/` directory or review attachment, with no live credentials or private
-logs committed. The full campaign is outside ordinary pull-request CI.
+Remaining gates for this candidate: hosted 100-case CI smoke, the documented
+four-target long campaign, five clean sequential serial/concurrent integration
+pairs, alternating same-machine release baseline/candidate performance
+results, and the applicable two-hour soak. Record every failed, skipped,
+flaky, or unavailable result. Full raw outputs belong in an ignored `.dev/`
+directory or review attachment, with no live credentials or private logs
+committed. The full campaign is outside ordinary pull-request CI.
 
 ## Rollback
 
