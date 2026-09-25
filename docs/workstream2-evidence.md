@@ -29,6 +29,44 @@ and candidate comparison, and complete the five manual disposable-world
 interruptions before treating this branch as merge eligible. The two-hour
 soak and five consecutive full Windows integration runs remain open.
 
+### Review-discovered launch cleanup hazard
+
+An independent read-only review of stacked commit `115dac6` found a
+fail-closed cleanup gap. The launch-intent journal was already published when
+`ManagedServerProcess.start()` spawned the supervisor. If startup then threw
+before returning its verified handle, `HostController.server` stayed null. A
+later Stop treated that null handle as a clean stop and cleared the journal,
+although a supervisor and server could still be alive. This was a source
+inspection finding, not an observed player-world incident.
+
+The corrective candidate records an in-memory launch attempt before calling
+`ManagedServerProcess.start()`; the previously published launch-intent journal
+remains the persistent fail-closed evidence across a client crash. Stop may
+clear the journal after a known pre-launch failure, or after stopping a known
+process with identity checks and authenticated control. If a launch was
+attempted but no verified handle returned, Stop retains the journal and the
+Live world-open guard. A focused disposable fake-server regression injects
+failure after process/control identity verification but before the handle
+returns in both Live and Showcase, and a paired pre-launch regression checks safe cleanup. These focused
+tests and all broader stacked-commit gates must run before this correction is
+counted as evidence.
+
+A second review sweep found a separate multi-client race on `115dac6`. With
+two BTA clients sharing one game directory, client B could recover and stop
+client A, clear A's journal, and publish a new journal for B. A's later Stop or
+JVM shutdown hook still held `ownsJournal=true` and could clear B's active
+journal. No game-directory-wide lock was present; a per-world game storage
+lock would not protect this shared journal. The corrective candidate therefore
+acquires one stable client-lifetime OS lock before constructing the controller
+or allowing world-open actions. A denied second client receives an actionable
+screen and cannot open, create, or host a single-player world from that
+profile. This also closes the pre-journal interval against a second
+cooperating mod client. The lock contains no PID authority or secret, is not
+deleted on release, and is released by Windows on process exit. External
+tools, manual journal edits, and unusual network filesystem lock behavior
+are not established by this guarantee. Focused unit evidence is recorded
+below; two-client disposable UI evidence is still pending.
+
 ## User value and design
 
 Interrupted hosting now leaves recovery evidence that prevents an ambiguous
@@ -62,6 +100,34 @@ and verified output root.
 
 ## Recorded checks
 
+The stacked safety correction was checked with these commands on 2026-09-25:
+
+```powershell
+$env:JAVA_HOME = 'D:\Documents\BTA\.tools\jdk-21'
+.\gradlew.bat --no-daemon :bta-mod:test `
+  --tests io.github.kxnar.btaanywhere.mod.hosting.GameDirectoryLeaseTest `
+  --tests io.github.kxnar.btaanywhere.mod.hosting.HostControllerHardCrashTest `
+  --tests io.github.kxnar.btaanywhere.mod.hosting.HostControllerWorldOpenGuardTest `
+  --rerun-tasks
+.\gradlew.bat --no-daemon check build
+```
+
+The focused run passed after two compile-only attempts failed under `-Werror`
+because the new try-with-resource test variables were unused. Those warnings
+were corrected; neither earlier attempt executed tests. The final focused run
+passed in 28 seconds. The full Gradle `check build` passed in 1 minute 16
+seconds, with 37 mod tests, zero failures/errors, and four skips. The skips
+were the manual controller campaign, opt-in pre-launch timing, and two Windows
+symbolic-link tests unavailable to this account because it lacks link-creation
+privilege. `GameDirectoryLeaseTest` ran five cases, with one symlink skip;
+`HostControllerHardCrashTest` ran two methods (including both Live and
+Showcase in the new failure case), and `HostControllerWorldOpenGuardTest` ran
+five. The generated XML and a machine summary are retained under ignored
+`.dev/workstream2-stacked/focused-checks-20260925/`. These focused and build
+checks do not transfer the earlier 4,350-case result to the stacked revision,
+nor do they satisfy integration, soak, release-build performance, or manual
+game gates.
+
 | Check | Result | Raw evidence |
 |---|---|---|
 | Controller smoke | 29/29 applicable cases passed. | `.dev/controller-fault-campaign/run-34eb892096714104b076870be8324895/` |
@@ -71,6 +137,11 @@ and verified output root.
 | Full controller campaign after one-write change | 4,350/4,350 passed on clean `f8fb80a`: 1,450 cases in each of three clean fixture runs, 0 failed, 0 retained fixtures. | `.dev/controller-fault-campaign/run-a5caa8eb09c64129ab1a5bc20d1863d6/manifest.json`, `scenarios.jsonl`, `summary.json` |
 | Serial half-close, one prior run | 100/100 iterations passed. | `.dev/workstream2-integration/serial-100.log` |
 | Concurrent integration, one prior run | 100 waves of eight streams passed. | `.dev/workstream2-integration/concurrent-100x8.log` |
+
+Historical `.dev/controller-fault-campaign/` and `.dev/prelaunch-timing/`
+paths below are relative to the original isolated checkout at
+`D:\Documents\BTA-crash-fault-injection`, not the stacked checkout. Retain
+that ignored evidence directory privately alongside the branch review.
 
 The first full campaign manifest records commit
 `55c81bbe69f177a772d6a9e48ba310f0ab2c2358`, a clean worktree,

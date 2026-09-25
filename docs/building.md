@@ -152,3 +152,22 @@ The historical implementation, retained synthetic campaign, skipped checks, and
 remaining review gates are recorded in [Workstream 2 evidence](workstream2-evidence.md).
 
 The normal test suite also runs representative hard-crash child JVMs. File and journal crashes retain hidden partial artifacts or an incomplete journal for inspection. The controller crash fixture stops its fake supervisor only after matching the supervisor and server PID, start time, and executable with the private control file, then sending authenticated `STOP`. It preserves the fixture if that verification fails. These tests use a fake server and a synthetic world; the BTA game-thread save/unload path and forced-shutdown scenarios still require manual disposable-world testing.
+
+The focused launch-failure regression starts a fake supervisor from a marked
+temporary world, injects failure after its control identity is verified but
+before `HostController` receives the process handle, and then calls Stop in
+Live and Showcase modes. It asserts that the launch-intent journal and Live
+world-open guard remain, while Showcase retains its separate copy. Its
+paired pre-launch failure case asserts that Stop may clear the journal when no
+process launch was attempted. The live fake supervisor is stopped only through
+its authenticated control file after PID, start time, and executable checks.
+
+`GameDirectoryLeaseTest` checks exclusive ownership, unsafe lock paths, and
+Windows lock release after a disposable child JVM exits abruptly. It also
+checks that a controller rejects a wrong-profile or closed lease. It uses no
+player saves or relay ports. For the UI path, launch two BTA clients against
+one newly created disposable game profile: the second must show the directory
+error, block ordinary world open/new-world/hosting actions, and leave the
+first client unaffected. Exit the first client, restart the second, and verify
+that recovery checks still govern any retained journal. Record the profile
+path and results privately; never run this against a user profile.

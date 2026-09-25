@@ -4,6 +4,13 @@ BTA Anywhere writes `bta-anywhere/recovery.json` before starting the managed pro
 
 On the next launch, the mod validates every recorded path and matches process identity before enabling an action. It never kills a process based on PID alone and never restores a backup automatically.
 
+Only one BTA Anywhere client can use a game directory at a time. If a second
+client reports that the directory is in use, close the first client or launch
+with a separate game profile, then restart the second client. Do not delete
+`bta-anywhere/client.lock`; the file is intentionally retained, and Windows
+releases its lock when the first client exits or crashes. After a crash, the
+new client must still follow the recovery journal before opening a Live save.
+
 The ordinary single-player world selector checks both the current in-process Live handoff and the recovery journal before opening a save. It blocks the original Live world during backup and launch even before the journal exists; existing alternate save paths are compared by file identity, and differently cased names are blocked. The hosting screen shows the in-process state and stop control; a journal block opens the recovery screen. Other worlds remain available. A valid Showcase journal leaves the original world available because the managed server uses a separate copy. If the journal is malformed or an update is incomplete, the active world cannot be identified safely, so all single-player opens and new-world creation are blocked. The appropriate screen opens on the next client tick. Do not bypass the guard by opening the save through another tool or mod.
 
 Startup records launch intent in its first published journal, immediately after
@@ -14,6 +21,12 @@ start time or executable blocks both **Open Original** and **Restore Backup**.
 The recovery screen explains that process and file inspection is needed. An
 absent recorded PID is not proof that no server owns a save. This also applies
 to older journals created before launch intent was recorded.
+
+If supervisor startup fails after a process was started but before the client
+receives its verified handle, the hosting screen's Stop action retains the
+launch-intent journal. It cannot prove which process owns the save, so a later
+Stop attempt must not clear the journal merely because the client has no
+in-memory server handle. Follow the manual safety procedure below.
 
 ## Recovery actions
 

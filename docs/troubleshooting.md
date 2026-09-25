@@ -46,11 +46,19 @@ The generated `bta-anywhere/server/guest-mods.txt` lists gameplay mods guests ne
 
 ## World will not reopen
 
+If the screen says another BTA Anywhere client is using this game directory,
+close that client or use a separate game profile, then restart BTA. Leave
+`bta-anywhere/client.lock` in place; deleting the file is not a safe unlock
+procedure. If no other client is running, inspect the profile path and access
+permissions before retrying.
+
 Do not bypass the guard while a matching managed server or supervisor is alive. Use the recovery screen and [Recovery](recovery.md). If a forced stop was needed, the journal and showcase copy are retained intentionally.
 
 If the screen reports incomplete process identity, malformed journal data, `recovery.json.tmp`, or a live PID with a different identity, keep the original save closed. Preserve those files and the server log, then follow the manual process inspection in [Recovery](recovery.md). Do not stop a process merely because its PID appears in the journal. A partial backup or showcase copy is a diagnostic artifact, never a source for automatic restore.
 
 If graceful stop reports missing control data, an identity mismatch, or an unanswered authenticated STOP, leave the recovery files and managed processes intact. The client will not force-kill a process to make cleanup appear successful. Follow the manual safety procedure in [Recovery](recovery.md) and preserve the control file and server log.
+
+If Stop reports that supervisor launch may have started without verified process identity, retain `recovery.json` and keep the original Live world closed. Inspect both supervisor and server identities and the private control file as described in [Recovery](recovery.md); repeatedly pressing Stop cannot resolve that ambiguity.
 
 Selecting a Live world during an in-process hosting handoff returns to the hosting screen, even before a recovery journal exists; wait for hosting to finish or stop it there. If a Live recovery journal exists, selecting that original opens the recovery screen instead. A valid Showcase journal allows its original world to open. If every single-player world or new-world creation is blocked, inspect `recovery.json` and `recovery.json.tmp`: a malformed or interrupted journal leaves the active save unknown and requires the manual safety procedure in [Recovery](recovery.md).
 

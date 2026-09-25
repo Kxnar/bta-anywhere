@@ -33,6 +33,12 @@ Record the Windows version, architecture, Java runtime, BTA profile, and mod lis
 
 For crash-consistency fault-injection changes, additionally run the full synthetic fault campaign documented in [Building](building.md) three times with clean temporary directories, then complete five distinct manual disposable-world interruptions: client termination, supervisor termination, server termination, forced Windows shutdown, and malformed recovery data. Record the original-world manifest, journal/copy/backup state, process identities, and recovery-screen actions for each. Automated fake-server tests do not check these boxes.
 
+Also check the two-client game-directory lock with a new disposable profile as
+described in [Building](building.md). A second client must be denied without
+clearing the first client's journal or allowing an ordinary single-player
+open. After the first client exits, the second may acquire the OS lock on
+restart, but must still obey any recovery journal.
+
 Do not check a box based only on a unit test. Attach sanitized logs and the disposable test procedure to the release notes or tracking issue.
 
 ## 3. Inspect artifacts

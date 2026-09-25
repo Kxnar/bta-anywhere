@@ -77,6 +77,28 @@ final class HostControllerWorldOpenGuardTest {
 		}
 	}
 
+	@Test
+	void failedBeforeSupervisorLaunchCanClearJournalBecauseNoProcessWasStarted() throws Exception {
+		Path game = game("failed-before-launch");
+		HostControllerFaultTest.installFakeRuntime(game.resolve("bta-anywhere/server"));
+		HostingFaults faults = point -> {
+			if (point == HostingFaults.Point.BEFORE_SUPERVISOR_LAUNCH) {
+				throw new IllegalStateException("synthetic failure before process start");
+			}
+		};
+		try (HostController controller = new HostController(game, faults)) {
+			startToSaving(controller, game, WorldMode.LIVE);
+			controller.continueAfterWorldClosed().toCompletableFuture().get(20, TimeUnit.SECONDS);
+			assertEquals(HostState.FAILED, controller.status().state());
+			assertTrue(controller.hasRecoveryArtifacts());
+			assertTrue(WorldOpenGuard.blocks(game, "world"));
+			assertTrue(controller.stop().toCompletableFuture().get(20, TimeUnit.SECONDS));
+			assertFalse(controller.hasRecoveryArtifacts());
+			assertFalse(WorldOpenGuard.blocks(game, "world"));
+			assertTrue(controller.liveOriginalNeedingGuard().isEmpty());
+		}
+	}
+
 	private void startToSaving(HostController controller, Path game, WorldMode mode) throws Exception {
 		WorldContext world = new WorldContext(game, game.resolve("saves/world"), "world", "Synthetic");
 		controller.requestStart(world, options(mode), new BtaAnywhereConfig(), false)

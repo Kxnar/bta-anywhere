@@ -1,10 +1,17 @@
 package io.github.kxnar.btaanywhere.mod.hosting;
 
+import java.io.IOException;
+import java.nio.file.Path;
+
 /** Test-only injection seam. Production construction always uses {@link #NONE}. */
 interface HostingFaults {
 	HostingFaults NONE = point -> { };
 
 	void hit(Point point);
+
+	/** Test seam after process start and control verification, before the caller owns its handle. */
+	default void afterSupervisorProcessStarted(Process process, Path controlFile) throws IOException {
+	}
 
 	enum Point {
 		BEFORE_WORLD_SAVE,

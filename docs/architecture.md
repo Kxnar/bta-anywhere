@@ -38,7 +38,22 @@ Netty QUIC carries the control connection and guest streams. A stream connects t
 
 ## BTA mod
 
-The client-only `btaanywhere` mod adds hosting and recovery screens. It calls BTA's normal save-and-unload path on the game thread and performs file/process/network work off-thread. Its state machine is:
+The client-only `btaanywhere` mod adds hosting and recovery screens. It calls BTA's normal save-and-unload path on the game thread and performs file/process/network work off-thread.
+
+Before creating the hosting controller or allowing ordinary single-player world
+opens, the mod holds an exclusive Windows OS file lock on the stable
+`bta-anywhere/client.lock` file for the client lifetime. A second mod client
+using the same game directory receives an actionable screen and cannot open,
+create, or host a single-player world from that directory. The lock file is
+not deleted on shutdown; Windows releases the lock when the owning process
+exits, including after a crash. The recovery journal still governs a managed
+server that survives its client.
+The public hosting-controller constructor requires a live lease for that same
+normalized game directory; the naked constructor is package-private for
+disposable tests. Reflection and external tools that modify saves are outside
+this cooperative lock boundary.
+
+Its hosting state machine is:
 
 ```text
 IDLE
@@ -63,6 +78,11 @@ the backup or Showcase copy. It occurs before mod mirroring and supervisor
 start, so a crash anywhere before complete process identity is recorded keeps
 the original save closed until an operator verifies the processes and files.
 A stale temporary journal update also blocks automatic recovery actions.
+The controller records an in-memory launch attempt before entering supervisor
+startup. If startup throws without returning a verified handle, Stop retains
+the published launch-intent journal because it cannot prove that no process
+started. A failure before any launch attempt may be cleared after normal
+in-process cleanup.
 
 Managed data lives under `<game-directory>/bta-anywhere/`:
 

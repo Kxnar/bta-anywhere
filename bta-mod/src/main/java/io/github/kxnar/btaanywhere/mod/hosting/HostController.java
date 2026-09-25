@@ -74,13 +74,26 @@ public final class HostController implements AutoCloseable {
 	private volatile Path consoleLog;
 	private volatile boolean showcase;
 	private volatile boolean ownsJournal;
+	/** Set before a launch attempt; a failed start may leave an untracked live server. */
+	private volatile boolean supervisorLaunchAttempted;
 	private volatile RecoveryInspection adoptedRecovery;
 	private final AtomicBoolean hostWorldObserved = new AtomicBoolean();
 	private volatile CompletableFuture<Void> pipeline = CompletableFuture.completedFuture(null);
 	private volatile CompletableFuture<Boolean> stopFuture = CompletableFuture.completedFuture(true);
 
-	public HostController(Path gameDirectory) {
+	HostController(Path gameDirectory) {
 		this(gameDirectory, HostingFaults.NONE);
+	}
+
+	public HostController(Path gameDirectory, GameDirectoryLease lease) {
+		this(requireLease(gameDirectory, lease), HostingFaults.NONE);
+	}
+
+	private static Path requireLease(Path gameDirectory, GameDirectoryLease lease) {
+		if (!Objects.requireNonNull(lease, "lease").covers(gameDirectory)) {
+			throw new IllegalArgumentException("the BTA Anywhere game directory lease is missing, closed, or belongs to another profile");
+		}
+		return gameDirectory;
 	}
 
 	HostController(Path gameDirectory, HostingFaults faults) {
@@ -116,6 +129,7 @@ public final class HostController implements AutoCloseable {
 		}
 		cancelRequested.set(false);
 		ownsJournal = false;
+		supervisorLaunchAttempted = false;
 		hostWorldObserved.set(false);
 		clearLog();
 		PendingStart requested = new PendingStart(world, options, config, downloadConfirmed, null);
@@ -349,8 +363,9 @@ public final class HostController implements AutoCloseable {
 			ServerConfigurationWriter.write(requested.runtime(), requested.options());
 			checkNotCancelled();
 			faults.hit(HostingFaults.Point.BEFORE_SUPERVISOR_LAUNCH);
+			supervisorLaunchAttempted = true;
 			ManagedServerProcess launched = ManagedServerProcess.start(
-				requested.runtime(), activeWorld, requested.options(), consoleLog, this::appendLog
+				requested.runtime(), activeWorld, requested.options(), consoleLog, this::appendLog, faults
 			);
 			synchronized (resourceLock) {
 				server = launched;
@@ -478,6 +493,10 @@ public final class HostController implements AutoCloseable {
 		synchronized (resourceLock) {
 			running = server;
 		}
+		if (running == null && ownsJournal && supervisorLaunchAttempted) {
+			clean = false;
+			appendLog("Supervisor launch may have started without a verified process identity; recovery files were retained for manual inspection");
+		}
 		if (running != null) {
 			try {
 				faults.hit(HostingFaults.Point.DURING_GRACEFUL_STOP);
@@ -518,6 +537,7 @@ public final class HostController implements AutoCloseable {
 			consoleLog = null;
 			showcase = false;
 			ownsJournal = false;
+			supervisorLaunchAttempted = false;
 			hostWorldObserved.set(false);
 		} else {
 			setState(HostState.FAILED,

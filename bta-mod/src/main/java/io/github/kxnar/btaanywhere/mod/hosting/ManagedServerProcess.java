@@ -49,7 +49,19 @@ public final class ManagedServerProcess implements AutoCloseable {
 		Path logFile,
 		Consumer<String> logConsumer
 	) throws IOException {
+		return start(runtime, activeWorld, options, logFile, logConsumer, HostingFaults.NONE);
+	}
+
+	static ManagedServerProcess start(
+		Path runtime,
+		Path activeWorld,
+		HostOptions options,
+		Path logFile,
+		Consumer<String> logConsumer,
+		HostingFaults faults
+	) throws IOException {
 		Objects.requireNonNull(options, "options");
+		Objects.requireNonNull(faults, "faults");
 		Path serverRoot = runtime.toAbsolutePath().normalize();
 		Path world = activeWorld.toAbsolutePath().normalize();
 		if (!Files.isDirectory(serverRoot) || !Files.isRegularFile(serverRoot.resolve("fabric-server-launch.jar"))) {
@@ -83,6 +95,7 @@ public final class ManagedServerProcess implements AutoCloseable {
 		Process process = builder.start();
 		try {
 			SupervisorControlFile control = awaitControlFile(process, controlFile, Duration.ofSeconds(15));
+			faults.afterSupervisorProcessStarted(process, controlFile);
 			return new ManagedServerProcess(process, control, controlFile, resolvedLog, logConsumer);
 		} catch (IOException | InterruptedException exception) {
 			if (exception instanceof InterruptedException) {

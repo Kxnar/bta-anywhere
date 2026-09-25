@@ -19,6 +19,8 @@ The relay access token controls who may allocate relay ports. It is not a guest 
 - Process recovery matching on PID, start time, and executable; supervisor commands also require a private random control token.
 - Managed-process STOP checks the retained supervisor and server identity against the private control file before sending the authenticated command. A failed control request retains recovery evidence rather than force-killing a process from the client.
 - Recovery fails closed for incomplete launch identity, malformed/interrupted journals, and live PID identity mismatches; test-only fault callbacks cannot be enabled through production configuration.
+- A failed supervisor startup with no returned process handle retains the launch-intent journal on Stop if a launch was attempted; a missing in-memory handle is not proof that the server is absent.
+- One BTA Anywhere client at a time may use a game directory. A client-lifetime OS lock on a stable, symlink-checked file blocks a second mod instance before world-open or hosting actions; the lock contains no PID authority or secrets and is released by Windows after process exit. Recovery checks still apply after a crash.
 - Ordinary BTA single-player opens are guarded against reopening the original Live save during in-process handoff and while its recovery journal remains; an unidentifiable journal blocks all single-player opens.
 - Online mode, whitelist, maximum-player limit, automatic host operator entry, and warning confirmation before whitelist disablement.
 
