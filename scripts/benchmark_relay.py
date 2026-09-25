@@ -29,10 +29,11 @@ import sys
 import tempfile
 import threading
 import time
+import traceback
 from datetime import datetime, timezone
 from pathlib import Path
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 SIZES = (1024, 65536, 1048576)
 ACTIVE_METRIC = "bta_anywhere_active_connections"
 CHUNK = 65536
@@ -109,6 +110,15 @@ class EchoServer(socketserver.ThreadingTCPServer):
     daemon_threads = True
     request_queue_size = 64
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.errors: collections.deque[dict[str, str]] = collections.deque(maxlen=20)
+
+    def handle_error(self, request, client_address) -> None:
+        error = sys.exc_info()[1]
+        if error is not None:
+            self.errors.append(bounded_failure(error))
+
 
 def payload(seed: int, size: int, index: int) -> bytes:
     return random.Random(f"{seed}:{size}:{index}").randbytes(size)
@@ -140,53 +150,68 @@ def throughput_stream(port: int, block: bytes, seconds: float, timeout: float,
     send_error: list[BaseException] = []
     started = time.perf_counter()
     doubled_block = block + block
-    with socket.create_connection(("127.0.0.1", port), timeout=timeout) as sock:
-        sock.settimeout(timeout)
-        sock.sendall(b"T")
-        stop_at = started + seconds
+    try:
+        with socket.create_connection(("127.0.0.1", port), timeout=timeout) as sock:
+            sock.settimeout(timeout)
+            sock.sendall(b"T")
+            stop_at = started + seconds
 
-        def send() -> None:
-            nonlocal sent
-            try:
-                while time.perf_counter() < stop_at:
-                    sock.sendall(block)
-                    sent += len(block)
-                    if pace_seconds:
-                        time.sleep(pace_seconds)
-                sock.shutdown(socket.SHUT_WR)
-            except BaseException as error:
-                send_error.append(error)
-                with contextlib.suppress(OSError):
+            def send() -> None:
+                nonlocal sent
+                try:
+                    while time.perf_counter() < stop_at:
+                        sock.sendall(block)
+                        sent += len(block)
+                        if pace_seconds:
+                            time.sleep(pace_seconds)
                     sock.shutdown(socket.SHUT_WR)
+                except BaseException as error:
+                    send_error.append(error)
+                    with contextlib.suppress(OSError):
+                        sock.shutdown(socket.SHUT_WR)
 
-        sender = threading.Thread(target=send, name="benchmark-sender", daemon=True)
-        sender.start()
-        try:
-            while chunk := sock.recv(CHUNK):
-                shift = received % len(block)
-                if chunk != doubled_block[shift:shift + len(chunk)]:
-                    raise AssertionError(f"byte mismatch starting at offset {received}")
-                received += len(chunk)
-            sender.join(timeout=timeout)
-            if sender.is_alive():
-                raise TimeoutError("sender did not terminate")
-            if send_error:
-                raise send_error[0]
-            if received != sent:
-                raise AssertionError(f"missing bytes or EOF: sent={sent} received={received}")
-        finally:
-            with contextlib.suppress(OSError):
-                sock.shutdown(socket.SHUT_RDWR)
-            sender.join(timeout=1)
-    elapsed = time.perf_counter() - started
-    return {"seconds": elapsed, "guest_to_host_bytes": sent,
-            "host_to_guest_bytes": received}
+            sender = threading.Thread(target=send, name="benchmark-sender", daemon=True)
+            sender.start()
+            try:
+                while chunk := sock.recv(CHUNK):
+                    shift = received % len(block)
+                    if chunk != doubled_block[shift:shift + len(chunk)]:
+                        raise AssertionError(f"byte mismatch starting at offset {received}")
+                    received += len(chunk)
+                sender.join(timeout=timeout)
+                if sender.is_alive():
+                    raise TimeoutError("sender did not terminate")
+                if send_error:
+                    raise send_error[0]
+                if received != sent:
+                    raise AssertionError(f"missing bytes or EOF: sent={sent} received={received}")
+            finally:
+                with contextlib.suppress(OSError):
+                    sock.shutdown(socket.SHUT_RDWR)
+                sender.join(timeout=1)
+        elapsed = time.perf_counter() - started
+        return {"seconds": elapsed, "guest_to_host_bytes": sent,
+                "host_to_guest_bytes": received}
+    except BaseException as error:
+        raise RuntimeError(f"throughput socket failed after {time.perf_counter() - started:.3f}s "
+                           f"sent={sent} received={received}: {type(error).__name__}: {error}") from error
 
 
-def run_concurrent(function, count: int) -> list:
+def run_concurrent(function, count: int, label: str = "parallel transfer") -> list:
     with concurrent.futures.ThreadPoolExecutor(max_workers=count) as pool:
         futures = [pool.submit(function, i) for i in range(count)]
-        return [future.result() for future in futures]
+        results = []
+        failures = []
+        for index, future in enumerate(futures):
+            try:
+                results.append(future.result())
+            except BaseException as error:
+                failures.append((index, error))
+        if failures:
+            details = "; ".join(f"stream={index} {type(error).__name__}: {str(error)[:250]}"
+                                for index, error in failures)
+            raise RuntimeError(f"{label}: {details}") from failures[0][1]
+        return results
 
 
 def http_get(port: int, path: str) -> str:
@@ -604,7 +629,7 @@ def reconnect_probe(port: int, data: bytes) -> bool:
         return False
 
 
-def run_latency(rig: Rig, profile: str, seed: int) -> list[dict]:
+def run_latency(rig: Rig, profile: str, seed: int, result: dict) -> list[dict]:
     assert rig.echo and rig.public_port
     warmups, measured = (1, 3) if profile == "smoke" else (5, 30)
     cases = []
@@ -620,7 +645,11 @@ def run_latency(rig: Rig, profile: str, seed: int) -> list[dict]:
                     order = ("direct", "relay") if wave % 2 == 0 else ("relay", "direct")
                     for path in order:
                         port = rig.echo.server_address[1] if path == "direct" else rig.public_port
-                        pair[path] = run_concurrent(lambda _: transfer(port, mode, data, 15), concurrency)
+                        result["current_case"] = {"phase": "latency", "concurrency": concurrency,
+                                                  "payload_bytes": size, "mode": mode,
+                                                  "wave": wave, "path": path}
+                        pair[path] = run_concurrent(lambda _: transfer(port, mode, data, 15), concurrency,
+                                                     f"latency {concurrency=} {size=} {mode=} {wave=} {path=}")
                         if path == "relay":
                             rig.assert_idle()
                     if wave >= warmups:
@@ -636,7 +665,7 @@ def run_latency(rig: Rig, profile: str, seed: int) -> list[dict]:
     return cases
 
 
-def run_throughput(rig: Rig, profile: str, seed: int) -> list[dict]:
+def run_throughput(rig: Rig, profile: str, seed: int, result: dict) -> list[dict]:
     assert rig.echo and rig.public_port
     runs, seconds = (1, 2.0) if profile == "smoke" else (5, 60.0)
     block = payload(seed, CHUNK, 999)
@@ -644,10 +673,15 @@ def run_throughput(rig: Rig, profile: str, seed: int) -> list[dict]:
     for concurrency in (1, 8):
         case = {"concurrency": concurrency, "payload_bytes": len(block), "run_seconds_target": seconds,
                 "paths": {"direct": [], "relay": []}}
+        result["throughput_partial"] = cases + [case]
         for run in range(runs):
             for path in (("direct", "relay") if run % 2 == 0 else ("relay", "direct")):
                 port = rig.echo.server_address[1] if path == "direct" else rig.public_port
-                samples = run_concurrent(lambda _: throughput_stream(port, block, seconds, 30), concurrency)
+                result["current_case"] = {"phase": "throughput", "concurrency": concurrency,
+                                          "run_index_zero_based": run, "path": path,
+                                          "target_seconds": seconds, "stream_count": concurrency}
+                samples = run_concurrent(lambda _: throughput_stream(port, block, seconds, 30), concurrency,
+                                         f"throughput {concurrency=} {run=} {path=}")
                 elapsed = max(sample["seconds"] for sample in samples)
                 row = {"seconds": elapsed,
                        "guest_to_host_bytes": sum(sample["guest_to_host_bytes"] for sample in samples),
@@ -664,7 +698,7 @@ def run_throughput(rig: Rig, profile: str, seed: int) -> list[dict]:
     return cases
 
 
-def run_soak(rig: Rig, seed: int, duration: float) -> dict:
+def run_soak(rig: Rig, seed: int, duration: float, result: dict) -> dict:
     if not math.isfinite(duration) or not 7200 <= duration <= 14400:
         raise ValueError("soak duration must be between two and four hours")
     assert rig.public_port and rig.relay and rig.tunnel
@@ -674,7 +708,11 @@ def run_soak(rig: Rig, seed: int, duration: float) -> dict:
     totals = {"guest_to_host_bytes": 0, "host_to_guest_bytes": 0}
     while time.monotonic() - started < duration:
         remaining = duration - (time.monotonic() - started)
-        streams = run_concurrent(lambda _: throughput_stream(rig.public_port, block, min(60, remaining), 30, 0.5), 8)
+        result["current_case"] = {"phase": "soak", "wave": len(samples), "concurrency": 8,
+                                  "target_seconds": min(60, remaining)}
+        streams = run_concurrent(lambda _: throughput_stream(rig.public_port, block,
+                                                              min(60, remaining), 30, 0.5), 8,
+                                 f"soak wave={len(samples)}")
         for stream in streams:
             for direction in totals:
                 totals[direction] += stream[direction]
@@ -684,6 +722,21 @@ def run_soak(rig: Rig, seed: int, duration: float) -> dict:
                         "active_connections": rig.metric(ACTIVE_METRIC)})
     return {"duration_seconds": time.monotonic() - started, "streams": 8, "totals": totals,
             "memory_samples": samples, "memory_growth_review": "PENDING_MANUAL_REVIEW",
+            "active_connections_final": rig.metric(ACTIVE_METRIC)}
+
+
+def run_diagnostic_eight_relay(rig: Rig, seed: int, result: dict) -> dict:
+    assert rig.public_port
+    block = payload(seed, CHUNK, 999)
+    result["current_case"] = {"phase": "diagnostic_eight_relay", "concurrency": 8,
+                              "run_index_zero_based": 0, "path": "relay", "target_seconds": 60,
+                              "stream_count": 8, "payload_block_bytes": CHUNK}
+    streams = run_concurrent(lambda _: throughput_stream(rig.public_port, block, 60, 30), 8,
+                             "diagnostic eight-stream relayed throughput")
+    rig.assert_idle()
+    return {"concurrency": 8, "path": "relay", "target_seconds": 60,
+            "guest_to_host_bytes": sum(stream["guest_to_host_bytes"] for stream in streams),
+            "host_to_guest_bytes": sum(stream["host_to_guest_bytes"] for stream in streams),
             "active_connections_final": rig.metric(ACTIVE_METRIC)}
 
 
@@ -717,12 +770,15 @@ def markdown(result: dict) -> str:
                   f"completion={link['completion_ms']:.2f} ms."]
     if result.get("failure"):
         lines += ["", f"Failure: {result['failure']['type']}: {result['failure']['message']}"]
+        if result.get("current_case"):
+            lines.append(f"Failed case: `{json.dumps(result['current_case'], sort_keys=True)}`.")
     return "\n".join(lines) + "\n"
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--profile", choices=("smoke", "full", "soak"), default="smoke")
+    parser.add_argument("--profile", choices=("smoke", "full", "soak", "diagnostic-eight-relay"),
+                        default="smoke")
     parser.add_argument("--relay-binary", required=True, type=Path)
     parser.add_argument("--tunnel-jar", required=True, type=Path)
     parser.add_argument("--java", default="java")
@@ -768,11 +824,14 @@ def main() -> int:
                 result["initial_process_sample"] = {"relay": process_sample(rig.relay),
                                                      "tunnel": process_sample(rig.tunnel)}
                 if args.profile == "soak":
-                    result["soak"] = run_soak(rig, args.seed, args.soak_seconds)
+                    result["soak"] = run_soak(rig, args.seed, args.soak_seconds, result)
+                elif args.profile == "diagnostic-eight-relay":
+                    result["diagnostic_eight_relay"] = run_diagnostic_eight_relay(rig, args.seed, result)
                 else:
                     before = {"relay": process_sample(rig.relay), "tunnel": process_sample(rig.tunnel)}
-                    result["latency"] = run_latency(rig, args.profile, args.seed)
-                    result["throughput"] = run_throughput(rig, args.profile, args.seed)
+                    result["latency"] = run_latency(rig, args.profile, args.seed, result)
+                    result["throughput"] = run_throughput(rig, args.profile, args.seed, result)
+                    result.pop("throughput_partial", None)
                     after = {"relay": process_sample(rig.relay), "tunnel": process_sample(rig.tunnel)}
                     result["measurement_process"] = {name: {
                         "cpu_seconds": after[name]["cpu_seconds"] - before[name]["cpu_seconds"],
@@ -806,12 +865,16 @@ def main() -> int:
         result["clean_shutdown"] = {"relay": rig.relay_clean, "tunnel": rig.tunnel_clean}
         if not all(result["clean_shutdown"].values()):
             raise AssertionError("relay or tunnel did not terminate cleanly")
+        result.pop("current_case", None)
         result["status"] = "PASS"
     except BaseException as error:
         result["failure"] = bounded_failure(error)
+        result["failure_traceback"] = "".join(traceback.format_exception(error))[-6000:]
         result["failures"].append(result["failure"])
         result["failure_counts"][failure_category(error)] += 1
         result["diagnostics"] = list(logs)[-50:]
+        if rig is not None and rig.echo is not None:
+            result["echo_errors"] = list(rig.echo.errors)
         if rig is not None and hasattr(rig, "relay_clean"):
             result["clean_shutdown_after_failure"] = {
                 "relay": rig.relay_clean, "tunnel": rig.tunnel_clean}

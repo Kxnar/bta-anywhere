@@ -78,11 +78,20 @@ smoke run as the two-hour gate.
 
 `benchmark-results/` is ignored because results are machine-specific. Keep
 the JSON and generated Markdown with the review, not in the repository. JSON
-schema version 3 includes environment and toolchains, commit and artifact
+schema version 4 includes environment and toolchains, commit and artifact
 hashes, test configuration, raw samples, aggregate p50/p95/p99, CPU time,
 working set/peak resident memory, reconnection, failures, and run duration.
 The soak records memory samples for manual growth review; a successful data
 transfer run alone does not close that review gate.
+
+For a focused reproduction of an eight-stream relay stall, use
+`--profile diagnostic-eight-relay` with the same release artifacts and seed.
+It runs exactly one 60-second relayed throughput case with the full eight
+streams and unchanged 30-second socket timeout. On failure, JSON retains the
+case, run, path, stream indices, byte counts, bounded exception chain, relay
+metrics, and bounded synthetic-service errors. A failed diagnostic is evidence
+of an unresolved data-path problem; stop the full/soak sequence and investigate
+it rather than weakening the test.
 The test config binds all services to loopback and raises only its disposable
 relay's per-source accept rate from 30 to 10,000/minute so repeated latency
 samples exercise the data path. The production default is unchanged; the

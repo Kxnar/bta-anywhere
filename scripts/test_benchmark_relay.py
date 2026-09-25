@@ -46,6 +46,14 @@ class BenchmarkTests(unittest.TestCase):
         self.assertEqual(benchmark.failure_category(TimeoutError("active streams to drain")),
                          "leaked_active_stream_gauges")
 
+    def test_parallel_failure_names_case_and_stream(self):
+        def worker(index):
+            if index == 1:
+                raise TimeoutError("socket timed out")
+            return index
+        with self.assertRaisesRegex(RuntimeError, "eight-stream relay run: stream=1 TimeoutError"):
+            benchmark.run_concurrent(worker, 2, "eight-stream relay run")
+
     def test_generated_payload_is_reproducible(self):
         self.assertEqual(benchmark.payload(17, 1024, 4), benchmark.payload(17, 1024, 4))
         self.assertNotEqual(benchmark.payload(17, 1024, 4), benchmark.payload(17, 1024, 5))
@@ -89,7 +97,7 @@ class BenchmarkTests(unittest.TestCase):
     def test_soak_rejects_unbounded_duration_before_starting_processes(self):
         for duration in (math.inf, math.nan, 7199, 14401):
             with self.subTest(duration=duration), self.assertRaises(ValueError):
-                benchmark.run_soak(None, 0, duration)
+                    benchmark.run_soak(None, 0, duration, {})
 
 
 if __name__ == "__main__":
