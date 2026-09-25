@@ -78,7 +78,7 @@ smoke run as the two-hour gate.
 
 `benchmark-results/` is ignored because results are machine-specific. Keep
 the JSON and generated Markdown with the review, not in the repository. JSON
-schema version 4 includes environment and toolchains, commit and artifact
+schema version 5 includes environment and toolchains, commit and artifact
 hashes, test configuration, raw samples, aggregate p50/p95/p99, CPU time,
 working set/peak resident memory, reconnection, failures, and run duration.
 The soak records memory samples for manual growth review; a successful data
@@ -92,6 +92,21 @@ case, run, path, stream indices, byte counts, bounded exception chain, relay
 metrics, and bounded synthetic-service errors. A failed diagnostic is evidence
 of an unresolved data-path problem; stop the full/soak sequence and investigate
 it rather than weakening the test.
+
+If the isolated eight-stream case passes but the full run stalls at its first
+eight-stream relay case, use `--profile diagnostic-sequence` with the same
+arguments and a new output path. This replays the **unchanged full-profile
+prefix**: all latency waves, five 60-second direct/relay pairs at one stream,
+one 60-second direct run at eight streams, then the first 60-second relayed run
+at eight streams. It stops immediately after that case. This diagnostic
+profile cannot satisfy the full benchmark or soak gate. During the last case,
+schema 5 retains at most 90 one-second process/relay samples and the last 160
+synthetic-server lifecycle events. Events contain case, connection number,
+mode, first-payload size, EOF or error type; they contain no payload or peer
+address. The relay byte counters are updated only when a transfer finishes,
+so their flat value while eight streams are open cannot by itself show that
+no bytes traversed them. Keep the failed full results and diagnostic result
+separate when reviewing the cause.
 The test config binds all services to loopback and raises only its disposable
 relay's per-source accept rate from 30 to 10,000/minute so repeated latency
 samples exercise the data path. The production default is unchanged; the

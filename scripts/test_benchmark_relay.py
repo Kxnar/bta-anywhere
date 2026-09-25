@@ -5,6 +5,8 @@ import socketserver
 import threading
 import unittest
 import math
+from types import SimpleNamespace
+from unittest import mock
 
 import benchmark_relay as benchmark
 
@@ -98,6 +100,49 @@ class BenchmarkTests(unittest.TestCase):
         for duration in (math.inf, math.nan, 7199, 14401):
             with self.subTest(duration=duration), self.assertRaises(ValueError):
                     benchmark.run_soak(None, 0, duration, {})
+
+    def test_echo_trace_is_bounded_and_has_no_payload(self):
+        with benchmark.EchoServer(("127.0.0.1", 0), benchmark.EchoHandler) as server:
+            server.current_case = {"phase": "unit"}
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                benchmark.transfer(server.server_address[1], "request_response", b"private", 2)
+            finally:
+                server.shutdown()
+                thread.join(timeout=2)
+            events = list(server.events)
+            self.assertEqual([event["event"] for event in events],
+                             ["accepted", "mode", "eof_sent"])
+            self.assertEqual(events[0]["case"], {"phase": "unit"})
+            self.assertNotIn("private", str(events))
+            for index in range(200):
+                server.record_event(1000 + index, "bounded")
+            self.assertEqual(len(server.events), 160)
+
+    def test_diagnostic_sequence_keeps_full_load_and_stops_at_first_eight_relay(self):
+        echo = SimpleNamespace(server_address=("127.0.0.1", 100), event_lock=threading.Lock(),
+                               current_case={}, events=[])
+        rig = SimpleNamespace(echo=echo, public_port=200, assert_idle=lambda: None)
+        ports = []
+
+        def fake_stream(port, block, seconds, timeout):
+            ports.append(port)
+            self.assertEqual((len(block), seconds, timeout), (65536, 60.0, 30))
+            return {"seconds": 60.0, "guest_to_host_bytes": 65536,
+                    "host_to_guest_bytes": 65536}
+
+        result = {}
+        with mock.patch.object(benchmark, "throughput_stream", side_effect=fake_stream), \
+             mock.patch.object(benchmark, "diagnostic_case_samples",
+                               side_effect=lambda _rig, report, _stop:
+                               report.update(diagnostic_case_samples=[])):
+            cases = benchmark.run_throughput(rig, "full", 1701, result, diagnostic_sequence=True)
+        self.assertEqual(len(cases), 2)
+        self.assertEqual([len(cases[0]["paths"][path]) for path in ("direct", "relay")], [5, 5])
+        self.assertEqual([len(cases[1]["paths"][path]) for path in ("direct", "relay")], [1, 1])
+        self.assertEqual((ports.count(100), ports.count(200)), (13, 13))
+        self.assertEqual(len(result["diagnostic_case_samples"]), 0)
 
 
 if __name__ == "__main__":

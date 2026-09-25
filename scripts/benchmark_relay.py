@@ -33,7 +33,7 @@ import traceback
 from datetime import datetime, timezone
 from pathlib import Path
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 SIZES = (1024, 65536, 1048576)
 ACTIVE_METRIC = "bta_anywhere_active_connections"
 CHUNK = 65536
@@ -83,26 +83,38 @@ def read_exact(sock: socket.socket, size: int) -> bytes:
 
 class EchoHandler(socketserver.BaseRequestHandler):
     def handle(self) -> None:
+        connection_id = self.server.next_connection_id()
+        self.server.record_event(connection_id, "accepted")
         self.request.settimeout(30)
-        mode = read_exact(self.request, 1)
-        if mode == b"R":
-            length = int.from_bytes(read_exact(self.request, 4), "big")
-            if length > 1048576:
-                raise ValueError("benchmark request exceeds 1 MiB")
-            self.request.sendall(read_exact(self.request, length))
-        elif mode == b"H":
-            received = bytearray()
-            while chunk := self.request.recv(CHUNK):
-                received.extend(chunk)
-                if len(received) > 1048576:
-                    raise ValueError("benchmark half-close exceeds 1 MiB")
-            self.request.sendall(received)
-        elif mode == b"T":
-            while chunk := self.request.recv(CHUNK):
-                self.request.sendall(chunk)
-        else:
-            raise ValueError("unknown benchmark mode")
-        self.request.shutdown(socket.SHUT_WR)
+        try:
+            mode = read_exact(self.request, 1)
+            self.server.record_event(connection_id, "mode", mode=mode.decode("ascii", errors="replace"))
+            if mode == b"R":
+                length = int.from_bytes(read_exact(self.request, 4), "big")
+                if length > 1048576:
+                    raise ValueError("benchmark request exceeds 1 MiB")
+                self.request.sendall(read_exact(self.request, length))
+            elif mode == b"H":
+                received = bytearray()
+                while chunk := self.request.recv(CHUNK):
+                    received.extend(chunk)
+                    if len(received) > 1048576:
+                        raise ValueError("benchmark half-close exceeds 1 MiB")
+                self.request.sendall(received)
+            elif mode == b"T":
+                first_chunk = True
+                while chunk := self.request.recv(CHUNK):
+                    if first_chunk:
+                        self.server.record_event(connection_id, "first_payload", bytes=len(chunk))
+                        first_chunk = False
+                    self.request.sendall(chunk)
+            else:
+                raise ValueError("unknown benchmark mode")
+            self.request.shutdown(socket.SHUT_WR)
+            self.server.record_event(connection_id, "eof_sent")
+        except BaseException as error:
+            self.server.record_event(connection_id, "error", error_type=type(error).__name__)
+            raise
 
 
 class EchoServer(socketserver.ThreadingTCPServer):
@@ -113,6 +125,21 @@ class EchoServer(socketserver.ThreadingTCPServer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.errors: collections.deque[dict[str, str]] = collections.deque(maxlen=20)
+        self.events: collections.deque[dict] = collections.deque(maxlen=160)
+        self.event_lock = threading.Lock()
+        self.connection_count = 0
+        self.current_case: dict = {}
+
+    def next_connection_id(self) -> int:
+        with self.event_lock:
+            self.connection_count += 1
+            return self.connection_count
+
+    def record_event(self, connection_id: int, event: str, **details) -> None:
+        with self.event_lock:
+            self.events.append({"time_monotonic": time.monotonic(),
+                                "connection_id": connection_id, "event": event,
+                                "case": dict(self.current_case), **details})
 
     def handle_error(self, request, client_address) -> None:
         error = sys.exc_info()[1]
@@ -665,7 +692,28 @@ def run_latency(rig: Rig, profile: str, seed: int, result: dict) -> list[dict]:
     return cases
 
 
-def run_throughput(rig: Rig, profile: str, seed: int, result: dict) -> list[dict]:
+def diagnostic_case_samples(rig: Rig, result: dict, stop: threading.Event) -> None:
+    assert rig.relay and rig.tunnel
+    samples: collections.deque[dict] = collections.deque(maxlen=90)
+    result["diagnostic_case_samples"] = samples
+    while not stop.is_set():
+        item = {"time_monotonic": time.monotonic()}
+        try:
+            body = http_get(rig.admin_port, "/metrics")
+            item["active_connections"] = metric(body, ACTIVE_METRIC)
+            for name in ("bta_anywhere_bytes_guest_to_host_total",
+                         "bta_anywhere_bytes_host_to_guest_total"):
+                item[name] = metric(body, name)
+            item["relay"] = process_sample(rig.relay)
+            item["tunnel"] = process_sample(rig.tunnel)
+        except Exception as error:
+            item["sample_error"] = bounded_failure(error)
+        samples.append(item)
+        stop.wait(1)
+
+
+def run_throughput(rig: Rig, profile: str, seed: int, result: dict,
+                   diagnostic_sequence: bool = False) -> list[dict]:
     assert rig.echo and rig.public_port
     runs, seconds = (1, 2.0) if profile == "smoke" else (5, 60.0)
     block = payload(seed, CHUNK, 999)
@@ -680,8 +728,25 @@ def run_throughput(rig: Rig, profile: str, seed: int, result: dict) -> list[dict
                 result["current_case"] = {"phase": "throughput", "concurrency": concurrency,
                                           "run_index_zero_based": run, "path": path,
                                           "target_seconds": seconds, "stream_count": concurrency}
-                samples = run_concurrent(lambda _: throughput_stream(port, block, seconds, 30), concurrency,
-                                         f"throughput {concurrency=} {run=} {path=}")
+                with rig.echo.event_lock:
+                    rig.echo.current_case = dict(result["current_case"])
+                observed = diagnostic_sequence and concurrency == 8 and run == 0 and path == "relay"
+                stop = threading.Event()
+                sampler = None
+                if observed:
+                    sampler = threading.Thread(target=diagnostic_case_samples,
+                                               args=(rig, result, stop), daemon=True)
+                    sampler.start()
+                try:
+                    samples = run_concurrent(lambda _: throughput_stream(port, block, seconds, 30), concurrency,
+                                             f"throughput {concurrency=} {run=} {path=}")
+                finally:
+                    if sampler:
+                        stop.set()
+                        sampler.join(timeout=3)
+                        result["diagnostic_case_samples"] = list(result["diagnostic_case_samples"])
+                        with rig.echo.event_lock:
+                            result["diagnostic_echo_events"] = list(rig.echo.events)
                 elapsed = max(sample["seconds"] for sample in samples)
                 row = {"seconds": elapsed,
                        "guest_to_host_bytes": sum(sample["guest_to_host_bytes"] for sample in samples),
@@ -691,6 +756,13 @@ def run_throughput(rig: Rig, profile: str, seed: int, result: dict) -> list[dict
                 case["paths"][path].append(row)
                 if path == "relay":
                     rig.assert_idle()
+                if observed:
+                    case["median_mib_s"] = {path_name: {
+                        direction: statistics.median(item[direction + "_mib_s"] for item in rows)
+                        for direction in ("guest_to_host", "host_to_guest")}
+                        for path_name, rows in case["paths"].items()}
+                    cases.append(case)
+                    return cases
         case["median_mib_s"] = {path: {direction: statistics.median(run[direction + "_mib_s"] for run in rows)
                                        for direction in ("guest_to_host", "host_to_guest")}
                                 for path, rows in case["paths"].items()}
@@ -777,7 +849,8 @@ def markdown(result: dict) -> str:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--profile", choices=("smoke", "full", "soak", "diagnostic-eight-relay"),
+    parser.add_argument("--profile", choices=("smoke", "full", "soak", "diagnostic-eight-relay",
+                                              "diagnostic-sequence"),
                         default="smoke")
     parser.add_argument("--relay-binary", required=True, type=Path)
     parser.add_argument("--tunnel-jar", required=True, type=Path)
@@ -806,6 +879,8 @@ def main() -> int:
                                 "accepts_per_minute_test_override": 10000,
                                 "relay_log_level_during_measurement": "warn",
                                 "relay_log_level_during_recovery": "info",
+                                "diagnostic_sequence_stop_after": "first eight-stream relayed throughput run"
+                                    if args.profile == "diagnostic-sequence" else None,
                                 "soak_seconds": args.soak_seconds if args.profile == "soak" else None},
               "machine": machine_info(args.java),
               "artifacts": {"relay_sha256": hashlib.sha256(relay_binary.read_bytes()).hexdigest(),
@@ -827,6 +902,11 @@ def main() -> int:
                     result["soak"] = run_soak(rig, args.seed, args.soak_seconds, result)
                 elif args.profile == "diagnostic-eight-relay":
                     result["diagnostic_eight_relay"] = run_diagnostic_eight_relay(rig, args.seed, result)
+                elif args.profile == "diagnostic-sequence":
+                    result["latency"] = run_latency(rig, "full", args.seed, result)
+                    result["throughput"] = run_throughput(rig, "full", args.seed, result,
+                                                          diagnostic_sequence=True)
+                    result.pop("throughput_partial", None)
                 else:
                     before = {"relay": process_sample(rig.relay), "tunnel": process_sample(rig.tunnel)}
                     result["latency"] = run_latency(rig, args.profile, args.seed, result)
