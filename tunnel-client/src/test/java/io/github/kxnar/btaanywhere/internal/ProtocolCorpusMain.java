@@ -73,6 +73,11 @@ public final class ProtocolCorpusMain {
 			return value;
 		}
 		String literal = value.getAsString();
+		// serde_json represents the JSON literal -0 as negative binary64 zero.
+		// Do not normalise its sign away through BigInteger.ZERO.
+		if ("-0".equals(literal)) {
+			return new JsonPrimitive(-0.0d);
+		}
 		if (literal.matches("-?(0|[1-9][0-9]*)")) {
 			BigInteger integer = new BigInteger(literal);
 			if (integer.compareTo(MIN_I64) >= 0 && integer.compareTo(MAX_U64) <= 0) {

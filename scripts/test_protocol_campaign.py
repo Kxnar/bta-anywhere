@@ -78,7 +78,7 @@ class ProtocolCampaignTest(unittest.TestCase):
         numeric = {name: framed for name, framed, _, _, _ in campaign.structural_boundary_cases()
                    if name.startswith("number-")}
         for name in ("number-u64-max", "number-u64-overflow", "number-i64-min",
-                     "number-negative-underflow", "number-small-exponent",
+                     "number-negative-underflow", "number-negative-zero", "number-small-exponent",
                      "number-large-exponent", "number-long-integer"):
             self.assertIn(name, numeric)
             self.assertEqual(int.from_bytes(numeric[name][:4], "big"), len(numeric[name]) - 4)
@@ -110,6 +110,24 @@ class ProtocolCampaignTest(unittest.TestCase):
         self.assertEqual(report["mismatchCount"], 1)
         self.assertEqual(report["framingMismatchCount"], 0)
         self.assertEqual(report["typedMismatchCount"], 1)
+
+    def test_semantic_comparison_preserves_number_boolean_types_and_signed_zero(self):
+        # Python's ordinary equality treats every pair below as equal.
+        for rust_value, java_value in ((1, 1.0), (True, 1), (-0.0, 0.0),
+                                       ({"nested": [False, {"n": 1}]},
+                                        {"nested": [0, {"n": 1.0}]})):
+            with self.subTest(rust=rust_value, java=java_value):
+                self.assertEqual(rust_value, java_value)
+                self.assertFalse(campaign.semantic_equal(rust_value, java_value))
+
+    def test_comparison_reports_previously_hidden_negative_zero_mismatch(self):
+        rust = {"id": 0, "accepted": True, "semantic": {"type": "ping", "sequence": -0.0},
+                "typedAccepted": False, "typedSemantic": None, "stateOutcome": "syntax_rejected"}
+        java = {**rust, "semantic": {"type": "ping", "sequence": 0}}
+        report = campaign.compare_results([rust], [java], ["ping-sequence-negative-zero"])
+        self.assertEqual(report["mismatchCount"], 1)
+        self.assertEqual(report["framingMismatchCount"], 1)
+        self.assertFalse(report["mismatches"][0]["semanticEqual"])
 
     def test_comparison_rejects_missing_or_out_of_order_results(self):
         with self.assertRaises(ValueError):

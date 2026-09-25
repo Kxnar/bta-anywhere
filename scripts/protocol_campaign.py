@@ -9,6 +9,7 @@ import ctypes
 from ctypes import wintypes
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import platform
@@ -415,6 +416,22 @@ def write_first_failures(corpus_path: Path, output_path: Path, case_ids: set[int
                 output.write(line)
 
 
+def semantic_equal(left: object, right: object) -> bool:
+    """Compare decoded JSON without Python's bool/int/float coercing equality."""
+    if type(left) is not type(right):
+        return False
+    if isinstance(left, dict):
+        return (left.keys() == right.keys()
+                and all(semantic_equal(value, right[key]) for key, value in left.items()))
+    if isinstance(left, list):
+        return (len(left) == len(right)
+                and all(semantic_equal(a, b) for a, b in zip(left, right)))
+    if isinstance(left, float):
+        # IEEE-754 signed zero is retained in serde_json's number model.
+        return math.copysign(1.0, left) == math.copysign(1.0, right) and left == right
+    return left == right
+
+
 def compare_results(rust: list[dict], java: list[dict], kinds: list[str]) -> dict:
     if len(rust) != len(kinds) or len(java) != len(kinds):
         raise ValueError("evaluator output count does not match corpus count")
@@ -428,9 +445,11 @@ def compare_results(rust: list[dict], java: list[dict], kinds: list[str]) -> dic
             raise ValueError(f"evaluator output ID is missing or out of order at case {index}")
         kind = kinds[index]
         counts[kind] = counts.get(kind, 0) + 1
-        framing_differs = (left["accepted"], left["semantic"]) != (right["accepted"], right["semantic"])
-        typed_differs = (left["typedAccepted"], left["typedSemantic"], left["stateOutcome"]) != (
-            right["typedAccepted"], right["typedSemantic"], right["stateOutcome"])
+        framing_differs = (left["accepted"] != right["accepted"]
+                           or not semantic_equal(left["semantic"], right["semantic"]))
+        typed_differs = (left["typedAccepted"] != right["typedAccepted"]
+                         or not semantic_equal(left["typedSemantic"], right["typedSemantic"])
+                         or left["stateOutcome"] != right["stateOutcome"])
         framing_mismatches += int(framing_differs)
         typed_mismatches += int(typed_differs)
         if framing_differs or typed_differs:
@@ -442,8 +461,8 @@ def compare_results(rust: list[dict], java: list[dict], kinds: list[str]) -> dic
                                          "javaTypedAccepted": right["typedAccepted"],
                                          "rustStateOutcome": left["stateOutcome"],
                                          "javaStateOutcome": right["stateOutcome"],
-                                         "semanticEqual": left["semantic"] == right["semantic"],
-                                         "typedSemanticEqual": left["typedSemantic"] == right["typedSemantic"]})
+                                         "semanticEqual": semantic_equal(left["semantic"], right["semantic"]),
+                                         "typedSemanticEqual": semantic_equal(left["typedSemantic"], right["typedSemantic"])})
     return {"caseCounts": counts, "mismatchCount": mismatch_count,
             "framingMismatchCount": framing_mismatches,
             "typedMismatchCount": typed_mismatches, "mismatches": first_mismatches}

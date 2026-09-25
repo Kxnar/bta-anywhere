@@ -41,8 +41,16 @@ values, known fields, and valid high/low pairs. The pre-fix probe failure is
 retained as evidence. The exact-commit validation follows.
 
 At code commit `1b4c166a0bd00c44c658e0ede80fa719bd8cbb4e`, the fresh
-fixed-seed 100-case and 10,000-case Rust/Java differential runs each finished
-with zero framing, typed, or modelled-state mismatches. The 100-case corpus
+fixed-seed 100-case and 10,000-case Rust/Java differential runs each reported
+zero framing, typed, or modelled-state mismatches under a comparator that used
+Python's ordinary JSON-value equality. Those zeroes are not valid conformance
+passes: ordinary equality considers `-0.0` equal to integer `0`, `1.0` equal
+to integer `1`, and booleans equal to integers. Retained 100-case raw result
+43, `ping-sequence-negative-zero`, actually decodes as `-0.0` in Rust and `0`
+in Java. A read-only recheck with the corrected comparator found this single
+hidden semantic mismatch in each retained 100-case and 10,000-case output.
+The exact corpus and both output lines are under the stacked surrogate
+directories below. The 100-case corpus
 included all nine surrogate vectors. A separate replay of the pre-fix
 nine-case corpus rejected six unpaired escapes and accepted all three paired
 controls with identical Rust/Java outcomes. Raw summaries, both evaluator
@@ -52,8 +60,16 @@ outputs, and the replay script are retained privately under
 `.dev/protocol-campaign/surrogate-*` in this worktree. The code also passed
 `cargo fmt --all -- --check`, `cargo test --locked --all` (20 relay tests and
 11 corpus tests), `:tunnel-client:test`, and 17 Python generator tests.
-These results do not include the long CPU campaign, repeated shared-port
+Those results do not include the long CPU campaign, repeated shared-port
 integration, baseline/candidate performance, or soak.
+
+The comparator now recursively preserves JSON primitive types and the sign
+of binary64 zero. The Java test evaluator keeps JSON `-0` as negative zero,
+matching Rust. A byte-exact shared `number-negative-zero` frame and Python
+negative tests retain this discovery. The 19 lightweight Python tests pass;
+the corrected evaluators have not yet been rebuilt or rerun, so this revision
+has no validated cross-language case count. Rerun the 100-case, 10,000-case,
+and four-target long campaign from the corrected commit before review.
 
 Both cross-language evaluators consume the same generated framed corpus and
 canonicalise registration features as a sorted set, absent features as an
@@ -86,7 +102,8 @@ startup and result handling. Raw results were retained locally in ignored
 `.dev/protocol-campaign/full-10000-after-sac-off-20260925/` and
 `.dev/protocol-campaign/long-after-sac-off-20260925/` on the W1 worktree.
 These results precede the W1 typed-boundary correction and this stacked
-candidate; they are historical evidence, not a pass for this branch.
+candidate, and their comparator could hide numeric-type mismatches. They are
+historical CPU and case-count evidence, not conformance passes for this branch.
 
 Required for this candidate: Rust and Java tests, Python generator tests,
 100-case CI smoke, at least 10,000 fixed-seed cross-language cases, the
