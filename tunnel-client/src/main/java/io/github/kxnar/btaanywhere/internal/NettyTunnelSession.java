@@ -261,7 +261,7 @@ public final class NettyTunnelSession implements TunnelSession {
 				case "error" -> {
 					String code = ProtocolFrames.requiredString(message, "code");
 					String detail = ProtocolFrames.requiredString(message, "message");
-					boolean retryable = message.has("retryable") && message.get("retryable").getAsBoolean();
+					boolean retryable = ProtocolFrames.requiredBoolean(message, "retryable");
 					ProtocolException failure = new ProtocolException(code + ": " + detail);
 					if ("resume_rejected".equals(code)) {
 						resumeToken = null;

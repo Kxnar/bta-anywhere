@@ -14,7 +14,10 @@ The defined fields now include `features` and `bytes`, so the negotiated
 `streamEofBytes` completion path receives the same duplicate protection as
 registration and connection headers. Valid v1 frames and unknown additive
 fields remain accepted. A malformed completion notice cannot be made
-ambiguous by repeating its byte count or connection ID.
+ambiguous by repeating its byte count or connection ID. The Java host also
+requires the relay error's `retryable` field to be an actual JSON boolean.
+Rust serializes this server response; its type check is Java response-decoding
+hardening with a negative unit test, not a cross-language differential claim.
 
 Both cross-language evaluators consume the same generated framed corpus and
 canonicalise registration features as a sorted set, absent features as an

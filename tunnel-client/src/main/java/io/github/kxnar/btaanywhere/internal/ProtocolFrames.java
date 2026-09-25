@@ -160,6 +160,14 @@ final class ProtocolFrames {
 		return value;
 	}
 
+	static boolean requiredBoolean(JsonObject object, String property) {
+		JsonElement value = object.get(property);
+		if (value == null || !value.isJsonPrimitive() || !value.getAsJsonPrimitive().isBoolean()) {
+			throw new IllegalArgumentException("missing or invalid boolean protocol property: " + property);
+		}
+		return value.getAsBoolean();
+	}
+
 	static void requireStreamEofFeature(JsonObject registered) {
 		if (!registered.has("features")) {
 			throw new IllegalArgumentException(

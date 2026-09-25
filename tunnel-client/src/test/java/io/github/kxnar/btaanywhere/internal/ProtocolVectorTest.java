@@ -17,6 +17,22 @@ import org.junit.jupiter.api.Test;
 
 final class ProtocolVectorTest {
 	@Test
+	void relayRetryabilityRequiresAJsonBoolean() {
+		assertEquals(true, ProtocolFrames.requiredBoolean(
+			JsonParser.parseString("{\"retryable\":true}").getAsJsonObject(), "retryable"));
+		assertEquals(false, ProtocolFrames.requiredBoolean(
+			JsonParser.parseString("{\"retryable\":false}").getAsJsonObject(), "retryable"));
+		for (String payload : new String[] {
+			"{}", "{\"retryable\":null}", "{\"retryable\":\"true\"}",
+			"{\"retryable\":1}"
+		}) {
+			assertThrows(IllegalArgumentException.class,
+				() -> ProtocolFrames.requiredBoolean(
+					JsonParser.parseString(payload).getAsJsonObject(), "retryable"), payload);
+		}
+	}
+
+	@Test
 	void sharedTypedBoundariesMatchV1FieldTypes() throws Exception {
 		Path vectors = Path.of(System.getProperty("btaAnywhereProtocolVectors"));
 		JsonObject document = JsonParser.parseString(
