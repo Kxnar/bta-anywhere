@@ -63,6 +63,9 @@ python scripts\cross_language_e2e.py `
 
 ## Windows half-close smoke test
 
+For repeatable direct-versus-relay performance, integrity, reconnect, and
+two-hour soak measurements, see [Windows loopback benchmark](benchmarking.md).
+
 Run the serial smoke test to validate the complete Windows relay-to-tunnel path.
 It starts temporary development credentials, exposes one local echo socket
 through the production tunnel, and sends exactly one labelled bidirectional

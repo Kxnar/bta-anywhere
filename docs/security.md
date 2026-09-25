@@ -29,6 +29,11 @@ The relay access token controls who may allocate relay ports. It is not a guest 
 
 ## Known limitations
 
+- The [loopback benchmark](benchmarking.md) uses disposable development
+  credentials and a test-only 10,000/minute accept-rate override for repeated
+  samples. Neither is a production credential or a capacity claim; raw results
+  and private process output are ignored by Git.
+
 - v0.1 builds, tests, and releases only for Windows x86-64.
 - Guest game traffic is not end-to-end encrypted and can be inspected or changed by the relay.
 - v0.1 has no guest companion authentication layer, broker, multi-region routing, DDoS absorption, hole punching, or public relay service.

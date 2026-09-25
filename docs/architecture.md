@@ -2,6 +2,10 @@
 
 BTA Anywhere separates reusable networking from Minecraft integration. The relay and tunnel can be exercised without launching BTA; the mod coordinates save safety and process lifecycle.
 
+The standalone [Windows loopback benchmark](benchmarking.md) exercises the
+relay/tunnel and a direct TCP control path without changing production code or
+launching a world.
+
 ```mermaid
 flowchart LR
     G[Guest BTA 8.0.1 client] -->|ordinary BTA TCP| P[Allocated relay TCP port]
