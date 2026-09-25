@@ -4,11 +4,33 @@ import tempfile
 from pathlib import Path
 import unittest
 import json
+import os
+import sys
 
 import protocol_campaign as campaign
 
 
 class ProtocolCampaignTest(unittest.TestCase):
+    def test_failed_evaluator_keeps_only_bounded_output_tail(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            command = [sys.executable, "-c",
+                       "import sys; print('x' * 6000 + ' failure-marker'); sys.exit(3)"]
+            with self.assertRaisesRegex(campaign.EvaluatorFailure, "status 3"):
+                campaign.run(command, os.environ.copy(), "test", output)
+            tail = (output / "test-evaluator-tail.txt").read_bytes()
+            self.assertLessEqual(len(tail), 4096)
+            self.assertIn(b"failure-marker", tail)
+
+    def test_timed_out_evaluator_keeps_early_diagnostic(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            command = [sys.executable, "-c",
+                       "import time; print('before-timeout', flush=True); time.sleep(5)"]
+            with self.assertRaisesRegex(campaign.EvaluatorFailure, "timeout"):
+                campaign.run(command, os.environ.copy(), "test", output, timeout_seconds=0.2)
+            self.assertIn(b"before-timeout", (output / "test-evaluator-tail.txt").read_bytes())
+
     def test_seed_reproduces_the_same_corpus(self):
         with tempfile.TemporaryDirectory() as directory:
             first = Path(directory) / "first.jsonl"
@@ -99,6 +121,21 @@ class ProtocolCampaignTest(unittest.TestCase):
             self.assertIn("connection-invalid-utf8", kinds)
             for line in output.read_text(encoding="utf-8").splitlines():
                 self.assertEqual(json.loads(line)["target"], "connection")
+
+    def test_state_target_includes_utf8_byte_length_boundaries(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "state.jsonl"
+            kinds = campaign.write_corpus(output, 55, 100, "state")
+            self.assertIn("unicode-client-id-at-limit", kinds)
+            self.assertIn("unicode-client-id-over-limit", kinds)
+            for line in output.read_text(encoding="utf-8").splitlines():
+                case = json.loads(line)
+                if not case["kind"].startswith("unicode-client-id-"):
+                    continue
+                frame = bytes.fromhex(case["frameHex"])
+                message = json.loads(frame[4:])
+                expected = 128 if case["kind"] == "unicode-client-id-at-limit" else 130
+                self.assertEqual(len(message["clientInstanceId"].encode("utf-8")), expected)
 
 
 if __name__ == "__main__":

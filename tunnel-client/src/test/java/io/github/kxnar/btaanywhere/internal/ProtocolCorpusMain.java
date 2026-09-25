@@ -87,7 +87,8 @@ public final class ProtocolCorpusMain {
 					String state = !"pre".equals(phase) ? "already_registered"
 						: version != ProtocolFrames.VERSION ? "unsupported_version"
 						: !"synthetic-test-token".equals(token) ? "authentication_failed"
-						: client.isEmpty() || client.length() > 128 ? "registration_rejected" : "register";
+						: client.isEmpty() || client.getBytes(StandardCharsets.UTF_8).length > 128
+							? "registration_rejected" : "register";
 					outcome.addProperty("stateOutcome", state);
 				}
 				case "ping" -> {

@@ -152,14 +152,22 @@ def main() -> int:
         report["failure"] = str(failure)[:1000]
         report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         raise
-    binaries = list((corpus.ROOT / "target" / "release" / "deps").glob("protocol_corpus-*.exe"))
-    if not binaries:
-        raise FileNotFoundError("compiled Rust corpus evaluator is missing")
-    rust_binary = max(binaries, key=lambda path: path.stat().st_mtime)
-    java = str(Path(environment["JAVA_HOME"]) / "bin" / "java.exe") if "JAVA_HOME" in environment else "java.exe"
-    classpath = classpath_file.read_text(encoding="utf-8")
-    report["rustBinarySha256"] = corpus.sha256_file(rust_binary)
-    report["javaClasspathFileSha256"] = corpus.sha256_file(classpath_file)
+    try:
+        binaries = list((corpus.ROOT / "target" / "release" / "deps").glob("protocol_corpus-*.exe"))
+        if not binaries:
+            raise FileNotFoundError("compiled Rust corpus evaluator is missing")
+        rust_binary = max(binaries, key=lambda path: path.stat().st_mtime)
+        java = str(Path(environment["JAVA_HOME"]) / "bin" / "java.exe") if "JAVA_HOME" in environment else "java.exe"
+        classpath = classpath_file.read_text(encoding="utf-8")
+        if not classpath.strip():
+            raise ValueError("Java corpus classpath is empty")
+        report["rustBinarySha256"] = corpus.sha256_file(rust_binary)
+        report["javaClasspathFileSha256"] = corpus.sha256_file(classpath_file)
+    except (OSError, ValueError) as failure:
+        report["status"] = "failed_setup"
+        report["failure"] = str(failure)[:1000]
+        report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+        raise
     report["evaluatorCommands"] = {"rust": [str(rust_binary), "shared_corpus", "--exact"],
                                    "java": [java, "-Xmx256m", "-cp", "<java-classpath.txt>",
                                             "io.github.kxnar.btaanywhere.internal.ProtocolCorpusMain",

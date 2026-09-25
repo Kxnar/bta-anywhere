@@ -16,6 +16,7 @@ import random
 import struct
 import subprocess
 import sys
+import threading
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -73,7 +74,7 @@ def frame(payload: bytes, declared: int | None = None) -> bytes:
 
 
 def generated_case(rng: random.Random, index: int) -> tuple[str, bytes, str, str, str]:
-    kind = index % 26
+    kind = index % 28
     sequence = rng.randrange(0, 1_000_000)
     if kind == 0:
         payload = json.dumps({"type": "ping", "sequence": sequence}, separators=(",", ":")).encode()
@@ -135,6 +136,13 @@ def generated_case(rng: random.Random, index: int) -> tuple[str, bytes, str, str
         return "ping-before-register", frame(f'{{"type":"ping","sequence":{sequence}}}'.encode()), "control", "pre", "session-test"
     if kind == 17:
         return "close-before-register", frame(b'{"type":"close","reason":"test"}'), "control", "pre", "session-test"
+    if kind in (26, 27):
+        client_id = "\u00e9" * (64 if kind == 26 else 65)
+        message = {"type": "register", "version": 1, "accessToken": "synthetic-test-token",
+                   "clientInstanceId": client_id}
+        payload = json.dumps(message, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        name = "unicode-client-id-at-limit" if kind == 26 else "unicode-client-id-over-limit"
+        return name, frame(payload), "control", "pre", "session-test"
     connection = {"version": 1, "sessionId": "session-test", "connectionId": f"connection-{sequence}",
                   "remoteAddress": "127.0.0.1:25565"}
     if kind == 18:
@@ -193,7 +201,8 @@ def boundary_cases() -> list[tuple[str, bytes, str, str, str]]:
 
 STATE_KINDS = {"valid-ping", "valid-register", "invalid-auth", "unsupported-version",
                "register-active", "empty-client-id", "ping-before-register",
-               "close-before-register"}
+               "close-before-register", "unicode-client-id-at-limit",
+               "unicode-client-id-over-limit"}
 
 
 def write_corpus(path: Path, seed: int, count: int, target_group: str = "all") -> list[str]:
@@ -224,9 +233,53 @@ def write_corpus(path: Path, seed: int, count: int, target_group: str = "all") -
     return kinds
 
 
-def run(command: list[str], environment: dict[str, str]) -> float:
+class EvaluatorFailure(RuntimeError):
+    """A failed evaluator with a bounded diagnostic retained beside the corpus."""
+
+    def __init__(self, stage: str, detail: str, diagnostic_file: str):
+        super().__init__(f"{stage} evaluator {detail}; see {diagnostic_file}")
+        self.stage = stage
+        self.diagnostic_file = diagnostic_file
+
+
+def run(command: list[str], environment: dict[str, str], stage: str,
+        output: Path, timeout_seconds: float = 600) -> float:
     started = time.monotonic()
-    subprocess.run(command, cwd=ROOT, env=environment, check=True, timeout=600)
+    process = subprocess.Popen(command, cwd=ROOT, env=environment,
+                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    output_tail = bytearray()
+
+    def drain_output() -> None:
+        assert process.stdout is not None
+        try:
+            while chunk := process.stdout.read1(8192):
+                output_tail.extend(chunk)
+                if len(output_tail) > 4096:
+                    del output_tail[:-4096]
+        except (OSError, ValueError):
+            # A timed-out child may leave an inherited pipe open in a grandchild.
+            pass
+
+    reader = threading.Thread(target=drain_output, daemon=True)
+    reader.start()
+    try:
+        process.wait(timeout=timeout_seconds)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait()
+        detail = f"exceeded {timeout_seconds:g}-second timeout"
+    else:
+        detail = f"exited with status {process.returncode}" if process.returncode else ""
+    reader.join(timeout=10)
+    assert process.stdout is not None
+    if reader.is_alive():
+        detail = "output pipe did not close"
+    else:
+        process.stdout.close()
+    if detail:
+        diagnostic_file = f"{stage}-evaluator-tail.txt"
+        (output / diagnostic_file).write_bytes(bytes(output_tail))
+        raise EvaluatorFailure(stage, detail, diagnostic_file)
     return time.monotonic() - started
 
 
@@ -319,11 +372,12 @@ def main() -> int:
     java_command = [gradle, "--no-daemon", ":tunnel-client:protocolCorpus",
                     f"-PprotocolCorpus={corpus}", f"-PprotocolCorpusOutput={java_output}"]
     try:
-        timings["rustSeconds"] = run(rust_command, environment)
-        timings["javaSeconds"] = run(java_command, environment)
-    except (subprocess.SubprocessError, OSError) as failure:
+        timings["rustSeconds"] = run(rust_command, environment, "rust", output)
+        timings["javaSeconds"] = run(java_command, environment, "java", output)
+    except (EvaluatorFailure, OSError) as failure:
         (output / "summary.json").write_text(json.dumps({"schemaVersion": 1, "seed": args.seed,
             "cases": args.count, "status": "evaluator_failed", "error": str(failure)[:1000],
+            "diagnosticFile": failure.diagnostic_file if isinstance(failure, EvaluatorFailure) else None,
             "machine": metadata, "commands": {"rust": rust_command, "java": java_command}}, indent=2)
             + "\n", encoding="utf-8")
         raise
