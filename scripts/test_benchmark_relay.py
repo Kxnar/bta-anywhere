@@ -5,7 +5,6 @@ import socketserver
 import threading
 import unittest
 import math
-import time
 from types import SimpleNamespace
 from unittest import mock
 
@@ -20,11 +19,13 @@ class WrongReply(socketserver.BaseRequestHandler):
 
 
 class LateEofReply(socketserver.BaseRequestHandler):
+    release = threading.Event()
+
     def handle(self):
         benchmark.read_exact(self.request, 1)
         size = int.from_bytes(benchmark.read_exact(self.request, 4), "big")
         self.request.sendall(benchmark.read_exact(self.request, size))
-        time.sleep(0.2)
+        self.release.wait(timeout=3)
 
 
 class BenchmarkTests(unittest.TestCase):
@@ -46,13 +47,15 @@ class BenchmarkTests(unittest.TestCase):
                 thread.join(timeout=2)
 
     def test_verified_reply_without_eof_is_counted_per_failed_stream(self):
+        LateEofReply.release.clear()
         with socketserver.ThreadingTCPServer(("127.0.0.1", 0), LateEofReply) as server:
             thread = threading.Thread(target=server.serve_forever, daemon=True)
             thread.start()
             try:
                 with self.assertRaises(benchmark.MissingEofError) as caught:
-                    benchmark.transfer(server.server_address[1], "request_response", b"valid", 0.05)
+                    benchmark.transfer(server.server_address[1], "request_response", b"valid", 1)
             finally:
+                LateEofReply.release.set()
                 server.shutdown()
                 thread.join(timeout=2)
         self.assertIn("5 verified reply bytes", str(caught.exception))
@@ -68,6 +71,11 @@ class BenchmarkTests(unittest.TestCase):
                                      "failure_counts": counts, "stream_failures": streams})
         self.assertIn("missing EOFs: 2", report)
         self.assertIn("Failed stream indices: 1, 3", report)
+        wrapped = RuntimeError("throughput failed: MissingEofError: missing EOF")
+        wrapped.__cause__ = caught.exception
+        wrapped_counts, _ = benchmark.failure_counts(
+            benchmark.ConcurrentTransferError("throughput", [(0, wrapped)], []), True)
+        self.assertEqual((wrapped_counts["missing_eofs"], wrapped_counts["timeouts"]), (1, 1))
 
     def test_failure_record_is_bounded_and_visible_in_summary(self):
         failure = benchmark.bounded_failure(RuntimeError("secret?" + "x" * 1000))

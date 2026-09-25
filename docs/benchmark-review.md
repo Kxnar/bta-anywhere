@@ -33,6 +33,14 @@ All listed artifacts are local ignored files under
 source of the statuses below. Earlier exact shell invocations were not retained;
 profile, commit, toolchains, configuration, and artifact hashes are in each
 JSON. These were synthetic loopback runs, not a real player trial.
+Every artifact in the table records the same production relay SHA-256
+`8a87166e976f1bae14ea1a5a0a4ce5b3f438ef35e09a1a27961dd18ee6c37a88`
+and tunnel JAR SHA-256
+`4aa0c2df21179d3f08cb7a9179ae3028075c3a86c6c796369095e7418328f2c8`.
+The intervening commits changed only the harness and its documentation. This
+rules out a production binary change between these observations; it does not
+identify the cause of the intermittent failures, and harness behavior evolved
+between schemas.
 
 | Artifact | Schema / commit | Observed result | Limit |
 |---|---|---|---|
@@ -43,6 +51,7 @@ JSON. These were synthetic loopback runs, not a real player trial.
 | `diagnostic-eight-relay-1.json` | 4 / `a832c81` | PASS for one isolated 60 s, eight-stream relay run | Diagnostic only |
 | `diagnostic-sequence-1.json` | 5 / `d076e94` | PASS for the full prefix through the first eight-stream relay throughput run | Diagnostic only; stops before the remaining full cases |
 | `diagnostic-sequence-20260925.json` | 5 / `542116d` | FAILED after 29.8 s at eight-stream, 64 KiB, relayed half-close latency wave 18 | Two streams received and verified all 65,536 reply bytes, then timed out waiting for TCP EOF; active gauge 2 |
+| `smoke-v6-20260925.json` | 6 / `d7df1ce` | PASS in 109.3 s; zero reported failures, final active gauge 0, clean shutdown | Short smoke only, not a full baseline or soak |
 
 The two schema-2 full runs each recorded zero failed transfers and a final
 active gauge of zero. The eight-stream relay throughput medians were 23.29 and
@@ -58,7 +67,17 @@ different observed failure shapes. A shared underlying cause has not been
 established. Earlier full-sequence stalls prompted the diagnostic profiles;
 the schema-3/4 JSON records separate failed runs, although schema 3 omitted
 its failing case.
-No schema-5 full baseline or two-hour soak result exists in this worktree.
+No schema-5 or schema-6 full baseline or two-hour soak result exists in this
+worktree.
+
+The schema-4 sender counts of about 1.4–1.9 MiB per stream are near the Java
+QUIC client's configured 2 MiB receive window per bidirectional stream and
+16 MiB connection window. `IncomingTunnelHandler` uses manual reads and
+requests another QUIC read after a local TCP write succeeds. A stalled read
+resume or flow-control update is therefore a hypothesis to test. Sender counts
+are guest TCP bytes accepted by `sendall`, not acknowledged QUIC bytes, and
+that JSON lacks per-stream read/window events. No receive-window or quota
+setting has been raised to test the hypothesis.
 
 ## Current reproduction and checks
 
@@ -93,9 +112,25 @@ missing EOF, counts failures per stream, retains completed latency cases, and
 captures bounded synthetic-service lifecycle events on failure. It has no
 production dependency or data-path change. `python -m py_compile` passed and
 12 benchmark unit tests passed, including a negative test for a verified reply
-whose server withholds EOF. No schema-6 end-to-end benchmark has completed yet.
+whose server withholds EOF. A short schema-6 end-to-end smoke completed with:
 
-The older raw JSON hashes, in table order, are:
+```powershell
+python scripts\benchmark_relay.py --profile smoke `
+  --relay-binary target\release\bta-anywhere-relay.exe `
+  --tunnel-jar tunnel-client\build\libs\bta-anywhere-tunnel-0.1.0-all.jar `
+  --java D:\Documents\BTA\.tools\jdk-21\bin\java.exe `
+  --output benchmark-results\smoke-v6-20260925.json
+```
+
+The smoke JSON records commit `d7df1ceb8f782ea0680fbbedeca6b07859838734`,
+12 latency cases, two throughput cases, a final active gauge of zero, and
+clean relay/tunnel termination. A relay restart probe completed in 35.35 s;
+a fresh tunnel process obtained a different endpoint (port 59426 to 59427);
+and a 55 s UDP link drop resumed the bridge-backed endpoint in 58.55 s.
+These are loopback smoke observations only. The JSON SHA-256 is
+`CA4E4A8183A0AE5AEEDB00EAD164B0FB08677CD3F7CF49C4A4978F6D475BFD7F`.
+
+The first six historical raw JSON hashes, in table order, are:
 
 ```text
 19D72A549E49FBAE025296583392B762709A8825EBC5C66180823B85ED2FA374
