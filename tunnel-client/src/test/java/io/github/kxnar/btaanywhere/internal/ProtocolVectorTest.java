@@ -17,6 +17,24 @@ import org.junit.jupiter.api.Test;
 
 final class ProtocolVectorTest {
 	@Test
+	void sharedTypedBoundariesMatchV1FieldTypes() throws Exception {
+		Path vectors = Path.of(System.getProperty("btaAnywhereProtocolVectors"));
+		JsonObject document = JsonParser.parseString(
+			Files.readString(vectors.resolve("typed-boundaries-v1.json"), StandardCharsets.UTF_8)
+		).getAsJsonObject();
+		assertEquals(1, document.get("schemaVersion").getAsInt());
+		for (var item : document.getAsJsonArray("cases")) {
+			JsonObject vector = item.getAsJsonObject();
+			String name = vector.get("name").getAsString();
+			byte[] payload = vector.get("payloadUtf8").getAsString().getBytes(StandardCharsets.UTF_8);
+			JsonObject message = ProtocolFrames.parseObject(payload);
+			JsonObject outcome = ProtocolCorpusMain.typedOutcome(message, vector);
+			boolean accepted = !outcome.get("semantic").isJsonNull();
+			assertEquals(vector.get("typedAccepted").getAsBoolean(), accepted, name);
+		}
+	}
+
+	@Test
 	void sharedStructuralVectorsMatchV1Boundaries() throws Exception {
 		Path vectors = Path.of(System.getProperty("btaAnywhereProtocolVectors"));
 		JsonObject document = JsonParser.parseString(

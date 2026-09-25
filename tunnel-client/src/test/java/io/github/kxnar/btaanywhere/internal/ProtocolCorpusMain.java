@@ -46,7 +46,7 @@ public final class ProtocolCorpusMain {
 		}
 	}
 
-	private static JsonObject typedOutcome(JsonObject message, JsonObject testCase) {
+	static JsonObject typedOutcome(JsonObject message, JsonObject testCase) {
 		JsonObject outcome = new JsonObject();
 		outcome.add("semantic", com.google.gson.JsonNull.INSTANCE);
 		outcome.addProperty("stateOutcome", "syntax_rejected");
@@ -82,7 +82,8 @@ public final class ProtocolCorpusMain {
 					fields.addProperty("version", version);
 					fields.addProperty("accessToken", token);
 					fields.addProperty("clientInstanceId", client);
-					fields.add("resumeToken", message.has("resumeToken") ? message.get("resumeToken")
+					fields.add("resumeToken", message.has("resumeToken") && !message.get("resumeToken").isJsonNull()
+						? new com.google.gson.JsonPrimitive(ProtocolFrames.requiredString(message, "resumeToken"))
 						: com.google.gson.JsonNull.INSTANCE);
 					String state = !"pre".equals(phase) ? "already_registered"
 						: version != ProtocolFrames.VERSION ? "unsupported_version"

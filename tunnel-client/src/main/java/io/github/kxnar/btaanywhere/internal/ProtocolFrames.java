@@ -115,17 +115,28 @@ final class ProtocolFrames {
 	}
 
 	static String requiredString(JsonObject object, String property) {
-		if (!object.has(property) || object.get(property).isJsonNull()) {
-			throw new IllegalArgumentException("missing protocol property: " + property);
+		JsonElement value = object.get(property);
+		if (value == null || !value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) {
+			throw new IllegalArgumentException("missing or invalid string protocol property: " + property);
 		}
-		return object.get(property).getAsString();
+		return value.getAsString();
 	}
 
 	static int requiredInt(JsonObject object, String property) {
-		if (!object.has(property) || object.get(property).isJsonNull()) {
-			throw new IllegalArgumentException("missing protocol property: " + property);
+		JsonElement value = object.get(property);
+		if (value == null || !value.isJsonPrimitive() || !value.getAsJsonPrimitive().isNumber()) {
+			throw new IllegalArgumentException("missing or invalid integer protocol property: " + property);
 		}
-		return object.get(property).getAsInt();
+		String literal = value.getAsString();
+		// Version and publicPort are unsigned 16-bit integers on the Rust wire.
+		if (!literal.matches("0|[1-9][0-9]*") || literal.length() > 5) {
+			throw new IllegalArgumentException("invalid unsigned protocol property: " + property);
+		}
+		int result = Integer.parseInt(literal);
+		if (result > 65_535) {
+			throw new IllegalArgumentException("unsigned protocol property exceeds 16 bits: " + property);
+		}
+		return result;
 	}
 
 	static BigInteger requiredUnsignedLong(JsonObject object, String property) {

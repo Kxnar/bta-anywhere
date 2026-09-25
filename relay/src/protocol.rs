@@ -226,6 +226,22 @@ mod tests {
         frame_hex: String,
     }
 
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct TypedBoundaryDocument {
+        schema_version: u32,
+        cases: Vec<TypedBoundaryVector>,
+    }
+
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct TypedBoundaryVector {
+        name: String,
+        target: String,
+        typed_accepted: bool,
+        payload_utf8: String,
+    }
+
     #[tokio::test]
     async fn round_trips_connection_header() {
         let expected = ConnectionOpen {
@@ -301,6 +317,28 @@ mod tests {
                 _ => panic!("unknown structural vector target"),
             };
             assert_eq!(accepted, case.accepted, "{}", case.name);
+        }
+    }
+
+    #[tokio::test]
+    async fn shared_typed_boundaries_match_v1_field_types() {
+        let document: TypedBoundaryDocument = serde_json::from_str(include_str!(
+            "../../protocol/test-vectors/typed-boundaries-v1.json"
+        ))
+        .unwrap();
+        assert_eq!(document.schema_version, 1);
+        for case in document.cases {
+            let payload = case.payload_utf8.as_bytes();
+            assert!(payload.len() <= MAX_FRAME_SIZE, "{}", case.name);
+            let mut frame = (payload.len() as u32).to_be_bytes().to_vec();
+            frame.extend_from_slice(payload);
+            let mut reader = frame.as_slice();
+            let accepted = match case.target.as_str() {
+                "control" => read_json::<_, ClientControl>(&mut reader).await.is_ok(),
+                "connection" => read_json::<_, ConnectionOpen>(&mut reader).await.is_ok(),
+                _ => panic!("unknown typed boundary target: {}", case.target),
+            };
+            assert_eq!(accepted, case.typed_accepted, "{}", case.name);
         }
     }
 
