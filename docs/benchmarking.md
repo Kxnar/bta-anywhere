@@ -5,7 +5,8 @@ tunnel against the same synthetic TCP service used for the direct baseline.
 It does not launch BTA, use a world, or measure internet/WAN behavior. It is a
 standard-library Python script and adds no production dependency.
 
-Run on Windows x86-64 with a JDK 21 runtime. Close unrelated heavy programs,
+Run on Windows x86-64 with JDK 21 on `PATH` (or pass an absolute path to
+`--java`). Close unrelated heavy programs,
 connect AC power if available, and reserve the local relay ports from other
 integration tests. Build at a recorded commit:
 
@@ -16,7 +17,7 @@ python -m unittest discover -s scripts -p test_benchmark_relay.py
 python scripts\benchmark_relay.py --profile smoke `
   --relay-binary target\release\bta-anywhere-relay.exe `
   --tunnel-jar tunnel-client\build\libs\bta-anywhere-tunnel-0.1.0-all.jar `
-  --java .tools\jdk-21\bin\java.exe `
+  --java java `
   --output benchmark-results\smoke.json
 ```
 
@@ -63,7 +64,7 @@ Before reviewing a data-path or lifecycle change, run the bounded two-hour soak:
 python scripts\benchmark_relay.py --profile soak `
   --relay-binary target\release\bta-anywhere-relay.exe `
   --tunnel-jar tunnel-client\build\libs\bta-anywhere-tunnel-0.1.0-all.jar `
-  --java .tools\jdk-21\bin\java.exe `
+  --java java `
   --output benchmark-results\soak.json
 ```
 
