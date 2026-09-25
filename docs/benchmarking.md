@@ -79,11 +79,20 @@ smoke run as the two-hour gate.
 
 `benchmark-results/` is ignored because results are machine-specific. Keep
 the JSON and generated Markdown with the review, not in the repository. JSON
-schema version 5 includes environment and toolchains, commit and artifact
+schema version 6 includes environment and toolchains, commit and artifact
 hashes, test configuration, raw samples, aggregate p50/p95/p99, CPU time,
 working set/peak resident memory, reconnection, failures, and run duration.
 The soak records memory samples for manual growth review; a successful data
 transfer run alone does not close that review gate.
+
+Schema 6 adds bounded per-stream failure records, the successful peer streams
+in a failed concurrent wave, completed latency cases, and the last 160
+synthetic-service lifecycle events on failure. A reply that passes byte
+validation but times out waiting for TCP EOF is labelled `missing_eofs` and
+also counted as a timeout. Transfer counts describe failed streams; the report
+still exits nonzero on the first failed case. The lifecycle events contain no
+payload, peer address, token, or world path. Schema 2-5 files remain valid
+historical evidence but must not be silently pooled with schema 6 samples.
 
 For a focused reproduction of an eight-stream relay stall, use
 `--profile diagnostic-eight-relay` with the same release artifacts and seed.
@@ -119,3 +128,6 @@ player experience, public-network performance, or capacity under production
 rate limits. Observe physical memory, CPU and thermal state when comparing
 runs; current/peak process working-set figures and CPU time are point and
 process-lifetime observations, respectively.
+
+For the dated development history, raw artifact inventory, open gates, and
+review scorecard, see [benchmark workstream review](benchmark-review.md).

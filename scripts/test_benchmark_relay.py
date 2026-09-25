@@ -5,6 +5,7 @@ import socketserver
 import threading
 import unittest
 import math
+import time
 from types import SimpleNamespace
 from unittest import mock
 
@@ -16,6 +17,14 @@ class WrongReply(socketserver.BaseRequestHandler):
         self.request.recv(1024)
         self.request.sendall(b"wrong")
         self.request.shutdown(socket.SHUT_WR)
+
+
+class LateEofReply(socketserver.BaseRequestHandler):
+    def handle(self):
+        benchmark.read_exact(self.request, 1)
+        size = int.from_bytes(benchmark.read_exact(self.request, 4), "big")
+        self.request.sendall(benchmark.read_exact(self.request, size))
+        time.sleep(0.2)
 
 
 class BenchmarkTests(unittest.TestCase):
@@ -36,6 +45,30 @@ class BenchmarkTests(unittest.TestCase):
                 server.shutdown()
                 thread.join(timeout=2)
 
+    def test_verified_reply_without_eof_is_counted_per_failed_stream(self):
+        with socketserver.ThreadingTCPServer(("127.0.0.1", 0), LateEofReply) as server:
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                with self.assertRaises(benchmark.MissingEofError) as caught:
+                    benchmark.transfer(server.server_address[1], "request_response", b"valid", 0.05)
+            finally:
+                server.shutdown()
+                thread.join(timeout=2)
+        self.assertIn("5 verified reply bytes", str(caught.exception))
+        error = benchmark.ConcurrentTransferError("case", [(1, caught.exception),
+                                                             (3, caught.exception)], [])
+        counts, streams = benchmark.failure_counts(error, True)
+        self.assertEqual(counts["failed_transfers"], 2)
+        self.assertEqual(counts["missing_eofs"], 2)
+        self.assertEqual(counts["timeouts"], 2)
+        self.assertEqual([item["stream"] for item in streams], [1, 3])
+        report = benchmark.markdown({"status": "FAILED", "profile": "full", "commit": "abc",
+                                     "failure": benchmark.bounded_failure(error),
+                                     "failure_counts": counts, "stream_failures": streams})
+        self.assertIn("missing EOFs: 2", report)
+        self.assertIn("Failed stream indices: 1, 3", report)
+
     def test_failure_record_is_bounded_and_visible_in_summary(self):
         failure = benchmark.bounded_failure(RuntimeError("secret?" + "x" * 1000))
         self.assertEqual(len(failure["message"]), 500)
@@ -53,8 +86,21 @@ class BenchmarkTests(unittest.TestCase):
             if index == 1:
                 raise TimeoutError("socket timed out")
             return index
-        with self.assertRaisesRegex(RuntimeError, "eight-stream relay run: stream=1 TimeoutError"):
+        with self.assertRaisesRegex(benchmark.ConcurrentTransferError,
+                                    "eight-stream relay run: stream=1 TimeoutError") as caught:
             benchmark.run_concurrent(worker, 2, "eight-stream relay run")
+        self.assertEqual(caught.exception.successes, [{"stream": 0, "result": 0}])
+
+    def test_failed_latency_retains_completed_case_context(self):
+        rig = SimpleNamespace(echo=SimpleNamespace(server_address=("127.0.0.1", 100)),
+                              public_port=200, assert_idle=lambda: None)
+        result = {}
+        with mock.patch.object(benchmark, "transfer", side_effect=benchmark.MissingEofError("missing EOF")):
+            with self.assertRaises(benchmark.ConcurrentTransferError):
+                benchmark.run_latency(rig, "smoke", 1701, result)
+        self.assertEqual(result["latency_partial"], [])
+        self.assertEqual(result["latency_in_progress"]["payload_bytes"], 1024)
+        self.assertEqual(result["current_case"]["phase"], "latency")
 
     def test_generated_payload_is_reproducible(self):
         self.assertEqual(benchmark.payload(17, 1024, 4), benchmark.payload(17, 1024, 4))

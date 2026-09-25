@@ -33,10 +33,26 @@ import traceback
 from datetime import datetime, timezone
 from pathlib import Path
 
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = 6
 SIZES = (1024, 65536, 1048576)
 ACTIVE_METRIC = "bta_anywhere_active_connections"
 CHUNK = 65536
+
+
+class MissingEofError(TimeoutError):
+    """The expected reply was verified but the peer did not close its write side."""
+
+
+class ConcurrentTransferError(RuntimeError):
+    """Retain bounded per-stream failures instead of only a truncated message."""
+
+    def __init__(self, label: str, failures: list[tuple[int, BaseException]],
+                 successes: list[dict]):
+        self.failures = failures
+        self.successes = successes
+        details = "; ".join(f"stream={index} {type(error).__name__}: {str(error)[:250]}"
+                            for index, error in failures)
+        super().__init__(f"{label}: {details}")
 
 
 def percentile(values: list[float], percentage: float) -> float:
@@ -69,6 +85,33 @@ def failure_category(error: BaseException) -> str:
     if isinstance(error, TimeoutError) or "timed out" in message:
         return "timeouts"
     return "failed_transfers"
+
+
+def failure_counts(error: BaseException, transfer_in_progress: bool) -> tuple[dict[str, int], list[dict]]:
+    counts = {"failed_transfers": 0, "byte_mismatches": 0, "missing_eofs": 0,
+              "timeouts": 0, "leaked_active_stream_gauges": 0}
+    failures = error.failures if isinstance(error, ConcurrentTransferError) else [(None, error)]
+    details = []
+    for index, failed in failures:
+        category = failure_category(failed)
+        if transfer_in_progress:
+            counts["failed_transfers"] += 1
+        if category != "failed_transfers":
+            counts[category] += 1
+        cause = failed
+        timed_out = False
+        for _ in range(8):
+            if cause is None:
+                break
+            if isinstance(cause, TimeoutError) or "timed out" in str(cause).lower():
+                timed_out = True
+                break
+            cause = cause.__cause__
+        if category != "timeouts" and timed_out:
+            counts["timeouts"] += 1
+        if index is not None:
+            details.append({"stream": index, **bounded_failure(failed), "category": category})
+    return counts, details
 
 
 def read_exact(sock: socket.socket, size: int) -> bytes:
@@ -165,8 +208,12 @@ def transfer(port: int, mode: str, data: bytes, timeout: float) -> float:
         received = read_exact(sock, len(data))
         if received != data:
             raise AssertionError("byte mismatch")
-        if sock.recv(1):
-            raise AssertionError("missing EOF or surplus response bytes")
+        try:
+            extra = sock.recv(1)
+        except socket.timeout as error:
+            raise MissingEofError(f"missing EOF after {len(data)} verified reply bytes") from error
+        if extra:
+            raise AssertionError("byte mismatch: surplus response bytes after exact reply")
     return (time.perf_counter() - started) * 1000
 
 
@@ -200,11 +247,16 @@ def throughput_stream(port: int, block: bytes, seconds: float, timeout: float,
             sender = threading.Thread(target=send, name="benchmark-sender", daemon=True)
             sender.start()
             try:
-                while chunk := sock.recv(CHUNK):
-                    shift = received % len(block)
-                    if chunk != doubled_block[shift:shift + len(chunk)]:
-                        raise AssertionError(f"byte mismatch starting at offset {received}")
-                    received += len(chunk)
+                try:
+                    while chunk := sock.recv(CHUNK):
+                        shift = received % len(block)
+                        if chunk != doubled_block[shift:shift + len(chunk)]:
+                            raise AssertionError(f"byte mismatch starting at offset {received}")
+                        received += len(chunk)
+                except socket.timeout as error:
+                    if not sender.is_alive() and not send_error and received == sent:
+                        raise MissingEofError(f"missing EOF after {received} verified echoed bytes") from error
+                    raise
                 sender.join(timeout=timeout)
                 if sender.is_alive():
                     raise TimeoutError("sender did not terminate")
@@ -227,17 +279,17 @@ def throughput_stream(port: int, block: bytes, seconds: float, timeout: float,
 def run_concurrent(function, count: int, label: str = "parallel transfer") -> list:
     with concurrent.futures.ThreadPoolExecutor(max_workers=count) as pool:
         futures = [pool.submit(function, i) for i in range(count)]
-        results = []
+        results = [None] * count
         failures = []
         for index, future in enumerate(futures):
             try:
-                results.append(future.result())
+                results[index] = future.result()
             except BaseException as error:
                 failures.append((index, error))
         if failures:
-            details = "; ".join(f"stream={index} {type(error).__name__}: {str(error)[:250]}"
-                                for index, error in failures)
-            raise RuntimeError(f"{label}: {details}") from failures[0][1]
+            successes = [{"stream": index, "result": value} for index, value in enumerate(results)
+                         if value is not None]
+            raise ConcurrentTransferError(label, failures, successes) from failures[0][1]
         return results
 
 
@@ -660,12 +712,16 @@ def run_latency(rig: Rig, profile: str, seed: int, result: dict) -> list[dict]:
     assert rig.echo and rig.public_port
     warmups, measured = (1, 3) if profile == "smoke" else (5, 30)
     cases = []
+    result["latency_partial"] = cases
     for concurrency in (1, 8):
         for size in SIZES:
             for mode in ("request_response", "half_close"):
                 case = {"concurrency": concurrency, "payload_bytes": size, "mode": mode,
                         "warmups": warmups, "paths": {}, "paired_delta_samples_ms": []}
                 samples = {"direct": [], "relay": []}
+                result["latency_in_progress"] = {"concurrency": concurrency,
+                                                  "payload_bytes": size, "mode": mode,
+                                                  "completed_samples_ms": samples}
                 for wave in range(warmups + measured):
                     data = payload(seed, size, wave)
                     pair = {}
@@ -689,6 +745,7 @@ def run_latency(rig: Rig, profile: str, seed: int, result: dict) -> list[dict]:
                                    for path, values in samples.items()}
                 case["relay_added_ms"] = summary(case["paired_delta_samples_ms"])
                 cases.append(case)
+    result.pop("latency_in_progress", None)
     return cases
 
 
@@ -813,16 +870,18 @@ def run_diagnostic_eight_relay(rig: Rig, seed: int, result: dict) -> dict:
 
 
 def markdown(result: dict) -> str:
-    lines = ["# BTA Anywhere loopback benchmark", "", f"Status: **{result['status']}**; profile: `{result['profile']}`; schema: {SCHEMA_VERSION}.",
+    lines = ["# BTA Anywhere loopback benchmark", "", f"Status: **{result['status']}**; profile: `{result['profile']}`; schema: {result.get('schema_version', SCHEMA_VERSION)}.",
              "", f"Commit: `{result['commit']}`. Windows x86-64, release relay and shaded tunnel.", "",
              "| Streams | Size | Mode | Direct p95 ms | Relay p95 ms | Relay added p95 ms |", "|---:|---:|---|---:|---:|---:|"]
-    for case in result.get("latency", []):
+    for case in result.get("latency") or result.get("latency_partial", []):
         lines.append(f"| {case['concurrency']} | {case['payload_bytes']} | {case['mode']} | "
                      f"{case['paths']['direct']['latency_ms']['p95']:.2f} | "
                      f"{case['paths']['relay']['latency_ms']['p95']:.2f} | {case['relay_added_ms']['p95']:.2f} |")
     lines += ["", "| Streams | Direct G→H MiB/s | Relay G→H MiB/s | Direct H→G MiB/s | Relay H→G MiB/s |",
               "|---:|---:|---:|---:|---:|"]
-    for case in result.get("throughput", []):
+    for case in result.get("throughput") or result.get("throughput_partial", []):
+        if "median_mib_s" not in case:
+            continue
         m = case["median_mib_s"]
         lines.append(f"| {case['concurrency']} | {m['direct']['guest_to_host']:.2f} | {m['relay']['guest_to_host']:.2f} | "
                      f"{m['direct']['host_to_guest']:.2f} | {m['relay']['host_to_guest']:.2f} |")
@@ -844,6 +903,12 @@ def markdown(result: dict) -> str:
         lines += ["", f"Failure: {result['failure']['type']}: {result['failure']['message']}"]
         if result.get("current_case"):
             lines.append(f"Failed case: `{json.dumps(result['current_case'], sort_keys=True)}`.")
+        if counts := result.get("failure_counts"):
+            lines.append("Failed transfers: {failed_transfers}; byte mismatches: {byte_mismatches}; "
+                         "missing EOFs: {missing_eofs}; timeouts: {timeouts}; "
+                         "leaked active stream gauges: {leaked_active_stream_gauges}.".format(**counts))
+        if failures := result.get("stream_failures"):
+            lines.append("Failed stream indices: " + ", ".join(str(item["stream"]) for item in failures) + ".")
     return "\n".join(lines) + "\n"
 
 
@@ -904,12 +969,14 @@ def main() -> int:
                     result["diagnostic_eight_relay"] = run_diagnostic_eight_relay(rig, args.seed, result)
                 elif args.profile == "diagnostic-sequence":
                     result["latency"] = run_latency(rig, "full", args.seed, result)
+                    result.pop("latency_partial", None)
                     result["throughput"] = run_throughput(rig, "full", args.seed, result,
                                                           diagnostic_sequence=True)
                     result.pop("throughput_partial", None)
                 else:
                     before = {"relay": process_sample(rig.relay), "tunnel": process_sample(rig.tunnel)}
                     result["latency"] = run_latency(rig, args.profile, args.seed, result)
+                    result.pop("latency_partial", None)
                     result["throughput"] = run_throughput(rig, args.profile, args.seed, result)
                     result.pop("throughput_partial", None)
                     after = {"relay": process_sample(rig.relay), "tunnel": process_sample(rig.tunnel)}
@@ -951,10 +1018,16 @@ def main() -> int:
         result["failure"] = bounded_failure(error)
         result["failure_traceback"] = "".join(traceback.format_exception(error))[-6000:]
         result["failures"].append(result["failure"])
-        result["failure_counts"][failure_category(error)] += 1
+        result["failure_counts"], stream_failures = failure_counts(
+            error, isinstance(error, ConcurrentTransferError))
+        if stream_failures:
+            result["stream_failures"] = stream_failures
+            result["stream_successes_on_failure"] = error.successes
         result["diagnostics"] = list(logs)[-50:]
         if rig is not None and rig.echo is not None:
             result["echo_errors"] = list(rig.echo.errors)
+            with rig.echo.event_lock:
+                result["echo_events_on_failure"] = list(rig.echo.events)
         if rig is not None and hasattr(rig, "relay_clean"):
             result["clean_shutdown_after_failure"] = {
                 "relay": rig.relay_clean, "tunnel": rig.tunnel_clean}
