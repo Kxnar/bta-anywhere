@@ -213,16 +213,41 @@ builds need independent build records before a source-level comparison.
 `python -m unittest discover -s scripts -p test_benchmark_relay.py` passed
 18 tests, including a temporary Git checkout test for clean, dirty, and
 outside-checkout artifacts, and a summary test with three distinct source
-revisions. Python syntax and `git diff --check` also passed. No shared-port
-benchmark was run for this reporting-only change. The full baseline, focused
-stall reproduction, five clean-process integration runs, and soak remain open.
+revisions. Python syntax and `git diff --check` also passed. The following
+candidate measurements used this unchanged schema-8 harness; they do not turn
+the earlier failed pre-fix run into a successful baseline.
+
+## Schema 8 unchanged-binary candidate sequence (2026-09-25)
+
+The harness remained at clean `4c65060`. Both full runs used byte-identical
+release artifacts from the separate counted-EOF branch: relay SHA-256
+`22e49b2c10da3572f3cf8c3b8e25d5a453a0f8a6121bb88a432c61541328c6e7`
+and tunnel JAR SHA-256
+`0a581a04f345957bdf03bc282e59b3910dae6473f64868887557f1524001d61f`.
+The source checkout changed only by committing its review document between
+runs; the production code and artifact hashes did not change.
+
+| Ignored JSON artifact | Result | Interpretation |
+|---|---|---|
+| `full-eof-final-schema8-20260925-a.json` | PASS in 1,339.74 s; zero transfer, byte, EOF, timeout, gauge or shutdown failures | One synthetic full candidate run, not a stable baseline or before/after comparison |
+| `full-eof-final-schema8-20260925-b.json` | **FAIL** after 961.52 s at eight-stream relayed throughput run index 2; all eight transfers timed out after sending 1.44–2.10 MiB each and receiving 0–100,352 bytes; active gauge 8; clean process shutdown after failure | Repeats the earlier data-flow stall shape, distinct from missing TCP EOF; blocks the three-run variance gate and soak |
+| `diag-eof-final-schema8-20260925-a.json` | PASS in 63.68 s; 1,000,669,184 bytes each direction, eight byte-exact streams with both EOFs, gauge zero, clean shutdown | A single indexed diagnostic run does not clear the ordinary full-run failure |
+
+The failed full run also had materially different one-stream direct-TCP p95
+values from run 1. The 15% repeatability rule was fixed in an ignored analysis
+note before run 2 completed; no threshold was changed. The stall's root cause
+is not established. Raw JSON, generated Markdown, and command logs remain in
+the ignored `benchmark-results/` directory. The five clean serial/concurrent
+integration pairs on the separate EOF branch test a different synthetic
+workload and do not override this failed full benchmark.
 
 ## Open acceptance gates
 
-- **Full baseline:** current schema has no successful full run. Run the
-  unchanged release baseline three times, alternating with a candidate when
-  one exists. Investigate and explain any median throughput or p95 latency
-  variation above 15% before performance comparisons.
+- **Full baseline:** the pre-fix schema-7 full baseline failed on missing EOF.
+  The counted-EOF candidate completed one schema-8 full run, then failed the
+  second unchanged run on eight-stream throughput. Diagnose that stall before
+  restarting three unchanged current-schema runs; investigate any median
+  throughput or p95 latency variation above 15% before comparisons.
 - **Stability:** serial and concurrent integration harnesses must run
   sequentially. Five consecutive clean-process Windows integration suite
   passes are still required; this branch has not recorded them.
@@ -247,10 +272,10 @@ artifacts. The stacked candidate requires its own run results and review.
 |---|---|---|
 | User value | FAIL | The documented full operator task currently fails on relayed traffic |
 | Scope | PASS | Windows-only, loopback, no public service or production change |
-| Correctness | FAIL | Main-derived diagnostic fails missing EOF; current full gate absent |
+| Correctness | FAIL | Main-derived diagnostic missed EOF; unchanged counted-EOF full run 2 stalled on all eight relayed throughput streams |
 | Failure safety | NOT APPLICABLE | Harness uses no world or managed server process; disposable child cleanup passed in the failed run |
 | Security | PASS | Disposable credentials, loopback binding, bounded redacted diagnostics |
-| Benchmarks | FAIL | Three reproducible current full baselines and soak absent |
+| Benchmarks | FAIL | Unchanged schema-8 run 2 failed; three reproducible full runs and soak absent |
 | Performance | NOT APPLICABLE | No production data-path change or candidate comparison yet |
 | Maintainability | PASS | Standard-library harness; long profiles are manual, unit checks are short |
 | Documentation | PASS | Commands, schema, limits, evidence, and failure cases recorded here |
