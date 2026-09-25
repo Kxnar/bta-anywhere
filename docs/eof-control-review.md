@@ -1,11 +1,11 @@
 # Counted stream completion: review evidence
 
-**Status, 25 September 2026:** experimental branch `codex/eof-control` at
-`3e0fe53d12b04e36cffec241d28e6ee582050c9d`; do not merge yet. The
-five-run Windows integration gate and one full benchmark pass on this revision.
-Two more unchanged full benchmark runs and the two-hour soak remain open. The
-unchanged pre-fix full baseline fails on missing EOF, so a valid full
-before/after performance comparison is unavailable.
+**Status, 25 September 2026:** experimental branch `codex/eof-control` with
+production code at `3e0fe53d12b04e36cffec241d28e6ee582050c9d`; do not
+merge. Five clean Windows integration pairs and one full benchmark pass exist,
+but the second unchanged full run failed in eight-stream relay throughput.
+The earlier missing-EOF failure is distinct from this sustained-transfer stall.
+Repeatability, soak, and a valid full before/after comparison remain blocked.
 
 ## User value and mechanism
 
@@ -64,6 +64,8 @@ measured capacity or a production default. All services bind to loopback.
 | Earlier counted-EOF candidate full profile | PASS in 1,339.12 s; zero transfer failures, mismatches, missing EOFs, timeouts, or leaked gauges; eight-stream relay throughput median 19.08 MiB/s | Pre-review-fix binaries; no same-machine full baseline |
 | Final `3e0fe53` serial + concurrent integration | Five consecutive clean pairs PASS: each serial run used 100 labelled half-closes; each concurrent run used 100 waves of eight byte-exact streams, plus authentication, quotas, shutdown and relay restart | Synthetic loopback, not a real-player trial or two-hour soak |
 | Final `3e0fe53` schema-8 full profile, run 1 | PASS in 1,339.74 s; zero transfer failures, mismatches, missing EOFs, timeouts, or leaked gauges; eight-stream relay throughput median 18.50 MiB/s; process-restart endpoint changed, 55-second link drop resumed the bridge-backed endpoint | One of three unchanged runs; no valid pre-fix full baseline; no soak |
+| Same release binaries, schema-8 full profile, run 2 | **FAIL** after 961.52 s at the third eight-stream relayed throughput run: all eight guest sockets timed out after sending 1.44–2.10 MiB each and receiving 0–100,352 bytes; active gauge was 8; no byte mismatch or missing EOF was reported; both processes shut down cleanly after failure | Same artifact hashes and harness as run 1; direct one-stream p95 also varied materially; this blocks the three-run repeatability and soak sequence |
+| Same release binaries, isolated eight-stream diagnostic after run 2 | PASS in 63.68 s; 1,000,669,184 bytes verified in each direction, all eight streams observed both EOFs, active gauge zero, clean shutdown | One diagnostic run with an indexed first byte; it does not erase the failed ordinary full workload or establish a cause |
 | Mixed version checks | Three old-host/new-relay serial half-closes PASS; new-host/old-relay registration fails with upgrade instruction | Focused compatibility checks |
 
 During the final full profile, the relay used 575.03 process CPU seconds and
@@ -113,7 +115,10 @@ logs under `.dev/eof-control/final-*.log` in this worktree; schema-7 benchmark
 JSON and Markdown named `full-baseline-schema7-20260925-a`,
 `full-eof-candidate-schema7-20260925-a`, and the two
 `diag-*-schema7-20260925-a` pairs in the benchmark worktree's
-`benchmark-results/`. QLOG and detailed EOF traces are under ignored
+`benchmark-results/`. The same ignored directory also retains schema-8
+`full-eof-final-schema8-20260925-a` (PASS), `-b` (FAIL), and
+`diag-eof-final-schema8-20260925-a` (diagnostic PASS), each with JSON, Markdown,
+and command log. QLOG and detailed EOF traces are under ignored
 `.dev/eof-debug/` in the diagnostic worktree. The private interview ledger
 under the main checkout's ignored `.dev/engineering-evidence.md` maps those
 artifacts to historical commits and distinguishes measured, failed, and open
@@ -121,12 +126,14 @@ claims. Do not commit raw logs, credentials, or machine-specific paths.
 
 ## Open gates and rollback
 
-- Retain two more full schema-8 benchmarks on the unchanged final binaries,
-  then check whether all three runs satisfy the 15% variance gate. The pre-fix full baseline
-  failed, so an exception or new post-fix baseline design must be reviewed;
-  no throughput or latency regression claim is made here.
-- Run the final two-hour eight-stream soak with zero integrity, EOF, cleanup,
-  or unbounded-memory failures. Review CPU and resident-memory samples.
+- Diagnose and correct the intermittent eight-stream relay throughput stall
+  observed in unchanged full run 2; then restart the full three-run stability
+  sequence on exact release binaries. The pre-fix full baseline also failed,
+  so a performance-comparison design must be reviewed; no throughput or
+  latency regression claim is made here.
+- After the data path is stable, run the final two-hour eight-stream soak with
+  zero integrity, EOF, cleanup, or unbounded-memory failures. Review CPU and
+  resident-memory samples.
 - Validate a documented disposable player/operator workflow before treating
   this as demonstrated real-game utility.
 - Workstreams 0 and 1 must reconcile their harness/corpus with this prerequisite
@@ -142,10 +149,10 @@ relay. No world edit or backup restoration is involved.
 |---|---|---|
 | User value | FAIL | Synthetic transfer fixed; disposable player workflow unvalidated |
 | Scope | PASS | Windows-only and self-hosted modes retained |
-| Correctness | PASS | Existing automated checks and focused failure tests pass |
+| Correctness | FAIL | Focused checks pass, but the unchanged full benchmark failed all eight relayed throughput streams |
 | Failure safety | PASS | Notice/session isolation and blocked-writer cleanup tested; world process rules untouched |
 | Security | PASS | Explicit negotiation, bounds, and legacy trust model documented |
-| Benchmarks | FAIL | One final full profile passed, two repeat runs and soak open; pre-fix baseline failed |
+| Benchmarks | FAIL | Unchanged full run 2 failed; three-run stability, soak, and pre-fix full baseline unavailable |
 | Performance | FAIL | Valid full baseline/candidate comparison unavailable |
 | Maintainability | PASS | No new production dependency; CI tests remain short |
 | Documentation | PASS | Protocol, architecture, security, build, troubleshooting, and rollback described |
