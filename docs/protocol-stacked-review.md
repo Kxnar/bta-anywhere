@@ -92,6 +92,14 @@ The 20 lightweight campaign tests and three long-runner tests also pass at
 this commit. The four-target long campaign and production integration remain
 open.
 
+With only documentation changed after `83740a1`, `cargo test --locked --all`
+passed 20 relay unit tests and 11 protocol corpus tests. Gradle `check build`
+passed; its JUnit XML records 51 tunnel-client tests and nine mod tests, with
+zero failures, errors, or skips. Logs are retained privately under
+`.dev/protocol-campaign/suites-20260925/`. These checks do not measure the
+hosted CI smoke duration or clear the long campaign, repeated integration,
+performance, or soak gates.
+
 Both cross-language evaluators consume the same generated framed corpus and
 canonicalise registration features as a sorted set, absent features as an
 empty set, and completion counts as exact nonnegative integers. The model
