@@ -141,8 +141,24 @@ opening or restoring the original, regardless of the launch-intent flag.
 Recording intent earlier therefore preserves the fail-closed recovery rule;
 it can only increase the period in which an interrupted pre-launch setup
 requires manual inspection. The post-launch publication of verified process
-identity remains. The adjustment must pass the fault oracle and an alternating
-timing rerun before it can be credited with closing the performance failure.
+identity remains.
+
+At candidate `a10a2f5`, the mod test suite passed after the change and the
+same alternating synthetic probe ran three quiet rounds with a clean candidate
+worktree. All six probe runs passed. Raw evidence is at
+`.dev/prelaunch-timing/run-0e4719784f0d4c53b1460b3bbb1ac58d/`.
+
+| Mode | Historical baseline median | `a10a2f5` median | Increase | 5% synthetic probe |
+|---|---:|---:|---:|---|
+| Live | 30.036 ms | 29.685 ms | -1.17% | PASS |
+| Showcase | 16.184 ms | 16.324 ms | +0.86% | PASS |
+
+Showcase round changes were +10.27%, +3.68%, and -5.89%; retain this spread
+alongside the pooled median. The improvement after removing the extra
+publication supports that operation as the likely cause of the earlier
+slowdown, but the test did not isolate write time and remains synthetic.
+The full 4,350-case fault campaign must be repeated for `a10a2f5` before
+claiming that the changed journal path passed the complete fault gate.
 
 ## Outstanding gates and exact manual procedure
 
@@ -179,12 +195,11 @@ archives, private control files, tokens, or raw private logs.
 The definitive median **pre-server-launch orchestration** comparison against
 the historical baseline remains open. The probe above uses a test callback to
 end the interval and a test-only patch in the historical checkout; it is not
-release-build or real-game evidence. Run the alternating quiet-window probe
-and assess whether a release-build equivalent is needed before review. A
-median increase above 5% blocks review unless a separate safety justification
-is accepted. Relay throughput is not a substitute for this measure. The
-data-path common benchmark and two-hour soak gates also remain open until the
-benchmark foundation and EOF investigation are complete.
+release-build or real-game evidence. A release-build equivalent is needed
+before review. A median increase above 5% blocks review unless a separate
+safety justification is accepted. Relay throughput is not a substitute for
+this measure. The data-path common benchmark and two-hour soak gates also
+remain open until the benchmark foundation and EOF investigation are complete.
 
 ## Review scorecard
 
