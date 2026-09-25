@@ -33,6 +33,15 @@ final class ProtocolVectorTest {
 	}
 
 	@Test
+	void unsignedProtocolCountRejectsLongDigitsBeforeConversion() {
+		JsonObject message = JsonParser.parseString(
+			"{\"sequence\":" + "9".repeat(1000) + "}"
+		).getAsJsonObject();
+		assertThrows(IllegalArgumentException.class,
+			() -> ProtocolFrames.requiredUnsignedLong(message, "sequence"));
+	}
+
+	@Test
 	void sharedTypedBoundariesMatchV1FieldTypes() throws Exception {
 		Path vectors = Path.of(System.getProperty("btaAnywhereProtocolVectors"));
 		JsonObject document = JsonParser.parseString(

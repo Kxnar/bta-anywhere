@@ -150,7 +150,9 @@ final class ProtocolFrames {
 			throw new IllegalArgumentException("missing or invalid protocol property: " + property);
 		}
 		String literal = object.get(property).getAsString();
-		if (!literal.matches("0|[1-9][0-9]*")) {
+		// A u64 has at most 20 decimal digits. Reject longer input before BigInteger
+		// conversion so a bounded 64 KiB frame cannot force a costly huge parse.
+		if (literal.length() > 20 || !literal.matches("0|[1-9][0-9]*")) {
 			throw new IllegalArgumentException("invalid unsigned protocol property: " + property);
 		}
 		BigInteger value = new BigInteger(literal);

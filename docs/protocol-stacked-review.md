@@ -18,6 +18,8 @@ ambiguous by repeating its byte count or connection ID. The Java host also
 requires the relay error's `retryable` field to be an actual JSON boolean.
 Rust serializes this server response; its type check is Java response-decoding
 hardening with a negative unit test, not a cross-language differential claim.
+Unsigned 64-bit accessors reject literals longer than 20 digits before doing
+large-integer conversion, preserving the existing wire range.
 
 Both cross-language evaluators consume the same generated framed corpus and
 canonicalise registration features as a sorted set, absent features as an
