@@ -87,6 +87,15 @@ jobs:
         run: |
           cargo build --locked --release --package bta-anywhere-relay
           .\gradlew.bat --no-daemon :tunnel-client:shadowJar
+      - name: Seeded protocol corpus smoke
+        shell: pwsh
+        timeout-minutes: 3
+        run: |
+          python -m unittest discover -s scripts -p test_protocol_campaign.py
+          python -m unittest discover -s scripts -p test_protocol_long_campaign.py
+          python scripts\protocol_campaign.py `
+            --seed 20260925 --count 100 `
+            --output .dev\protocol-ci-smoke
       - name: Run concurrent byte-exact integration test
         shell: pwsh
         run: |

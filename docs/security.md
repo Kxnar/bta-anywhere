@@ -12,7 +12,7 @@ The relay access token controls who may allocate relay ports. It is not a guest 
 - SHA-256-only relay token storage, constant-time comparisons, 256-bit session/resume/control secrets, and redacted Java secret rendering.
 - Framed-message size limits before allocation and raw bounded-buffer streaming with backpressure.
 - Shared malformed-frame vectors and seeded Windows differential tests for invalid UTF-8, non-object JSON, typed fields, and boundary lengths. These tests do not constitute a security proof; current validation status is recorded in [Protocol](protocol.md).
-- Structural regression vectors for repeated defined top-level fields and 127/128-container nesting boundaries. The candidate's full differential and performance campaigns must be rerun before claiming that these rules are cross-language equivalent in operation.
+- Structural regression vectors for repeated defined top-level fields, invalid UTF-8 in ignored fields, and 127/128-container nesting boundaries. The 25 September 2026 fixed-seed differential and manual evaluator campaigns found zero cross-language mismatches on this candidate. They do not prove security, directly fuzz the production session state machine, or satisfy the pending same-machine performance gate.
 - Per-token, per-host-address, per-session, and per-guest-address quotas.
 - Loopback-only admin endpoint by default and sensitive-data-free metric labels.
 - Official server archive pinning, a 256 MiB download cap, traversal/absolute-path/symbolic-link rejection, and staged extraction.

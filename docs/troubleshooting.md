@@ -16,6 +16,8 @@ Use the standalone CLI's `doctor` command to distinguish native-library loading 
 
 If a protocol corpus run fails, inspect its `summary.json` and the bounded case IDs in the ignored `.dev/protocol-campaign/` output. Re-run with the recorded seed and case count. A typed mismatch means a wire-compatibility decision is needed; changing the seed, frame limit, or gate to obtain a pass would hide the failure. Do not attach live tokens or player traffic to a corpus report.
 
+If Cargo reports `An Application Control policy has blocked this file` while launching a newly compiled corpus evaluator, check the Windows Code Integrity Operational log for events 3077 and 3118. The `VerifiedAndReputableDesktop` policy indicates Smart App Control may have blocked an unsigned build. This is an unavailable test, not a parser failure. Smart App Control has no per-app exception; use an approved Windows x86-64 development host that permits locally built executables or a valid code-signing workflow. Keep the failed run's output separate from the next fresh run. See [Microsoft's Smart App Control FAQ](https://support.microsoft.com/en-us/windows/security/threat-malware-protection/smart-app-control-frequently-asked-questions).
+
 ## Direct mode displays `<your-public-ip>`
 
 No PCP, NAT-PMP, or UPnP gateway returned a usable public address. Causes include router support being disabled, a host firewall, multiple nested routers, ISP CGNAT, or a private/CGNAT mapping result.
