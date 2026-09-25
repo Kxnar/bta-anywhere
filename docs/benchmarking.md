@@ -79,6 +79,15 @@ the memory samples for review of growth. `--soak-seconds` accepts 7,200 to
 the command exit nonzero and writes bounded diagnostics. Do not treat a short
 smoke run as the two-hour gate.
 
+Windows CI runs the benchmark reporting unit tests and `--profile smoke` after
+the concurrent and serial integration steps, using their release relay and
+shaded tunnel artifacts. These steps run sequentially because they share relay
+ports. The smoke uses short latency and throughput samples plus recovery
+checks; full baseline repetitions and the two-hour soak remain manual gates.
+CI writes `benchmark-results/ci-smoke.json` and its Markdown summary in the
+ignored workspace; a failed smoke exits nonzero. The workflow has not yet run
+for this change, so its result must be checked before review.
+
 `benchmark-results/` is ignored because results are machine-specific. Keep
 the JSON and generated Markdown with the review, not in the repository. JSON
 schema version 8 includes environment and toolchains, separate harness, relay,

@@ -104,3 +104,14 @@ jobs:
             --java "$env:JAVA_HOME\bin\java.exe" `
             --iterations 100 `
             --event-loop-threads 1
+      - name: Test benchmark reporting
+        shell: pwsh
+        run: python -m unittest discover -s scripts -p test_benchmark_relay.py
+      - name: Run short direct and relay benchmark smoke
+        shell: pwsh
+        run: |
+          python scripts\benchmark_relay.py --profile smoke `
+            --relay-binary target\release\bta-anywhere-relay.exe `
+            --tunnel-jar tunnel-client\build\libs\bta-anywhere-tunnel-0.1.0-all.jar `
+            --java "$env:JAVA_HOME\bin\java.exe" `
+            --output benchmark-results\ci-smoke.json

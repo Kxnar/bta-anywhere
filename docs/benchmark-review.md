@@ -30,6 +30,12 @@ commits and artifact hashes in schema-8 JSON before comparing builds. Do not
 pool the original `main` failure with post-fix measurements as if they were
 the same baseline.
 
+The Windows integration CI job now schedules benchmark reporting unit tests
+and the short benchmark smoke after its concurrent and serial harnesses. It
+reuses the release artifacts built in that job and runs the shared-port checks
+sequentially. This workflow change has not yet run on CI; it does not close
+the three full-run or two-hour soak gates.
+
 ## Design and invariants
 
 The harness sends deterministic identical payloads to a synthetic TCP echo
