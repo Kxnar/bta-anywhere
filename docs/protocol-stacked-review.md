@@ -66,20 +66,29 @@ integration, baseline/candidate performance, or soak.
 The comparator now recursively preserves JSON primitive types and the sign
 of binary64 zero. The Java test evaluator keeps JSON `-0` as negative zero,
 matching Rust. A byte-exact shared `number-negative-zero` frame and Python
-negative tests retain this discovery. At clean code commit
-`2f957d7f49684f7e44d9ed0410cc40c2edf37e23`, fresh fixed-seed 100-case
-and 10,000-case Rust/Java differential runs each completed with zero total,
-framing, and typed/modelled-state mismatches. The 100-case corpus includes
-both negative-zero regressions and all retained numeric, surrogate, and typed
-boundary vectors. The release Rust corpus evaluator and Java test evaluator
-both ran; this is not a full Rust/Java test
-suite result. The exact corpus and both raw evaluator outputs are retained in
-the ignored `.dev/protocol-campaign/strict-100-20260925/` and
-`.dev/protocol-campaign/strict-10000-20260925/` directories. Their respective
-corpus SHA-256 values are
+negative tests retain this discovery. Clean code commit
+`2f957d7f49684f7e44d9ed0410cc40c2edf37e23` passed fixed-seed 100-case
+and 10,000-case Rust/Java differential runs under this improved semantic
+comparator, but a later review found that the acceptance flags, state outcome,
+and evaluator IDs still used Python's type-coercing equality. These runs are
+retained in `.dev/protocol-campaign/strict-{100,10000}-20260925/` as
+historical evidence with that narrower comparator.
+
+Clean code commit `83740a10ed817fbef1c36eb0d7e16066c81fed40` applies
+the same type-preserving comparison to acceptance flags, state outcome, and
+evaluator IDs, with focused negative tests for boolean/integer confusion.
+Fresh fixed-seed 100-case and 10,000-case Rust/Java differential runs at
+this commit each completed with zero total, framing, and typed/modelled-state
+mismatches. The 100-case corpus includes both negative-zero regressions and
+all retained numeric, surrogate, and typed boundary vectors. The release Rust
+corpus evaluator and Java test evaluator both ran; this is not a full
+Rust/Java test suite result. The exact corpus and raw evaluator outputs are
+retained in the ignored `.dev/protocol-campaign/strict-flags-100-20260925/`
+and `.dev/protocol-campaign/strict-flags-10000-20260925/` directories. Their
+respective corpus SHA-256 values are
 `ba451f67710b0484d9e1513db45561841bf6f696b036c9f104423b65075610d4`
 and `3da524dc73a090dec91b14f2c3c8dc1c259d2de20d17ab98ec7b2cab8505362f`.
-The 19 lightweight campaign tests and three long-runner tests also pass at
+The 20 lightweight campaign tests and three long-runner tests also pass at
 this commit. The four-target long campaign and production integration remain
 open.
 
