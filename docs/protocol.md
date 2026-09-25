@@ -30,6 +30,13 @@ V1 JSON has at most 127 object/array containers along any nesting path, counting
 
 The current hardening tests also reject invalid UTF-8 in both directions, including bytes inside an unknown property that the typed parser would otherwise ignore. The Rust reader validates the complete bounded payload before deserializing it. The tests require a numeric, unsigned heartbeat sequence. These are v1 wire requirements; a quoted number is not a sequence number.
 
+Escaped JSON Unicode must decode to scalar values. An unpaired high or low
+surrogate is rejected in any property name or string value, including an
+unknown property; a correctly paired high/low escape is accepted. The Java
+streaming scan checks decoded names and strings before Gson constructs a tree,
+matching Rust's string parser. This also prevents malformed UTF-16 from
+reaching the Java evaluator's UTF-8 result writer.
+
 V1 JSON numbers use `serde_json`'s finite numeric range for both known and
 unknown fields. Integer literals within signed 64-bit negative and unsigned
 64-bit positive bounds retain exact integer semantics. Other numeric literals

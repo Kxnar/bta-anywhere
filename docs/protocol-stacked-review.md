@@ -31,6 +31,15 @@ structural vectors plus the deterministic smoke corpus cover the observed
 accepted and rejected boundaries. Earlier zero-mismatch runs do not validate
 this correction; rerun them from its final commit.
 
+A later private escaped-surrogate probe found that Rust rejected lone high and
+low surrogate escapes while Java accepted them, then the Java evaluator failed
+while writing malformed UTF-16 as UTF-8. Its exact corpus and Rust/partial
+Java outputs remain in ignored `.dev/protocol-campaign/surrogate-*` files.
+The Java streaming scan now rejects unpaired surrogates in all decoded names
+and string values. Shared structural vectors cover unknown names, unknown
+values, known fields, and valid high/low pairs. The pre-fix probe failure is
+retained as evidence; only a fresh exact-commit run can establish correction.
+
 Both cross-language evaluators consume the same generated framed corpus and
 canonicalise registration features as a sorted set, absent features as an
 empty set, and completion counts as exact nonnegative integers. The model

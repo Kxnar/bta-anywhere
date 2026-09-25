@@ -75,7 +75,8 @@ class ProtocolCampaignTest(unittest.TestCase):
             self.assertNotIn("register-version-string", kinds)
 
     def test_numeric_boundaries_are_shared_and_in_ci_smoke(self):
-        numeric = {name: framed for name, framed, _, _, _ in campaign.numeric_boundary_cases()}
+        numeric = {name: framed for name, framed, _, _, _ in campaign.structural_boundary_cases()
+                   if name.startswith("number-")}
         for name in ("number-u64-max", "number-u64-overflow", "number-i64-min",
                      "number-negative-underflow", "number-small-exponent",
                      "number-large-exponent", "number-long-integer"):
@@ -85,6 +86,20 @@ class ProtocolCampaignTest(unittest.TestCase):
             output = Path(directory) / "smoke.jsonl"
             kinds = campaign.write_corpus(output, 20260925, 100)
             self.assertTrue(set(numeric).issubset(kinds))
+
+    def test_surrogate_regressions_cover_names_values_and_positive_pairs(self):
+        cases = {name: framed for name, framed, _, _, _ in campaign.structural_boundary_cases()
+                 if name.startswith("surrogate-")}
+        for name in ("surrogate-unknown-value-high", "surrogate-unknown-value-low",
+                     "surrogate-unknown-name-high", "surrogate-unknown-name-low",
+                     "surrogate-known-reason-high", "surrogate-known-client-id-low",
+                     "surrogate-paired-unknown-value", "surrogate-paired-unknown-name",
+                     "surrogate-paired-known-reason"):
+            self.assertIn(name, cases)
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "smoke.jsonl"
+            kinds = campaign.write_corpus(output, 20260925, 100)
+            self.assertTrue(set(cases).issubset(kinds))
 
     def test_comparison_reports_typed_failure_separately(self):
         rust = {"id": 0, "accepted": True, "semantic": {"type": "ping"},

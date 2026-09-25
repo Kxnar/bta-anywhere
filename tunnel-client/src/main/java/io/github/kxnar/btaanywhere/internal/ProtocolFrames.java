@@ -79,6 +79,7 @@ final class ProtocolFrames {
 				Set<String> seenKnown = containers == 0 ? new HashSet<>() : null;
 				while (reader.hasNext()) {
 					String name = reader.nextName();
+					validateUnicodeScalar(name);
 					if (seenKnown != null && KNOWN_TOP_LEVEL_PROPERTIES.contains(name)
 						&& !seenKnown.add(name)) {
 						throw new IllegalArgumentException("repeated protocol property: " + name);
@@ -95,7 +96,7 @@ final class ProtocolFrames {
 				}
 				reader.endArray();
 			}
-			case STRING -> reader.nextString();
+			case STRING -> validateUnicodeScalar(reader.nextString());
 			case NUMBER -> {
 				// serde_json rejects a JSON number that overflows its finite f64
 				// fallback. Gson otherwise retains an arbitrarily large lazy number.
@@ -111,6 +112,21 @@ final class ProtocolFrames {
 			case BOOLEAN -> reader.nextBoolean();
 			case NULL -> reader.nextNull();
 			default -> throw new IllegalArgumentException("protocol frame contains invalid JSON value");
+		}
+	}
+
+	private static void validateUnicodeScalar(String value) {
+		for (int index = 0; index < value.length(); index++) {
+			char codeUnit = value.charAt(index);
+			if (Character.isHighSurrogate(codeUnit)) {
+				if (index + 1 >= value.length()
+					|| !Character.isLowSurrogate(value.charAt(index + 1))) {
+					throw new IllegalArgumentException("protocol JSON contains an unpaired Unicode surrogate");
+				}
+				index++;
+			} else if (Character.isLowSurrogate(codeUnit)) {
+				throw new IllegalArgumentException("protocol JSON contains an unpaired Unicode surrogate");
+			}
 		}
 	}
 
