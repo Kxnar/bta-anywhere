@@ -34,6 +34,7 @@ public final class ServerSupervisorMain {
 	private final BufferedWriter serverInput;
 	private final ServerSocket controlSocket;
 	private final String controlToken;
+	private final SupervisorControlFile controlIdentity;
 	private final Path controlFile;
 	private final Path logFile;
 	private final AtomicBoolean ready = new AtomicBoolean();
@@ -41,11 +42,12 @@ public final class ServerSupervisorMain {
 	private final AtomicBoolean cleanStop = new AtomicBoolean();
 	private final CountDownLatch stopResponseSent = new CountDownLatch(1);
 
-	private ServerSupervisorMain(Process server, ServerSocket controlSocket, String token, Path controlFile,
-		Path logFile) {
+	private ServerSupervisorMain(Process server, ServerSocket controlSocket, String token,
+		SupervisorControlFile controlIdentity, Path controlFile, Path logFile) {
 		this.server = server;
 		this.controlSocket = controlSocket;
 		controlToken = token;
+		this.controlIdentity = controlIdentity;
 		this.controlFile = controlFile;
 		this.logFile = logFile;
 		serverInput = new BufferedWriter(new OutputStreamWriter(server.getOutputStream(), StandardCharsets.UTF_8));
@@ -77,9 +79,11 @@ public final class ServerSupervisorMain {
 			Process server = processBuilder.start();
 			ServerSocket control = new ServerSocket(0, 16, InetAddress.getByName("127.0.0.1"));
 			String token = randomToken();
-			ServerSupervisorMain supervisor = new ServerSupervisorMain(server, control, token, controlFile, logFile);
-			SupervisorControlFile.forProcesses(token, control.getLocalPort(), ProcessHandle.current(),
-				server.toHandle()).write(controlFile);
+			SupervisorControlFile identity = SupervisorControlFile.forProcesses(token, control.getLocalPort(),
+				ProcessHandle.current(), server.toHandle());
+			ServerSupervisorMain supervisor = new ServerSupervisorMain(server, control, token, identity,
+				controlFile, logFile);
+			identity.write(controlFile);
 			Runtime.getRuntime().addShutdownHook(new Thread(supervisor::shutdownHook, "bta-anywhere-supervisor-shutdown"));
 			exit = supervisor.run();
 		} catch (Exception exception) {
@@ -144,19 +148,24 @@ public final class ServerSupervisorMain {
 				boolean stopped = stopServer(Duration.ofSeconds(30));
 				writeLine(socket.getOutputStream(), stopped ? "STOPPED clean=true" : "STOPPED clean=false");
 			} finally {
-				stopResponseSent.countDown();
+				if (stopRequested.get()) {
+					stopResponseSent.countDown();
+				}
 			}
 		} else {
 			writeLine(socket.getOutputStream(), "ERROR unknown-command");
 		}
 	}
 
-	private boolean stopServer(Duration timeout) {
-		if (!stopRequested.compareAndSet(false, true)) {
-			return cleanStop.get();
-		}
+	private boolean stopServer(Duration timeout) throws IOException {
 		if (!server.isAlive()) {
 			cleanStop.set(server.exitValue() == 0);
+			return cleanStop.get();
+		}
+		if (!matchesCapturedControl()) {
+			throw new IOException("recorded supervisor or server identity does not match; refusing STOP");
+		}
+		if (!stopRequested.compareAndSet(false, true)) {
 			return cleanStop.get();
 		}
 		try {
@@ -169,22 +178,35 @@ public final class ServerSupervisorMain {
 				cleanStop.set(server.exitValue() == 0);
 				return cleanStop.get();
 			}
+			if (!matchesCapturedControl()) {
+				return false;
+			}
 			server.destroy();
 			if (!server.waitFor(5, TimeUnit.SECONDS)) {
+				if (!matchesCapturedControl()) {
+					return false;
+				}
 				server.destroyForcibly();
 				server.waitFor(5, TimeUnit.SECONDS);
 			}
 		} catch (IOException exception) {
-			System.err.println("Could not write the server stop command: " + safeMessage(exception));
+			System.err.println("Could not complete authenticated server stop: " + safeMessage(exception));
 		} catch (InterruptedException exception) {
 			Thread.currentThread().interrupt();
 		}
 		return false;
 	}
 
+	private boolean matchesCapturedControl() throws IOException {
+		return controlIdentity.matchesSupervisor(ProcessHandle.current())
+			&& controlIdentity.matchesServer(server.toHandle())
+			&& controlIdentity.equals(SupervisorControlFile.read(controlFile));
+	}
+
 	private void shutdownHook() {
 		if (server.isAlive()) {
-			stopServer(Duration.ofSeconds(30));
+			System.err.println("Supervisor exit left the managed server running; retain recovery files for manual inspection");
+			return;
 		}
 		try {
 			Files.deleteIfExists(controlFile);

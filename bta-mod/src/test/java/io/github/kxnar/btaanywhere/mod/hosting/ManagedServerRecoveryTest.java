@@ -1,8 +1,11 @@
 package io.github.kxnar.btaanywhere.mod.hosting;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.kxnar.btaanywhere.mod.supervisor.SupervisorControlFile;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.nio.file.Files;
@@ -57,6 +60,32 @@ final class ManagedServerRecoveryTest {
 				assertTrue(withoutControl.supervisorAlive());
 				assertTrue(withoutControl.serverAlive());
 				assertFalse(withoutControl.canOpenOriginal());
+				assertThrows(IOException.class, () -> process.stopGracefully(Duration.ofSeconds(2)));
+				assertTrue(process.process().isAlive(), "missing control data must not force-stop the supervisor");
+				try {
+					assertFalse(process.control().request("STOP", 2_000).equals("STOPPED clean=true"));
+				} catch (IOException expected) {
+					// The supervisor may close the authenticated request without a success reply.
+				}
+				assertTrue(process.process().isAlive(), "supervisor must deny STOP without matching recorded identity");
+				SupervisorControlFile originalControl = process.control();
+				assertTrue(ProcessHandle.of(originalControl.serverPid()).filter(originalControl::matchesServer).isPresent(),
+					"missing control data must leave the original server running");
+				SupervisorControlFile wrongServer = new SupervisorControlFile(
+					originalControl.schemaVersion(), originalControl.token(), originalControl.controlPort(),
+					originalControl.supervisorPid(), originalControl.supervisorStartTime(),
+					originalControl.supervisorExecutable(), originalControl.serverPid() + 1,
+					originalControl.serverStartTime(), originalControl.serverExecutable());
+				wrongServer.write(process.controlFile());
+				assertThrows(IOException.class, () -> process.stopGracefully(Duration.ofSeconds(2)));
+				try {
+					assertFalse(originalControl.request("STOP", 2_000).equals("STOPPED clean=true"));
+				} catch (IOException expected) {
+					// A wrong recorded server identity may close the authenticated request.
+				}
+				assertTrue(process.process().isAlive(), "wrong server identity must not force-stop the supervisor");
+				assertTrue(ProcessHandle.of(originalControl.serverPid()).filter(originalControl::matchesServer).isPresent(),
+					"wrong control identity must leave the original server running");
 			} finally {
 				Files.move(hiddenControl, process.controlFile(), StandardCopyOption.REPLACE_EXISTING);
 			}

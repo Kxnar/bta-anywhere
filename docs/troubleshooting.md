@@ -50,6 +50,8 @@ Do not bypass the guard while a matching managed server or supervisor is alive. 
 
 If the screen reports incomplete process identity, malformed journal data, `recovery.json.tmp`, or a live PID with a different identity, keep the original save closed. Preserve those files and the server log, then follow the manual process inspection in [Recovery](recovery.md). Do not stop a process merely because its PID appears in the journal. A partial backup or showcase copy is a diagnostic artifact, never a source for automatic restore.
 
+If graceful stop reports missing control data, an identity mismatch, or an unanswered authenticated STOP, leave the recovery files and managed processes intact. The client will not force-kill a process to make cleanup appear successful. Follow the manual safety procedure in [Recovery](recovery.md) and preserve the control file and server log.
+
 Selecting a Live world during an in-process hosting handoff returns to the hosting screen, even before a recovery journal exists; wait for hosting to finish or stop it there. If a Live recovery journal exists, selecting that original opens the recovery screen instead. A valid Showcase journal allows its original world to open. If every single-player world or new-world creation is blocked, inspect `recovery.json` and `recovery.json.tmp`: a malformed or interrupted journal leaves the active save unknown and requires the manual safety procedure in [Recovery](recovery.md).
 
 ## Native QUIC library fails to load

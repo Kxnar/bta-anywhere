@@ -12,6 +12,7 @@ Startup now records launch intent before starting the supervisor. A journal with
 
 - **Reconnect** is available only when the exact supervisor and server are alive and the supervisor reports ready. It reconnects to `127.0.0.1`; relay and automatic direct mapping may need to be established again.
 - **Graceful Stop** authenticates to the matching supervisor, sends the BTA `stop` command, waits, and cleans a showcase copy only after a clean exit.
+- If control data or either process identity is missing or mismatched, stop fails and leaves the process and journal for manual inspection. A failed authenticated STOP is not followed by an unauthenticated client-side force kill. The supervisor may force-stop its own verified child after a valid authenticated STOP times out; that result is unclean and retains the journal.
 - **Open Logs** opens the recorded log or log directory.
 - **Restore Backup** is available only for a live-world session with a managed backup and no matching process alive. It requires a second confirmation.
 - **Open Original (keep recovery files)** is available only when no matching process owns the save. It clears the active journal so BTA can open the original while retaining logs, backups, and crash artifacts for manual inspection.
