@@ -58,7 +58,11 @@ Any active preparation/hosting state may enter FAILED and then STOPPING/recovery
 
 The managed server runs behind a small Java supervisor. The supervisor owns server stdin, writes a private authenticated loopback control file, and records both process identities. This lets a restarted client inspect or stop the exact managed process without guessing from a recycled PID. A recovery action validates PID, start time, and executable before acting.
 
-The recovery journal records launch intent before the supervisor is started and records verified supervisor/server identity once available. If a crash occurs between those writes, recovery keeps the original save closed until an operator verifies the processes and files. A stale temporary journal update also blocks automatic recovery actions.
+The first recovery-journal publication records launch intent immediately after
+the backup or Showcase copy. It occurs before mod mirroring and supervisor
+start, so a crash anywhere before complete process identity is recorded keeps
+the original save closed until an operator verifies the processes and files.
+A stale temporary journal update also blocks automatic recovery actions.
 
 Managed data lives under `<game-directory>/bta-anywhere/`:
 

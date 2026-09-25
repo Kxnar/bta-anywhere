@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.SplittableRandom;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
@@ -151,6 +152,10 @@ final class HostControllerFaultCampaignTest {
 				assertEquals(HostState.FAILED, controller.status().state());
 			}
 			assertTrue(fault.triggered, "injection point was not reached");
+			if (point == HostingFaults.Point.BEFORE_SUPERVISOR_LAUNCH) {
+				assertEquals(1, fault.journalPublications.get(),
+					"launch intent should be in the first journal publication");
+			}
 			assertEquals(before, manifest(world), "the original synthetic world changed");
 			assertNoAutomaticRestore(game);
 			assertQuarantinedPartials(game);
@@ -240,6 +245,12 @@ final class HostControllerFaultCampaignTest {
 			return;
 		}
 		assertThrows(IOException.class, () -> new RecoveryService(game).restoreBackup(inspection, false));
+		if (!inspection.entry().identityRecorded()) {
+			assertTrue(inspection.entry().launchIntent(),
+				"a published journal without process identity must retain launch intent");
+			assertFalse(inspection.canOpenOriginal());
+			assertFalse(inspection.canRestore());
+		}
 		if (control != null && inspection.entry().identityRecorded()) {
 			assertEquals(control.supervisorPid(), inspection.entry().pid());
 			assertEquals(control.supervisorStartTime(), inspection.entry().processStartTime());
@@ -511,6 +522,7 @@ final class HostControllerFaultCampaignTest {
 		private final Point selected;
 		private volatile SupervisorControlFile control;
 		private volatile boolean triggered;
+		private final AtomicInteger journalPublications = new AtomicInteger();
 
 		private RecordingFault(Path game, Point selected) {
 			this.game = game;
@@ -518,6 +530,9 @@ final class HostControllerFaultCampaignTest {
 		}
 
 		@Override public void hit(Point point) {
+			if (point == Point.AFTER_JOURNAL_PUBLICATION) {
+				journalPublications.incrementAndGet();
+			}
 			if (point == Point.AFTER_SUPERVISOR_LAUNCH) {
 				try {
 					control = readOnlyControlFile(game);

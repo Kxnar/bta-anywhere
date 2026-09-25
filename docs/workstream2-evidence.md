@@ -119,6 +119,31 @@ concluding whether the gate fails. The added launch-intent journal publication
 may be a safety cost, but that is an inference, not a measured cause; a larger
 cost needs a separate documented safety justification and review approval.
 
+Three quiet alternating rounds on 2026-09-25 at candidate `9fd7e32` provide
+the first usable **instrumented synthetic** comparison. All six Gradle probe
+runs succeeded and each wrote 70 rows. The retained directory is
+`.dev/prelaunch-timing/run-a8501e3959a94809a7b5f5646194ff44/`, including
+the machine manifest, six raw JSONL files, six logs, and generated summary.
+
+| Mode | Historical baseline median | `9fd7e32` median | Increase | 5% gate |
+|---|---:|---:|---:|---|
+| Live | 29.594 ms | 30.718 ms | +3.80% | PASS |
+| Showcase | 15.729 ms | 18.279 ms | +16.21% | FAIL |
+
+Showcase exceeded 5% in every round (+20.44%, +20.02%, +7.01%). The candidate
+performed one more atomic journal publication before supervisor launch than
+the historical baseline. That write is the smallest relevant extra operation
+identified in the timing interval; the comparison alone does not isolate its
+cost. The current experimental adjustment sets `launchIntent=true` in the
+first journal publication after backup/copy and omits the redundant
+pre-supervisor publication. An incomplete process identity already blocks
+opening or restoring the original, regardless of the launch-intent flag.
+Recording intent earlier therefore preserves the fail-closed recovery rule;
+it can only increase the period in which an interrupted pre-launch setup
+requires manual inspection. The post-launch publication of verified process
+identity remains. The adjustment must pass the fault oracle and an alternating
+timing rerun before it can be credited with closing the performance failure.
+
 ## Outstanding gates and exact manual procedure
 
 No disposable BTA game profile/world was designated for this review. The five

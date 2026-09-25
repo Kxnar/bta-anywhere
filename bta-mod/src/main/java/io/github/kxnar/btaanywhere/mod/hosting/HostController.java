@@ -339,7 +339,7 @@ public final class HostController implements AutoCloseable {
 				requested.world().worldDirectory(), activeWorld,
 				requested.world().worldDirectoryName(), backupFile,
 				requested.options().port(), requested.runtime(), consoleLog
-			);
+			).withLaunchIntent();
 			journal.write(journalEntry);
 			ownsJournal = true;
 
@@ -348,8 +348,6 @@ public final class HostController implements AutoCloseable {
 			appendLog("Mirrored server-compatible mods: " + String.join(", ", mirror.copiedModIds()));
 			ServerConfigurationWriter.write(requested.runtime(), requested.options());
 			checkNotCancelled();
-			journalEntry = journalEntry.withLaunchIntent();
-			journal.write(journalEntry);
 			faults.hit(HostingFaults.Point.BEFORE_SUPERVISOR_LAUNCH);
 			ManagedServerProcess launched = ManagedServerProcess.start(
 				requested.runtime(), activeWorld, requested.options(), consoleLog, this::appendLog
