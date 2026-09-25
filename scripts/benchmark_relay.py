@@ -15,6 +15,7 @@ import ctypes
 import hashlib
 import http.client
 import json
+import math
 import os
 import platform
 import queue
@@ -515,8 +516,8 @@ def run_throughput(rig: Rig, profile: str, seed: int) -> list[dict]:
 
 
 def run_soak(rig: Rig, seed: int, duration: float) -> dict:
-    if duration < 7200:
-        raise ValueError("soak duration must be at least two hours")
+    if not math.isfinite(duration) or not 7200 <= duration <= 14400:
+        raise ValueError("soak duration must be between two and four hours")
     assert rig.public_port and rig.relay and rig.tunnel
     block = payload(seed, CHUNK, 1000)
     started = time.monotonic()
@@ -569,8 +570,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--seed", type=int, default=1701)
     parser.add_argument("--soak-seconds", type=float, default=7200)
     args = parser.parse_args()
-    if args.profile == "soak" and args.soak_seconds < 7200:
-        parser.error("--soak-seconds must be at least 7200")
+    if args.profile == "soak" and (not math.isfinite(args.soak_seconds)
+                                   or not 7200 <= args.soak_seconds <= 14400):
+        parser.error("--soak-seconds must be between 7200 and 14400")
     return args
 
 

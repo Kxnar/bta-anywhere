@@ -4,6 +4,7 @@ import socket
 import socketserver
 import threading
 import unittest
+import math
 
 import benchmark_relay as benchmark
 
@@ -48,6 +49,11 @@ class BenchmarkTests(unittest.TestCase):
     def test_generated_payload_is_reproducible(self):
         self.assertEqual(benchmark.payload(17, 1024, 4), benchmark.payload(17, 1024, 4))
         self.assertNotEqual(benchmark.payload(17, 1024, 4), benchmark.payload(17, 1024, 5))
+
+    def test_soak_rejects_unbounded_duration_before_starting_processes(self):
+        for duration in (math.inf, math.nan, 7199, 14401):
+            with self.subTest(duration=duration), self.assertRaises(ValueError):
+                benchmark.run_soak(None, 0, duration)
 
 
 if __name__ == "__main__":

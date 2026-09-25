@@ -58,7 +58,8 @@ The soak uses eight streams and samples memory and active connections every
 approximately 60 seconds. Each stream sends deterministic 64 KiB blocks with
 0.5-second pacing. It verifies both directions and EOF, checks that the active
 gauge returns to zero, and requires process termination. The report retains
-the memory samples for review of growth. A truncated or failed transfer makes
+the memory samples for review of growth. `--soak-seconds` accepts 7,200 to
+14,400 seconds, rejecting non-finite values. A truncated or failed transfer makes
 the command exit nonzero and writes bounded diagnostics. Do not treat a short
 smoke run as the two-hour gate.
 
