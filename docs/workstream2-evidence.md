@@ -42,11 +42,13 @@ and verified output root.
 |---|---|---|
 | Controller smoke | 29/29 applicable cases passed. | `.dev/controller-fault-campaign/run-34eb892096714104b076870be8324895/` |
 | Full controller campaign | 4,350/4,350 passed: 29 combinations, 50 seeds, 3 clean fixture runs (1,450 per run). No retained failed fixture. | `.dev/controller-fault-campaign/run-faf1274520784502a9b0aab2e9203824/manifest.json`, `scenarios.jsonl`, `summary.json` |
-| Mod unit/crash/guard suite, rerun 2026-09-25 | 29 tests, 0 failures, 2 skips. The opt-in full campaign is deliberately skipped in normal test runs; a Windows symlink alias test skipped because this account lacks link-creation privilege. | `.dev/workstream2-gradle-test-20260925.log`, `bta-mod/build/test-results/test/` |
+| Mod unit/crash/guard suite, rerun 2026-09-25 | 29 tests, 0 failures, 2 skips. The opt-in full campaign is deliberately skipped in normal test runs; a Windows symlink alias test skipped because this account lacks link-creation privilege. The XML was later replaced by subsequent Gradle runs. | `.dev/workstream2-gradle-test-20260925.log` |
+| Mod suite after one-write change | Gradle `:bta-mod:test --rerun-tasks` succeeded. The timing/campaign Gradle runs later replaced its XML reports, so a retained per-test count is unavailable for this specific rerun. | `.dev/workstream2-gradle-after-one-write-20260925.log` |
+| Full controller campaign after one-write change | 4,350/4,350 passed on clean `f8fb80a`: 1,450 cases in each of three clean fixture runs, 0 failed, 0 retained fixtures. | `.dev/controller-fault-campaign/run-a5caa8eb09c64129ab1a5bc20d1863d6/manifest.json`, `scenarios.jsonl`, `summary.json` |
 | Serial half-close, one prior run | 100/100 iterations passed. | `.dev/workstream2-integration/serial-100.log` |
 | Concurrent integration, one prior run | 100 waves of eight streams passed. | `.dev/workstream2-integration/concurrent-100x8.log` |
 
-The full campaign manifest records commit
+The first full campaign manifest records commit
 `55c81bbe69f177a772d6a9e48ba310f0ab2c2358`, a clean worktree,
 Windows 11 build 26200, Intel Core i9-10900K, 20 logical cores,
 16,923,529,216 bytes RAM, Java 21.0.12.1, and Rust 1.97.1. The campaign ran
@@ -57,6 +59,14 @@ validation. The single prior serial and concurrent runs do not satisfy the
 five-consecutive-run Windows stability gate. Another branch has observed an
 intermittent missing TCP EOF in the shared relay/tunnel integration harness;
 this branch has not established its cause or a fix.
+
+The second full campaign ran at `f8fb80afaa59b1f313c885be3a245c95856d34c6`
+from 2026-09-25 18:13:42 UTC to 18:31:56 UTC; its Gradle command reported
+18m 30s. It used the same Windows build, CPU, memory, JDK, and Rust toolchain
+as the first campaign. The raw JSONL has exactly 4,350 rows, each marked
+passed, with 1,450 rows per repetition. The result directory contains no
+retained failed fixture. This closes the synthetic campaign gate for the
+one-write change, not the manual game or power-loss gates.
 
 Exact local commands for the synthetic checks:
 
@@ -157,8 +167,9 @@ Showcase round changes were +10.27%, +3.68%, and -5.89%; retain this spread
 alongside the pooled median. The improvement after removing the extra
 publication supports that operation as the likely cause of the earlier
 slowdown, but the test did not isolate write time and remains synthetic.
-The full 4,350-case fault campaign must be repeated for `a10a2f5` before
-claiming that the changed journal path passed the complete fault gate.
+The full 4,350-case fault campaign was repeated for the same production code
+at `f8fb80a` after the evidence document changed; all scenarios passed as
+recorded above.
 
 ## Outstanding gates and exact manual procedure
 
