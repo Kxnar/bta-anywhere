@@ -14,7 +14,7 @@ use governor::{DefaultDirectRateLimiter, Quota, RateLimiter};
 use quinn::Connection;
 use subtle::ConstantTimeEq;
 use tokio::{
-    io::{AsyncWriteExt, copy},
+    io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, copy},
     net::{TcpListener, TcpStream},
     sync::{Mutex as AsyncMutex, RwLock, watch},
     time,
@@ -97,8 +97,144 @@ pub struct Session {
     connection: RwLock<Option<Connection>>,
     generation: AtomicU64,
     active_connections: AtomicUsize,
+    completions: Mutex<HashMap<String, Arc<StreamCompletion>>>,
     overall_accept_limiter: DefaultDirectRateLimiter,
     cancel: CancellationToken,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum CompletionSignal {
+    Pending,
+    Notice(u64),
+    Invalid,
+}
+
+struct StreamCompletion {
+    state: Mutex<CompletionState>,
+    signal: watch::Sender<CompletionSignal>,
+}
+
+struct CompletionState {
+    copied: u64,
+    notice: Option<u64>,
+    invalid: bool,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum NoticeResult {
+    Accepted,
+    Late,
+    Rejected,
+}
+
+struct CompletionGuard {
+    session: Arc<Session>,
+    connection_id: String,
+}
+
+impl Drop for CompletionGuard {
+    fn drop(&mut self) {
+        self.session
+            .completions
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .remove(&self.connection_id);
+    }
+}
+
+impl StreamCompletion {
+    fn new() -> Self {
+        let (signal, _) = watch::channel(CompletionSignal::Pending);
+        Self {
+            state: Mutex::new(CompletionState {
+                copied: 0,
+                notice: None,
+                invalid: false,
+            }),
+            signal,
+        }
+    }
+
+    fn notice(&self, bytes: u64) -> NoticeResult {
+        let mut state = self
+            .state
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if state.invalid || state.notice.is_some() || bytes < state.copied {
+            state.invalid = true;
+            self.signal.send_replace(CompletionSignal::Invalid);
+            return NoticeResult::Rejected;
+        }
+        state.notice = Some(bytes);
+        self.signal.send_replace(CompletionSignal::Notice(bytes));
+        NoticeResult::Accepted
+    }
+
+    fn copied(&self, bytes: u64) -> Result<()> {
+        let mut state = self
+            .state
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if state.invalid
+            || bytes < state.copied
+            || state.notice.is_some_and(|target| bytes > target)
+        {
+            state.invalid = true;
+            self.signal.send_replace(CompletionSignal::Invalid);
+            bail!("invalid stream completion count");
+        }
+        state.copied = bytes;
+        Ok(())
+    }
+
+    fn target(&self) -> Result<Option<u64>> {
+        let state = self
+            .state
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if state.invalid {
+            bail!("invalid stream completion notice");
+        }
+        Ok(state.notice)
+    }
+}
+
+impl Session {
+    pub fn announce_stream_eof(&self, connection_id: &str, bytes: u64) -> NoticeResult {
+        let completion = self
+            .completions
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .get(connection_id)
+            .cloned();
+        match completion {
+            Some(completion) => completion.notice(bytes),
+            None => NoticeResult::Late,
+        }
+    }
+
+    fn track_stream(
+        self: &Arc<Self>,
+        connection_id: String,
+        max: usize,
+    ) -> Result<(Arc<StreamCompletion>, CompletionGuard)> {
+        let completion = Arc::new(StreamCompletion::new());
+        let mut entries = self
+            .completions
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if entries.len() >= max || entries.contains_key(&connection_id) {
+            bail!("active stream completion quota exhausted");
+        }
+        entries.insert(connection_id.clone(), completion.clone());
+        Ok((
+            completion,
+            CompletionGuard {
+                session: self.clone(),
+                connection_id,
+            },
+        ))
+    }
 }
 
 pub struct Registration {
@@ -225,6 +361,7 @@ impl RelayState {
             connection: RwLock::new(Some(connection)),
             generation: AtomicU64::new(1),
             active_connections: AtomicUsize::new(0),
+            completions: Mutex::new(HashMap::new()),
             overall_accept_limiter: RateLimiter::direct(Quota::per_minute(
                 NonZeroU32::new(max_accepts.saturating_mul(8)).expect("validated non-zero"),
             )),
@@ -419,6 +556,10 @@ impl RelayState {
             connection_id: token::generate(),
             remote_address: remote.to_string(),
         };
+        let (completion, _completion_guard) = session.track_stream(
+            header.connection_id.clone(),
+            self.inner.config.max_connections_per_session,
+        )?;
         write_json(&mut quic_send, &header).await?;
         let trace_id = header.connection_id;
         trace_eof(
@@ -436,13 +577,8 @@ impl RelayState {
             trace_eof(&trace_id, "relay_quic_send_finish", None, None);
             Ok::<u64, anyhow::Error>(bytes)
         };
-        let host_to_guest = async {
-            let bytes = copy(&mut quic_recv, &mut tcp_write).await?;
-            trace_eof(&trace_id, "relay_quic_recv_eof", Some(bytes), None);
-            tcp_write.shutdown().await?;
-            trace_eof(&trace_id, "relay_tcp_shutdown_complete", None, None);
-            Ok::<u64, anyhow::Error>(bytes)
-        };
+        let host_to_guest =
+            copy_response_with_completion(&mut quic_recv, &mut tcp_write, &completion, &trace_id);
         let result = tokio::try_join!(guest_to_host, host_to_guest);
         if result.is_err() {
             trace_eof(&trace_id, "relay_forward_error", None, None);
@@ -510,5 +646,201 @@ impl RelayState {
             session.cancel.cancel();
             self.inner.metrics.active_sessions.dec();
         }
+    }
+}
+
+async fn copy_response_with_completion<R, W>(
+    source: &mut R,
+    target: &mut W,
+    completion: &StreamCompletion,
+    trace_id: &str,
+) -> Result<u64>
+where
+    R: AsyncRead + Unpin,
+    W: AsyncWrite + Unpin,
+{
+    let mut notices = completion.signal.subscribe();
+    let mut buffer = [0_u8; 16 * 1024];
+    let mut bytes = 0_u64;
+    loop {
+        if completion.target()? == Some(bytes) {
+            trace_eof(trace_id, "relay_control_eof", Some(bytes), None);
+            target.shutdown().await?;
+            trace_eof(trace_id, "relay_tcp_shutdown_complete", None, None);
+            return Ok(bytes);
+        }
+        let received = tokio::select! {
+            changed = notices.changed() => {
+                changed.context("stream completion notice channel closed")?;
+                continue;
+            }
+            read = source.read(&mut buffer) => read?,
+        };
+        if received == 0 {
+            if completion
+                .target()?
+                .is_some_and(|announced| announced != bytes)
+            {
+                bail!("QUIC stream ended before announced response length");
+            }
+            trace_eof(trace_id, "relay_quic_recv_eof", Some(bytes), None);
+            target.shutdown().await?;
+            trace_eof(trace_id, "relay_tcp_shutdown_complete", None, None);
+            return Ok(bytes);
+        }
+        let next = bytes
+            .checked_add(received as u64)
+            .context("response byte count overflow")?;
+        if completion
+            .target()?
+            .is_some_and(|announced| next > announced)
+        {
+            bail!("QUIC response exceeds announced length");
+        }
+        target.write_all(&buffer[..received]).await?;
+        completion.copied(next)?;
+        bytes = next;
+    }
+}
+
+#[cfg(test)]
+mod completion_tests {
+    use super::*;
+    use std::net::Ipv4Addr;
+    use tokio::io::AsyncReadExt;
+
+    fn session() -> Arc<Session> {
+        Arc::new(Session {
+            id: "test-session".into(),
+            public_port: 30_000,
+            source_ip: IpAddr::V4(Ipv4Addr::LOCALHOST),
+            client_instance_id: "test-client".into(),
+            access_token_hash: [0; 32],
+            resume_token_hash: RwLock::new([0; 32]),
+            connection: RwLock::new(None),
+            generation: AtomicU64::new(1),
+            active_connections: AtomicUsize::new(0),
+            completions: Mutex::new(HashMap::new()),
+            overall_accept_limiter: RateLimiter::direct(Quota::per_minute(
+                NonZeroU32::new(1).unwrap(),
+            )),
+            cancel: CancellationToken::new(),
+        })
+    }
+
+    #[test]
+    fn notices_are_session_scoped_bounded_and_removed_on_cancel() {
+        let owner = session();
+        let other = session();
+        let (completion, guard) = owner.track_stream("one".into(), 1).unwrap();
+        assert!(owner.track_stream("two".into(), 1).is_err());
+        assert_eq!(other.announce_stream_eof("one", 4), NoticeResult::Late);
+        assert_eq!(completion.target().unwrap(), None);
+        assert_eq!(owner.announce_stream_eof("one", 4), NoticeResult::Accepted);
+        assert_eq!(owner.announce_stream_eof("one", 4), NoticeResult::Rejected);
+        assert!(completion.target().is_err());
+        drop(guard);
+        assert_eq!(owner.announce_stream_eof("one", 4), NoticeResult::Late);
+        assert!(owner.completions.lock().unwrap().is_empty());
+    }
+
+    #[test]
+    fn notice_below_copied_bytes_fails_closed() {
+        let completion = StreamCompletion::new();
+        completion.copied(5).unwrap();
+        assert_eq!(completion.notice(4), NoticeResult::Rejected);
+        assert!(completion.target().is_err());
+    }
+
+    #[tokio::test]
+    async fn exact_notice_closes_output_without_native_fin() {
+        let completion = Arc::new(StreamCompletion::new());
+        let (mut source_write, mut source_read) = tokio::io::duplex(64);
+        let (mut guest_write, mut guest_read) = tokio::io::duplex(64);
+        let worker_completion = completion.clone();
+        let worker = tokio::spawn(async move {
+            copy_response_with_completion(
+                &mut source_read,
+                &mut guest_write,
+                &worker_completion,
+                "test",
+            )
+            .await
+        });
+        source_write.write_all(b"hello").await.unwrap();
+        let mut received = [0; 5];
+        guest_read.read_exact(&mut received).await.unwrap();
+        assert_eq!(&received, b"hello");
+        assert_eq!(completion.notice(5), NoticeResult::Accepted);
+        assert_eq!(
+            time::timeout(Duration::from_secs(1), worker)
+                .await
+                .unwrap()
+                .unwrap()
+                .unwrap(),
+            5
+        );
+        assert_eq!(guest_read.read(&mut received).await.unwrap(), 0);
+        // The source writer remains open, modelling the missing QUIC FIN.
+        drop(source_write);
+    }
+
+    #[tokio::test]
+    async fn notice_before_response_bytes_closes_at_exact_count() {
+        let completion = StreamCompletion::new();
+        assert_eq!(completion.notice(5), NoticeResult::Accepted);
+        let (mut source_write, mut source_read) = tokio::io::duplex(64);
+        let (mut guest_write, mut guest_read) = tokio::io::duplex(64);
+        source_write.write_all(b"hello").await.unwrap();
+        let copied =
+            copy_response_with_completion(&mut source_read, &mut guest_write, &completion, "test")
+                .await
+                .unwrap();
+        assert_eq!(copied, 5);
+        let mut received = [0; 5];
+        guest_read.read_exact(&mut received).await.unwrap();
+        assert_eq!(&received, b"hello");
+        assert_eq!(guest_read.read(&mut received).await.unwrap(), 0);
+    }
+
+    #[tokio::test]
+    async fn native_fin_and_short_or_excess_notice_are_checked() {
+        let (mut source_write, mut source_read) = tokio::io::duplex(64);
+        let (mut guest_write, mut guest_read) = tokio::io::duplex(64);
+        source_write.write_all(b"hello").await.unwrap();
+        drop(source_write);
+        let native = StreamCompletion::new();
+        assert_eq!(
+            copy_response_with_completion(&mut source_read, &mut guest_write, &native, "test")
+                .await
+                .unwrap(),
+            5
+        );
+        let mut received = [0; 5];
+        guest_read.read_exact(&mut received).await.unwrap();
+        assert_eq!(guest_read.read(&mut received).await.unwrap(), 0);
+
+        let (mut source_write, mut source_read) = tokio::io::duplex(64);
+        let (mut guest_write, _guest_read) = tokio::io::duplex(64);
+        source_write.write_all(b"short").await.unwrap();
+        drop(source_write);
+        let short = StreamCompletion::new();
+        assert_eq!(short.notice(6), NoticeResult::Accepted);
+        assert!(
+            copy_response_with_completion(&mut source_read, &mut guest_write, &short, "test")
+                .await
+                .is_err()
+        );
+
+        let (mut source_write, mut source_read) = tokio::io::duplex(64);
+        let (mut guest_write, _guest_read) = tokio::io::duplex(64);
+        source_write.write_all(b"excess").await.unwrap();
+        let excess = StreamCompletion::new();
+        assert_eq!(excess.notice(5), NoticeResult::Accepted);
+        assert!(
+            copy_response_with_completion(&mut source_read, &mut guest_write, &excess, "test")
+                .await
+                .is_err()
+        );
     }
 }
