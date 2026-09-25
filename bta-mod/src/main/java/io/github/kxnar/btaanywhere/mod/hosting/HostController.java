@@ -118,9 +118,9 @@ public final class HostController implements AutoCloseable {
 		ownsJournal = false;
 		hostWorldObserved.set(false);
 		clearLog();
-		setState(HostState.VALIDATING, "Validating world, disk space, port, and server files", "");
 		PendingStart requested = new PendingStart(world, options, config, downloadConfirmed, null);
 		pending = requested;
+		setState(HostState.VALIDATING, "Validating world, disk space, port, and server files", "");
 		pipeline = CompletableFuture.runAsync(() -> validate(requested), executor);
 		return pipeline;
 	}
@@ -141,8 +141,9 @@ public final class HostController implements AutoCloseable {
 	}
 
 	public boolean hasRecoveryArtifacts() {
-		return Files.exists(journal.file())
-			|| Files.exists(journal.file().resolveSibling("recovery.json.tmp"));
+		return Files.exists(journal.file(), java.nio.file.LinkOption.NOFOLLOW_LINKS)
+			|| Files.exists(journal.file().resolveSibling("recovery.json.tmp"),
+				java.nio.file.LinkOption.NOFOLLOW_LINKS);
 	}
 
 	public void markHostConnectionStarted() {
@@ -194,6 +195,25 @@ public final class HostController implements AutoCloseable {
 		}
 		RecoveryInspection recovered = adoptedRecovery;
 		return recovered == null ? Optional.empty() : Optional.of(recovered.entry().worldDirectoryName());
+	}
+
+	/** The original Live save that must not be opened during an in-process handoff. */
+	public Optional<Path> liveOriginalNeedingGuard() {
+		RecoveryInspection recovered = adoptedRecovery;
+		if (recovered != null && recovered.entry().worldMode() == WorldMode.LIVE) {
+			return Optional.of(Path.of(recovered.entry().originalSavePath()));
+		}
+		PendingStart requested = pending;
+		if (requested == null || requested.options().worldMode() != WorldMode.LIVE) {
+			return Optional.empty();
+		}
+		if (status.get().state() == HostState.FAILED && !ownsJournal) {
+			ManagedServerProcess running = server;
+			if (running == null || !running.process().isAlive()) {
+				return Optional.empty();
+			}
+		}
+		return Optional.of(requested.world().worldDirectory());
 	}
 
 	public boolean canReopenOriginalWorld() {

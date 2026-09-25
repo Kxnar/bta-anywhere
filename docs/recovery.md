@@ -4,6 +4,8 @@ BTA Anywhere writes `bta-anywhere/recovery.json` before starting the managed pro
 
 On the next launch, the mod validates every recorded path and matches process identity before enabling an action. It never kills a process based on PID alone and never restores a backup automatically.
 
+The ordinary single-player world selector checks both the current in-process Live handoff and the recovery journal before opening a save. It blocks the original Live world during backup and launch even before the journal exists; existing alternate save paths are compared by file identity, and differently cased names are blocked. The hosting screen shows the in-process state and stop control; a journal block opens the recovery screen. Other worlds remain available. A valid Showcase journal leaves the original world available because the managed server uses a separate copy. If the journal is malformed or an update is incomplete, the active world cannot be identified safely, so all single-player opens and new-world creation are blocked. The appropriate screen opens on the next client tick. Do not bypass the guard by opening the save through another tool or mod.
+
 Startup now records launch intent before starting the supervisor. A journal without complete supervisor/server identity, an interrupted `recovery.json.tmp` update, malformed JSON, or a live PID with a different start time or executable blocks both **Open Original** and **Restore Backup**. The recovery screen explains that process and file inspection is needed. An absent recorded PID is not proof that no server owns a save. This also applies to older journals created before launch intent was recorded.
 
 ## Recovery actions

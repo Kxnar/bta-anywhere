@@ -33,27 +33,30 @@ public final class RecoveryService {
 	}
 
 	public Optional<RecoveryInspection> inspect() throws IOException {
-		Optional<RecoveryJournal.Entry> optional = journal.read();
+		Optional<RecoveryJournal.Entry> optional = readValidatedJournal();
 		if (optional.isEmpty()) {
 			return Optional.empty();
 		}
 		RecoveryJournal.Entry entry = optional.get();
-		try {
-			validatePaths(entry);
-		} catch (RuntimeException exception) {
-			throw new IOException("malformed recovery paths; inspect managed processes and recovery files before opening a world", exception);
-		}
 		if (!entry.identityRecorded() || entry.launchIntent()) {
 			return Optional.of(new RecoveryInspection(entry, false, false, false, true,
 				"Managed process identity was not fully recorded. The original world must remain closed; inspect the supervisor, server, and recovery files manually."));
 		}
-		Optional<ProcessHandle> supervisor = ProcessIdentity.matching(entry);
-		Optional<ProcessHandle> server = matchingServer(entry);
-		Optional<SupervisorControlFile> control = trustedControl(entry, supervisor, server);
+		Optional<ProcessHandle> supervisor;
+		Optional<ProcessHandle> server;
+		Optional<SupervisorControlFile> control;
+		boolean identityAmbiguous;
+		try {
+			supervisor = ProcessIdentity.matching(entry);
+			server = matchingServer(entry);
+			control = trustedControl(entry, supervisor, server);
+			identityAmbiguous = unmatchedLivePid(entry.pid(), supervisor)
+				|| unmatchedLivePid(entry.serverPid(), server);
+		} catch (RuntimeException exception) {
+			throw new IOException("malformed recorded process identity; inspect managed processes and recovery files before opening a world", exception);
+		}
 		boolean supervisorAlive = supervisor.isPresent();
 		boolean serverAlive = server.isPresent();
-		boolean identityAmbiguous = unmatchedLivePid(entry.pid(), supervisor)
-			|| unmatchedLivePid(entry.serverPid(), server);
 		boolean ready = false;
 		String message;
 		if (supervisorAlive && serverAlive && control.isPresent()) {
@@ -76,6 +79,20 @@ public final class RecoveryService {
 		}
 		return Optional.of(new RecoveryInspection(entry, supervisorAlive, serverAlive, ready,
 			identityAmbiguous, message));
+	}
+
+	Optional<RecoveryJournal.Entry> readValidatedJournal() throws IOException {
+		Optional<RecoveryJournal.Entry> optional = journal.read();
+		if (optional.isEmpty()) {
+			return Optional.empty();
+		}
+		RecoveryJournal.Entry entry = optional.get();
+		try {
+			validatePaths(entry);
+		} catch (RuntimeException exception) {
+			throw new IOException("malformed recovery paths; inspect managed processes and recovery files before opening a world", exception);
+		}
+		return optional;
 	}
 
 	private static boolean unmatchedLivePid(long pid, Optional<ProcessHandle> matching) {
@@ -192,6 +209,7 @@ public final class RecoveryService {
 		Path backup = entry.backupPath().isBlank() ? null
 			: Path.of(entry.backupPath()).toAbsolutePath().normalize();
 		if (!original.startsWith(savesRoot) || original.equals(savesRoot)
+			|| !original.getFileName().toString().equals(entry.worldDirectoryName())
 			|| !runtime.startsWith(managedDirectory) || !log.startsWith(managedDirectory.resolve("logs"))
 			|| (control != null && !control.startsWith(managedDirectory.resolve("logs")))
 			|| (backup != null && !backup.startsWith(managedDirectory.resolve("backups")))

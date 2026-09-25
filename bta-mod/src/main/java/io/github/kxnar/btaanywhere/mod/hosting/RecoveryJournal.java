@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.LinkOption;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.Objects;
@@ -43,10 +44,10 @@ public final class RecoveryJournal {
 	}
 
 	public synchronized Optional<Entry> read() throws IOException {
-		if (Files.exists(file.resolveSibling(file.getFileName() + ".tmp"))) {
+		if (Files.exists(file.resolveSibling(file.getFileName() + ".tmp"), LinkOption.NOFOLLOW_LINKS)) {
 			throw new IOException("incomplete BTA Anywhere recovery journal update; inspect managed processes and recovery files before opening a world");
 		}
-		if (!Files.exists(file)) {
+		if (!Files.exists(file, LinkOption.NOFOLLOW_LINKS)) {
 			return Optional.empty();
 		}
 		if (!Files.isRegularFile(file) || Files.isSymbolicLink(file)) {

@@ -63,6 +63,8 @@ public final class HostingScreen extends Screen {
 		super(parent);
 		controller = BtaAnywhereMod.controller(mc);
 		config = BtaAnywhereMod.config(mc);
+		// A reopened hosting screen must not hand off a different world for an active start.
+		handoffPerformed = controller.status().state().isBusy();
 	}
 
 	@Override

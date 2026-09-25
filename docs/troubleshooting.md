@@ -50,6 +50,8 @@ Do not bypass the guard while a matching managed server or supervisor is alive. 
 
 If the screen reports incomplete process identity, malformed journal data, `recovery.json.tmp`, or a live PID with a different identity, keep the original save closed. Preserve those files and the server log, then follow the manual process inspection in [Recovery](recovery.md). Do not stop a process merely because its PID appears in the journal. A partial backup or showcase copy is a diagnostic artifact, never a source for automatic restore.
 
+Selecting a Live world during an in-process hosting handoff returns to the hosting screen, even before a recovery journal exists; wait for hosting to finish or stop it there. If a Live recovery journal exists, selecting that original opens the recovery screen instead. A valid Showcase journal allows its original world to open. If every single-player world or new-world creation is blocked, inspect `recovery.json` and `recovery.json.tmp`: a malformed or interrupted journal leaves the active save unknown and requires the manual safety procedure in [Recovery](recovery.md).
+
 ## Native QUIC library fails to load
 
 The release JAR contains the Windows x86-64 native. Use an x86-64 Java runtime. Netty QUIC 0.0.73.Final does not publish Windows ARM64; use an x86-64 Java/BTA runtime under Windows ARM64 emulation.

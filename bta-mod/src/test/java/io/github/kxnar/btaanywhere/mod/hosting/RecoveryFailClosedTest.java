@@ -87,6 +87,29 @@ final class RecoveryFailClosedTest {
 		assertTrue(current.isAlive());
 	}
 
+	@Test
+	void malformedProcessExecutableFailsClosed() throws Exception {
+		Path game = game();
+		RecoveryJournal journal = new RecoveryJournal(game.resolve("bta-anywhere"));
+		RecoveryJournal.Entry base = prepared(game);
+		ProcessHandle current = ProcessHandle.current();
+		String started = current.info().startInstant().orElseThrow().toString();
+		RecoveryJournal.Entry malformed = new RecoveryJournal.Entry(
+			base.schemaVersion(), base.worldMode(), base.networkMode(), base.originalSavePath(),
+			base.activeSavePath(), base.worldDirectoryName(), base.backupPath(), current.pid(),
+			started, "invalid\0executable", current.pid(), started,
+			current.info().command().orElseThrow(),
+			game.resolve("bta-anywhere/logs/missing-control.properties").toString(), base.localPort(),
+			base.serverRuntime(), base.logFile(), base.createdAt(), false);
+		journal.write(malformed);
+		IOException denied = assertThrows(IOException.class, () -> new RecoveryService(game).inspect());
+		assertTrue(denied.getMessage().contains("process identity"));
+		try (HostController controller = new HostController(game)) {
+			assertFalse(controller.canReopenOriginalWorld());
+		}
+		assertTrue(Files.exists(journal.file()));
+	}
+
 	private Path game() throws IOException {
 		Path game = temporaryDirectory.resolve("game");
 		Path world = game.resolve("saves/world");
