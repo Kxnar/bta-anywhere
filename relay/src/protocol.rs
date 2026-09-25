@@ -12,7 +12,7 @@ pub enum ClientControl {
     #[serde(rename = "register")]
     Register {
         version: u16,
-        #[serde(default)]
+        #[serde(default, deserialize_with = "deserialize_registration_features")]
         features: Vec<String>,
         #[serde(rename = "accessToken")]
         access_token: String,
@@ -29,8 +29,44 @@ pub enum ClientControl {
     StreamEof {
         #[serde(rename = "connectionId")]
         connection_id: String,
+        #[serde(deserialize_with = "deserialize_stream_eof_bytes")]
         bytes: u64,
     },
+}
+
+fn deserialize_registration_features<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let features = Vec::<String>::deserialize(deserializer)?;
+    if features.len() > 16 {
+        return Err(serde::de::Error::custom(
+            "registration supports at most 16 features",
+        ));
+    }
+    if features
+        .iter()
+        .enumerate()
+        .any(|(index, feature)| features[..index].contains(feature))
+    {
+        return Err(serde::de::Error::custom(
+            "registration features must be unique",
+        ));
+    }
+    Ok(features)
+}
+
+fn deserialize_stream_eof_bytes<'de, D>(deserializer: D) -> Result<u64, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let bytes = u64::deserialize(deserializer)?;
+    if bytes > i64::MAX as u64 {
+        return Err(serde::de::Error::custom(
+            "stream completion count exceeds the Java signed long range",
+        ));
+    }
+    Ok(bytes)
 }
 
 #[derive(Debug, Serialize)]
@@ -274,6 +310,7 @@ mod tests {
             r#"{"type":"streamEof","connectionId":"id","bytes":-1}"#,
             r#"{"type":"streamEof","connectionId":"id","bytes":1.5}"#,
             r#"{"type":"streamEof","connectionId":"id","bytes":"1"}"#,
+            r#"{"type":"streamEof","connectionId":"id","bytes":9223372036854775808}"#,
             r#"{"type":"streamEof","connectionId":"id"}"#,
             r#"{"type":"streamEof","connectionId":"id","bytes":1,"bytes":2}"#,
         ] {
@@ -282,5 +319,38 @@ mod tests {
                 "{json}"
             );
         }
+        assert!(matches!(
+            serde_json::from_str::<ClientControl>(
+                r#"{"type":"streamEof","connectionId":"id","bytes":9223372036854775807}"#,
+            )
+            .unwrap(),
+            ClientControl::StreamEof { bytes, .. } if bytes == i64::MAX as u64
+        ));
+    }
+
+    #[test]
+    fn registration_features_are_limited_to_sixteen_unique_strings() {
+        let base = r#"{"type":"register","version":1,"accessToken":"token","clientInstanceId":"client","features":{}}"#;
+        let sixteen = serde_json::to_string(
+            &(0..16)
+                .map(|index| format!("feature{index}"))
+                .collect::<Vec<_>>(),
+        )
+        .unwrap();
+        let valid = base.replace("{}", &sixteen);
+        assert!(serde_json::from_str::<ClientControl>(&valid).is_ok());
+
+        let seventeen = serde_json::to_string(
+            &(0..17)
+                .map(|index| format!("feature{index}"))
+                .collect::<Vec<_>>(),
+        )
+        .unwrap();
+        let excessive = base.replace("{}", &seventeen);
+        assert!(serde_json::from_str::<ClientControl>(&excessive).is_err());
+        let duplicate = base.replace("{}", r#"["streamEofBytes","streamEofBytes"]"#);
+        assert!(serde_json::from_str::<ClientControl>(&duplicate).is_err());
+        let non_string = base.replace("{}", r#"["streamEofBytes",1]"#);
+        assert!(serde_json::from_str::<ClientControl>(&non_string).is_err());
     }
 }
