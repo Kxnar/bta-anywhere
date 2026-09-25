@@ -96,8 +96,11 @@ With only documentation changed after `83740a1`, `cargo test --locked --all`
 passed 20 relay unit tests and 11 protocol corpus tests. Gradle `check build`
 passed; its JUnit XML records 51 tunnel-client tests and nine mod tests, with
 zero failures, errors, or skips. Logs are retained privately under
-`.dev/protocol-campaign/suites-20260925/`. These checks do not measure the
-hosted CI smoke duration or clear the long campaign, repeated integration,
+`.dev/protocol-campaign/suites-20260925/`. The hosted seeded 100-case smoke
+in draft PR #3 run `36192014811` passed in 44 seconds
+(21:37:13–21:37:57 UTC), below its three-minute step limit, at code
+`83740a1` and documentation head `5afc3de`. This is short-CI evidence only;
+it does not clear the four-target long campaign, repeated integration,
 performance, or soak gates.
 
 Both cross-language evaluators consume the same generated framed corpus and
@@ -134,10 +137,12 @@ These results precede the W1 typed-boundary correction and this stacked
 candidate, and their comparator could hide numeric-type mismatches. They are
 historical CPU and case-count evidence, not conformance passes for this branch.
 
-Remaining gates for this candidate: hosted 100-case CI smoke, the documented
-four-target long campaign, five clean sequential serial/concurrent integration
-pairs, alternating same-machine release baseline/candidate performance
-results, and the applicable two-hour soak. Record every failed, skipped,
+Remaining gates for this candidate: the documented four-target long campaign,
+five clean sequential serial/concurrent integration pairs, alternating
+same-machine release baseline/candidate performance results, and the
+applicable two-hour soak. The hosted seeded 100-case smoke passed in 44 seconds
+in run `36192014811`; it is a short CI check, not evidence for these longer
+gates. Record every failed, skipped,
 flaky, or unavailable result. Full raw outputs belong in an ignored `.dev/`
 directory or review attachment, with no live credentials or private logs
 committed. The full campaign is outside ordinary pull-request CI.
