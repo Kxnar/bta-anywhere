@@ -52,6 +52,25 @@ Do not bypass the guard while a matching managed server or supervisor is alive. 
 
 The release JAR contains the Windows x86-64 native. Use an x86-64 Java runtime. Netty QUIC 0.0.73.Final does not publish Windows ARM64; use an x86-64 Java/BTA runtime under Windows ARM64 emulation.
 
+## Guest receives every byte but waits for TCP EOF
+
+A complete byte count does not prove that the half-close completed. The relay
+must receive the host's QUIC stream FIN before it shuts down its guest-facing
+TCP output. An intermittent failure in the Windows eight-stream integration
+test has reached the Java QUIC shutdown callback without the relay observing
+that FIN; the transport-level cause is still under investigation.
+
+For a disposable synthetic reproduction, set `BTA_EOF_TRACE=1` for the relay
+and `-Dbta.anywhere.traceEof=true` for the Java tunnel, then run the serial and
+concurrent commands in [Building and testing](building.md) sequentially. Both
+traces use the same shortened SHA-256 digest of the per-stream connection ID.
+They record half-close events and byte counts without payloads or tokens, are
+off by default, and stop after 4,096 lines per process. The concurrent harness
+retains at most 10,000 subprocess lines when tracing is enabled. A successful
+Java `quic_shutdown_complete` means the FIN was accepted locally; it does not
+prove that the relay received it. Keep raw traces private and remove network
+metadata before sharing a minimal excerpt.
+
 ## Information for a bug report
 
 Include the Windows version and architecture, BTA/Babric/HalpLibe versions, network/world mode, exact failure state, sanitized server/mod logs, and steps using a disposable world. Remove tokens, private keys, public/private player data, IP addresses, and saves unless a maintainer asks for a minimal private reproduction.

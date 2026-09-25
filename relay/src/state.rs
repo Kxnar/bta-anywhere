@@ -3,7 +3,7 @@ use std::{
     net::{IpAddr, SocketAddr},
     num::NonZeroU32,
     sync::{
-        Arc, Mutex,
+        Arc, Mutex, OnceLock,
         atomic::{AtomicU64, AtomicUsize, Ordering},
     },
     time::{Duration, Instant},
@@ -28,6 +28,43 @@ use crate::{
     protocol::{ConnectionOpen, PROTOCOL_VERSION, write_json},
     token,
 };
+
+const EOF_TRACE_LIMIT: usize = 4096;
+static EOF_TRACE_ENABLED: OnceLock<bool> = OnceLock::new();
+static EOF_TRACE_LINES: AtomicUsize = AtomicUsize::new(0);
+
+fn trace_eof(
+    connection_id: &str,
+    event: &'static str,
+    bytes: Option<u64>,
+    open: Option<(u16, u64)>,
+) {
+    if !*EOF_TRACE_ENABLED
+        .get_or_init(|| std::env::var("BTA_EOF_TRACE").is_ok_and(|value| value == "1"))
+    {
+        return;
+    }
+    if EOF_TRACE_LINES.fetch_add(1, Ordering::Relaxed) >= EOF_TRACE_LIMIT {
+        return;
+    }
+    let digest = token::hash_hex(connection_id);
+    match (bytes, open) {
+        (Some(bytes), _) => eprintln!(
+            "BTA_EOF trace={} event={} bytes={}",
+            &digest[..16],
+            event,
+            bytes
+        ),
+        (_, Some((port, stream_id))) => eprintln!(
+            "BTA_EOF trace={} event={} guest_port={} stream_id={}",
+            &digest[..16],
+            event,
+            port,
+            stream_id
+        ),
+        _ => eprintln!("BTA_EOF trace={} event={}", &digest[..16], event),
+    }
+}
 
 #[derive(Clone)]
 pub struct RelayState {
@@ -383,19 +420,35 @@ impl RelayState {
             remote_address: remote.to_string(),
         };
         write_json(&mut quic_send, &header).await?;
+        let trace_id = header.connection_id;
+        trace_eof(
+            &trace_id,
+            "relay_opened",
+            None,
+            Some((remote.port(), quic_send.id().into())),
+        );
 
         let (mut tcp_read, mut tcp_write) = stream.into_split();
         let guest_to_host = async {
             let bytes = copy(&mut tcp_read, &mut quic_send).await?;
+            trace_eof(&trace_id, "relay_guest_tcp_eof", Some(bytes), None);
             quic_send.finish()?;
+            trace_eof(&trace_id, "relay_quic_send_finish", None, None);
             Ok::<u64, anyhow::Error>(bytes)
         };
         let host_to_guest = async {
             let bytes = copy(&mut quic_recv, &mut tcp_write).await?;
+            trace_eof(&trace_id, "relay_quic_recv_eof", Some(bytes), None);
             tcp_write.shutdown().await?;
+            trace_eof(&trace_id, "relay_tcp_shutdown_complete", None, None);
             Ok::<u64, anyhow::Error>(bytes)
         };
-        let (guest_bytes, host_bytes) = tokio::try_join!(guest_to_host, host_to_guest)?;
+        let result = tokio::try_join!(guest_to_host, host_to_guest);
+        if result.is_err() {
+            trace_eof(&trace_id, "relay_forward_error", None, None);
+        }
+        let (guest_bytes, host_bytes) = result?;
+        trace_eof(&trace_id, "relay_complete", None, None);
         self.inner.metrics.bytes_guest_to_host.inc_by(guest_bytes);
         self.inner.metrics.bytes_host_to_guest.inc_by(host_bytes);
         Ok(())
