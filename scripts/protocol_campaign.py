@@ -5,9 +5,13 @@ output directory. Generated access-token strings are inert test fixtures.
 """
 
 import argparse
+import ctypes
+from ctypes import wintypes
+import hashlib
 import json
 import os
 from pathlib import Path
+import platform
 import random
 import struct
 import subprocess
@@ -18,12 +22,58 @@ ROOT = Path(__file__).resolve().parents[1]
 MAX_FRAME = 65536
 
 
+class MemoryStatus(ctypes.Structure):
+    _fields_ = [("dwLength", wintypes.DWORD), ("dwMemoryLoad", wintypes.DWORD),
+                ("ullTotalPhys", ctypes.c_ulonglong), ("ullAvailPhys", ctypes.c_ulonglong),
+                ("ullTotalPageFile", ctypes.c_ulonglong), ("ullAvailPageFile", ctypes.c_ulonglong),
+                ("ullTotalVirtual", ctypes.c_ulonglong), ("ullAvailVirtual", ctypes.c_ulonglong),
+                ("ullAvailExtendedVirtual", ctypes.c_ulonglong)]
+
+
+class SystemPowerStatus(ctypes.Structure):
+    _fields_ = [("ACLineStatus", ctypes.c_ubyte), ("BatteryFlag", ctypes.c_ubyte),
+                ("BatteryLifePercent", ctypes.c_ubyte), ("SystemStatusFlag", ctypes.c_ubyte),
+                ("BatteryLifeTime", wintypes.DWORD), ("BatteryFullLifeTime", wintypes.DWORD)]
+
+
+def command_output(command: list[str]) -> str:
+    result = subprocess.run(command, cwd=ROOT, check=True, capture_output=True, text=True, timeout=10)
+    return (result.stdout + result.stderr).strip()[:512]
+
+
+def machine_metadata() -> dict:
+    architecture = platform.machine()
+    if architecture.lower() not in ("amd64", "x86_64"):
+        raise RuntimeError(f"unsupported benchmark architecture: {architecture}; Windows x86-64 is required")
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.GlobalMemoryStatusEx.argtypes = [ctypes.POINTER(MemoryStatus)]
+    kernel32.GlobalMemoryStatusEx.restype = wintypes.BOOL
+    kernel32.GetSystemPowerStatus.argtypes = [ctypes.POINTER(SystemPowerStatus)]
+    kernel32.GetSystemPowerStatus.restype = wintypes.BOOL
+    memory = MemoryStatus()
+    memory.dwLength = ctypes.sizeof(memory)
+    if not kernel32.GlobalMemoryStatusEx(ctypes.byref(memory)):
+        raise OSError(ctypes.get_last_error(), "cannot read physical RAM")
+    power = SystemPowerStatus()
+    if not kernel32.GetSystemPowerStatus(ctypes.byref(power)):
+        raise OSError(ctypes.get_last_error(), "cannot read AC power status")
+    java = str(Path(os.environ["JAVA_HOME"]) / "bin" / "java.exe") if "JAVA_HOME" in os.environ else "java.exe"
+    return {"os": platform.platform(), "windowsBuild": platform.version(),
+            "architecture": architecture,
+            "cpu": platform.processor() or os.environ.get("PROCESSOR_IDENTIFIER", "unknown"),
+            "logicalCores": os.cpu_count(), "ramBytes": memory.ullTotalPhys,
+            "acPower": {0: False, 1: True}.get(power.ACLineStatus),
+            "javaVersion": command_output([java, "-version"]).splitlines()[0],
+            "rustVersion": command_output(["rustc.exe", "--version"]),
+            "gitCommit": command_output(["git.exe", "rev-parse", "HEAD"])}
+
+
 def frame(payload: bytes, declared: int | None = None) -> bytes:
     return struct.pack(">I", len(payload) if declared is None else declared) + payload
 
 
 def generated_case(rng: random.Random, index: int) -> tuple[str, bytes, str, str, str]:
-    kind = index % 18
+    kind = index % 26
     sequence = rng.randrange(0, 1_000_000)
     if kind == 0:
         payload = json.dumps({"type": "ping", "sequence": sequence}, separators=(",", ":")).encode()
@@ -83,7 +133,37 @@ def generated_case(rng: random.Random, index: int) -> tuple[str, bytes, str, str
             "active" if kind == 14 else "pre"), "session-test"
     if kind == 16:
         return "ping-before-register", frame(f'{{"type":"ping","sequence":{sequence}}}'.encode()), "control", "pre", "session-test"
-    return "close-before-register", frame(b'{"type":"close","reason":"test"}'), "control", "pre", "session-test"
+    if kind == 17:
+        return "close-before-register", frame(b'{"type":"close","reason":"test"}'), "control", "pre", "session-test"
+    connection = {"version": 1, "sessionId": "session-test", "connectionId": f"connection-{sequence}",
+                  "remoteAddress": "127.0.0.1:25565"}
+    if kind == 18:
+        connection["version"] = 2
+        name = "connection-wrong-version"
+    elif kind == 19:
+        connection["sessionId"] = "other-session"
+        name = "connection-wrong-session"
+    elif kind == 20:
+        connection["connectionId"] = ""
+        name = "connection-blank-id"
+    elif kind == 21:
+        connection["remoteAddress"] = "host:not-a-port"
+        name = "connection-bad-remote"
+    elif kind == 22:
+        payload = json.dumps(connection, separators=(",", ":")).encode()
+        return "connection-truncated", frame(payload[:-rng.randrange(1, 8)], len(payload)), "connection", "active", "session-test"
+    elif kind == 23:
+        payload = (b'{"version":1,"sessionId":"session-test","sessionId":"other",'
+                   b'"connectionId":"c","remoteAddress":"127.0.0.1:1"}')
+        return "connection-duplicate-session", frame(payload), "connection", "active", "session-test"
+    elif kind == 24:
+        connection["futureField"] = {"safe": [sequence]}
+        name = "connection-unknown-field"
+    else:
+        payload = (b'{"version":1,"sessionId":"session-test","connectionId":"c",'
+                   b'"remoteAddress":"127.0.0.1:1","futureField":"\xff"}')
+        return "connection-invalid-utf8", frame(payload), "connection", "active", "session-test"
+    return name, frame(json.dumps(connection, separators=(",", ":")).encode()), "connection", "active", "session-test"
 
 
 def boundary_cases() -> list[tuple[str, bytes, str, str, str]]:
@@ -117,6 +197,10 @@ STATE_KINDS = {"valid-ping", "valid-register", "invalid-auth", "unsupported-vers
 
 
 def write_corpus(path: Path, seed: int, count: int, target_group: str = "all") -> list[str]:
+    if target_group not in ("all", "framing", "control", "connection", "state"):
+        raise ValueError(f"unknown protocol target group: {target_group}")
+    if count < 1:
+        raise ValueError("corpus count must be positive")
     rng = random.Random(seed)
     kinds = []
     edges = boundary_cases() if target_group in ("all", "framing") else []
@@ -151,10 +235,32 @@ def read_results(path: Path) -> list[dict]:
         return [json.loads(line) for line in handle]
 
 
+def prepare_output_directory(path: Path) -> None:
+    if path.exists() and any(path.iterdir()):
+        raise FileExistsError(f"campaign output is not empty; choose a fresh directory: {path}")
+    path.mkdir(parents=True, exist_ok=True)
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def write_first_failures(corpus_path: Path, output_path: Path, case_ids: set[int]) -> None:
+    with corpus_path.open(encoding="utf-8") as source, output_path.open("w", encoding="utf-8", newline="\n") as output:
+        for line in source:
+            if json.loads(line)["id"] in case_ids:
+                output.write(line)
+
+
 def compare_results(rust: list[dict], java: list[dict], kinds: list[str]) -> dict:
     if len(rust) != len(kinds) or len(java) != len(kinds):
         raise ValueError("evaluator output count does not match corpus count")
-    mismatches = []
+    first_mismatches = []
+    mismatch_count = 0
     framing_mismatches = 0
     typed_mismatches = 0
     counts = {}
@@ -163,16 +269,25 @@ def compare_results(rust: list[dict], java: list[dict], kinds: list[str]) -> dic
             raise ValueError(f"evaluator output ID is missing or out of order at case {index}")
         kind = kinds[index]
         counts[kind] = counts.get(kind, 0) + 1
-        if left != right:
-            if (left["accepted"], left["semantic"]) != (right["accepted"], right["semantic"]):
-                framing_mismatches += 1
-            if (left["typedAccepted"], left["typedSemantic"], left["stateOutcome"]) != (
-                    right["typedAccepted"], right["typedSemantic"], right["stateOutcome"]):
-                typed_mismatches += 1
-            mismatches.append({"id": index, "kind": kind, "rust": left, "java": right})
-    return {"caseCounts": counts, "mismatchCount": len(mismatches),
+        framing_differs = (left["accepted"], left["semantic"]) != (right["accepted"], right["semantic"])
+        typed_differs = (left["typedAccepted"], left["typedSemantic"], left["stateOutcome"]) != (
+            right["typedAccepted"], right["typedSemantic"], right["stateOutcome"])
+        framing_mismatches += int(framing_differs)
+        typed_mismatches += int(typed_differs)
+        if framing_differs or typed_differs:
+            mismatch_count += 1
+            if len(first_mismatches) < 50:
+                first_mismatches.append({"id": index, "kind": kind,
+                                         "rustAccepted": left["accepted"], "javaAccepted": right["accepted"],
+                                         "rustTypedAccepted": left["typedAccepted"],
+                                         "javaTypedAccepted": right["typedAccepted"],
+                                         "rustStateOutcome": left["stateOutcome"],
+                                         "javaStateOutcome": right["stateOutcome"],
+                                         "semanticEqual": left["semantic"] == right["semantic"],
+                                         "typedSemanticEqual": left["typedSemantic"] == right["typedSemantic"]})
+    return {"caseCounts": counts, "mismatchCount": mismatch_count,
             "framingMismatchCount": framing_mismatches,
-            "typedMismatchCount": typed_mismatches, "mismatches": mismatches[:50]}
+            "typedMismatchCount": typed_mismatches, "mismatches": first_mismatches}
 
 
 def main() -> int:
@@ -186,7 +301,8 @@ def main() -> int:
     if args.count < 1 or args.count > 1_000_000:
         parser.error("--count must be between 1 and 1,000,000")
     output = args.output.resolve()
-    output.mkdir(parents=True, exist_ok=True)
+    metadata = machine_metadata()
+    prepare_output_directory(output)
     corpus = output / "corpus.jsonl"
     kinds = write_corpus(corpus, args.seed, args.count)
     rust_output = output / "rust-results.jsonl"
@@ -196,24 +312,41 @@ def main() -> int:
     environment["BTA_PROTOCOL_RUST_OUTPUT"] = str(rust_output)
     timings = {}
     cargo = "cargo.exe" if sys.platform == "win32" else "cargo"
+    rust_command = [cargo, "test", "--locked", "--release", "--package",
+                    "bta-anywhere-relay", "--test", "protocol_corpus",
+                    "shared_corpus", "--", "--exact", "--nocapture"]
+    gradle = str(ROOT / "gradlew.bat")
+    java_command = [gradle, "--no-daemon", ":tunnel-client:protocolCorpus",
+                    f"-PprotocolCorpus={corpus}", f"-PprotocolCorpusOutput={java_output}"]
     try:
-        timings["rustSeconds"] = run([cargo, "test", "--locked", "--release", "--package",
-                                      "bta-anywhere-relay", "--test", "protocol_corpus",
-                                      "shared_corpus", "--", "--exact", "--nocapture"], environment)
-        gradle = str(ROOT / "gradlew.bat")
-        timings["javaSeconds"] = run([gradle, "--no-daemon", ":tunnel-client:protocolCorpus",
-                                      f"-PprotocolCorpus={corpus}",
-                                      f"-PprotocolCorpusOutput={java_output}"], environment)
+        timings["rustSeconds"] = run(rust_command, environment)
+        timings["javaSeconds"] = run(java_command, environment)
     except (subprocess.SubprocessError, OSError) as failure:
         (output / "summary.json").write_text(json.dumps({"schemaVersion": 1, "seed": args.seed,
-            "cases": args.count, "status": "evaluator_failed", "error": str(failure)[:1000]}, indent=2)
+            "cases": args.count, "status": "evaluator_failed", "error": str(failure)[:1000],
+            "machine": metadata, "commands": {"rust": rust_command, "java": java_command}}, indent=2)
             + "\n", encoding="utf-8")
         raise
-    rust = read_results(rust_output)
-    java = read_results(java_output)
-    comparison = compare_results(rust, java, kinds)
+    try:
+        rust = read_results(rust_output)
+        java = read_results(java_output)
+        comparison = compare_results(rust, java, kinds)
+    except (OSError, ValueError, KeyError, TypeError) as failure:
+        (output / "summary.json").write_text(json.dumps({"schemaVersion": 1, "seed": args.seed,
+            "cases": args.count, "status": "failed_comparison", "error": str(failure)[:1000],
+            "machine": metadata, "commands": {"rust": rust_command, "java": java_command},
+            "corpusSha256": sha256_file(corpus)}, indent=2) + "\n", encoding="utf-8")
+        raise
+    if comparison["mismatchCount"]:
+        write_first_failures(corpus, output / "first-failures.jsonl",
+                             {item["id"] for item in comparison["mismatches"]})
     summary = {"schemaVersion": 1, "seed": args.seed, "cases": args.count,
+               "status": "failed_conformance" if comparison["mismatchCount"] else "complete",
                **comparison, "timings": timings,
+               "pythonVersion": sys.version.split()[0], "machine": metadata,
+               "commands": {"rust": rust_command, "java": java_command},
+               "corpusSha256": sha256_file(corpus),
+               "firstFailureCorpus": "first-failures.jsonl" if comparison["mismatchCount"] else None,
                "comparison": "framing and JSON-object semantics; typed client control or connection-open semantics; modelled pre-registration/active authentication and state decisions (no relay process)"}
     (output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"cases": args.count, "mismatches": comparison["mismatchCount"], "output": str(output)}))
