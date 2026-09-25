@@ -1,4 +1,9 @@
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use std::{collections::HashSet, fmt};
+
+use serde::{
+    Deserialize, Deserializer, Serialize,
+    de::{DeserializeOwned, IgnoredAny, MapAccess, Visitor},
+};
 use thiserror::Error;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
@@ -114,6 +119,71 @@ pub enum FrameError {
     TooLarge(usize),
     #[error("invalid JSON frame: {0}")]
     Json(#[from] serde_json::Error),
+    #[error("invalid UTF-8 JSON frame")]
+    InvalidUtf8(#[from] std::str::Utf8Error),
+    #[error("JSON frame must contain an object")]
+    NotObject,
+}
+
+struct TopLevelProtocolObject;
+
+impl<'de> Deserialize<'de> for TopLevelProtocolObject {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct ObjectVisitor;
+
+        impl<'de> Visitor<'de> for ObjectVisitor {
+            type Value = TopLevelProtocolObject;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("a protocol JSON object")
+            }
+
+            fn visit_map<M>(self, mut map: M) -> Result<Self::Value, M::Error>
+            where
+                M: MapAccess<'de>,
+            {
+                let mut seen = HashSet::new();
+                while let Some(name) = map.next_key::<String>()? {
+                    if is_known_top_level_property(&name) && !seen.insert(name.clone()) {
+                        return Err(serde::de::Error::custom(format!(
+                            "repeated protocol property: {name}"
+                        )));
+                    }
+                    map.next_value::<IgnoredAny>()?;
+                }
+                Ok(TopLevelProtocolObject)
+            }
+        }
+
+        deserializer.deserialize_map(ObjectVisitor)
+    }
+}
+
+fn is_known_top_level_property(name: &str) -> bool {
+    matches!(
+        name,
+        "type"
+            | "version"
+            | "accessToken"
+            | "clientInstanceId"
+            | "resumeToken"
+            | "sequence"
+            | "reason"
+            | "sessionId"
+            | "publicHost"
+            | "publicPort"
+            | "leaseSeconds"
+            | "code"
+            | "message"
+            | "retryable"
+            | "connectionId"
+            | "remoteAddress"
+            | "features"
+            | "bytes"
+    )
 }
 
 pub async fn read_json<R, T>(reader: &mut R) -> Result<T, FrameError>
@@ -127,6 +197,16 @@ where
     }
     let mut bytes = vec![0_u8; length];
     reader.read_exact(&mut bytes).await?;
+    std::str::from_utf8(&bytes)?;
+    if bytes
+        .iter()
+        .copied()
+        .find(|byte| !byte.is_ascii_whitespace())
+        != Some(b'{')
+    {
+        return Err(FrameError::NotObject);
+    }
+    serde_json::from_slice::<TopLevelProtocolObject>(&bytes)?;
     Ok(serde_json::from_slice(&bytes)?)
 }
 
@@ -166,6 +246,50 @@ mod tests {
         frame_hex: String,
     }
 
+    #[derive(Deserialize)]
+    struct MalformedDocument {
+        cases: Vec<MalformedVector>,
+    }
+
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct MalformedVector {
+        name: String,
+        frame_hex: String,
+    }
+
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct StructuralDocument {
+        schema_version: u32,
+        cases: Vec<StructuralVector>,
+    }
+
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct StructuralVector {
+        name: String,
+        target: String,
+        accepted: bool,
+        frame_hex: String,
+    }
+
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct TypedBoundaryDocument {
+        schema_version: u32,
+        cases: Vec<TypedBoundaryVector>,
+    }
+
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct TypedBoundaryVector {
+        name: String,
+        target: String,
+        typed_accepted: bool,
+        payload_utf8: String,
+    }
+
     #[tokio::test]
     async fn round_trips_connection_header() {
         let expected = ConnectionOpen {
@@ -188,6 +312,82 @@ mod tests {
             read_json::<_, ConnectionOpen>(&mut reader).await,
             Err(FrameError::TooLarge(_))
         ));
+    }
+
+    #[tokio::test]
+    async fn shared_malformed_object_vectors_are_rejected() {
+        let document: MalformedDocument = serde_json::from_str(include_str!(
+            "../../protocol/test-vectors/malformed-v1.json"
+        ))
+        .unwrap();
+        for case in document.cases.iter().filter(|case| {
+            case.name == "invalid-utf8-object"
+                || case.name == "invalid-utf8-unknown-control"
+                || case.name == "non-object-array"
+                || case.name == "string-sequence"
+        }) {
+            let frame = hex::decode(&case.frame_hex).unwrap();
+            let mut reader = frame.as_slice();
+            assert!(
+                read_json::<_, ClientControl>(&mut reader).await.is_err(),
+                "{}",
+                case.name
+            );
+        }
+        for name in ["invalid-utf8-connection", "invalid-utf8-unknown-connection"] {
+            let connection = document
+                .cases
+                .iter()
+                .find(|case| case.name == name)
+                .unwrap();
+            let frame = hex::decode(&connection.frame_hex).unwrap();
+            let mut reader = frame.as_slice();
+            assert!(
+                read_json::<_, ConnectionOpen>(&mut reader).await.is_err(),
+                "{name}"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn shared_structural_vectors_match_v1_boundaries() {
+        let document: StructuralDocument = serde_json::from_str(include_str!(
+            "../../protocol/test-vectors/structural-v1.json"
+        ))
+        .unwrap();
+        assert_eq!(document.schema_version, 1);
+        for case in document.cases {
+            let frame = hex::decode(&case.frame_hex).unwrap();
+            let mut reader = frame.as_slice();
+            let accepted = match case.target.as_str() {
+                "control" => read_json::<_, ClientControl>(&mut reader).await.is_ok(),
+                "connection" => read_json::<_, ConnectionOpen>(&mut reader).await.is_ok(),
+                _ => panic!("unknown structural vector target"),
+            };
+            assert_eq!(accepted, case.accepted, "{}", case.name);
+        }
+    }
+
+    #[tokio::test]
+    async fn shared_typed_boundaries_match_v1_field_types() {
+        let document: TypedBoundaryDocument = serde_json::from_str(include_str!(
+            "../../protocol/test-vectors/typed-boundaries-v1.json"
+        ))
+        .unwrap();
+        assert_eq!(document.schema_version, 1);
+        for case in document.cases {
+            let payload = case.payload_utf8.as_bytes();
+            assert!(payload.len() <= MAX_FRAME_SIZE, "{}", case.name);
+            let mut frame = (payload.len() as u32).to_be_bytes().to_vec();
+            frame.extend_from_slice(payload);
+            let mut reader = frame.as_slice();
+            let accepted = match case.target.as_str() {
+                "control" => read_json::<_, ClientControl>(&mut reader).await.is_ok(),
+                "connection" => read_json::<_, ConnectionOpen>(&mut reader).await.is_ok(),
+                _ => panic!("unknown typed boundary target: {}", case.target),
+            };
+            assert_eq!(accepted, case.typed_accepted, "{}", case.name);
+        }
     }
 
     #[test]

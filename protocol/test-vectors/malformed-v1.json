@@ -17,6 +17,36 @@
       "expected": "reject as invalid JSON"
     },
     {
+      "name": "invalid-utf8-object",
+      "frameHex": "000000097b2278223a22ff227d",
+      "expected": "reject as invalid UTF-8 JSON"
+    },
+    {
+      "name": "invalid-utf8-connection",
+      "frameHex": "0000004e7b2276657273696f6e223a312c2273657373696f6e4964223a22ff222c22636f6e6e656374696f6e4964223a2263222c2272656d6f746541646472657373223a223132372e302e302e313a31227d",
+      "expected": "reject connection-open header as invalid UTF-8 JSON"
+    },
+    {
+      "name": "invalid-utf8-unknown-control",
+      "frameHex": "000000247b2274797065223a2270696e67222c2273657175656e6365223a312c2278223a22ff227d",
+      "expected": "reject invalid UTF-8 even in an ignored control field"
+    },
+    {
+      "name": "invalid-utf8-unknown-connection",
+      "frameHex": "000000617b2276657273696f6e223a312c2273657373696f6e4964223a2273657373696f6e2d74657374222c22636f6e6e656374696f6e4964223a2263222c2272656d6f746541646472657373223a223132372e302e302e313a31222c2278223a22ff227d",
+      "expected": "reject invalid UTF-8 even in an ignored connection field"
+    },
+    {
+      "name": "non-object-array",
+      "frameHex": "0000000a5b2270696e67222c375d",
+      "expected": "reject as non-object JSON"
+    },
+    {
+      "name": "string-sequence",
+      "frameHex": "0000001e7b2274797065223a2270696e67222c2273657175656e6365223a2237227d",
+      "expected": "reject as nonnumeric ping sequence"
+    },
+    {
       "name": "unsupported-version",
       "frameHex": "0000007b7b2274797065223a227265676973746572222c2276657273696f6e223a322c22616363657373546f6b656e223a22746573742d6163636573732d746f6b656e222c22636c69656e74496e7374616e63654964223a2231313131313131312d323232322d333333332d343434342d353535353535353535353535227d",
       "expected": "error unsupported_version"

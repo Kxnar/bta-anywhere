@@ -254,7 +254,10 @@ public final class NettyTunnelSession implements TunnelSession {
 			String type = ProtocolFrames.requiredString(message, "type");
 			switch (type) {
 				case "registered" -> handleRegistered(message);
-				case "pong" -> lastPong = Instant.now();
+				case "pong" -> {
+					ProtocolFrames.requiredUnsignedLong(message, "sequence");
+					lastPong = Instant.now();
+				}
 				case "error" -> {
 					String code = ProtocolFrames.requiredString(message, "code");
 					String detail = ProtocolFrames.requiredString(message, "message");

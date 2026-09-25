@@ -93,6 +93,29 @@ profile and two-hour eight-stream soak in the technical roadmap are separate
 from the short integration gates. Five clean full integration
 runs are required; an isolated ten- or twenty-wave pass is diagnostic only.
 
+## Protocol conformance campaign
+
+On Windows x86-64, run the seeded short corpus after setting JDK 21 as `JAVA_HOME`:
+
+```powershell
+python scripts\protocol_campaign.py --seed 20260925 --count 10000 `
+  --output .dev\protocol-campaign\seed-20260925
+```
+
+Use a fresh, empty output directory for each run; the scripts refuse to mix evidence with an earlier run. The command runs the Rust release test evaluator and Java test evaluator against identical framed bytes. It writes `corpus.jsonl`, both raw outcome files, and `summary.json` beneath the ignored output directory. On a mismatch it also writes `first-failures.jsonl` with up to 50 exact failing frames for replay. If an evaluator exits or times out, the summary names a retained `rust-evaluator-tail.txt` or `java-evaluator-tail.txt` containing at most the final 4 KiB of combined output. The summary keeps bounded outcome flags and case IDs; full decoded values remain in the raw files. It separates framing/JSON equivalence from typed control/header and modelled state/authentication decisions and exits nonzero for any difference. The corpus includes exact 0, 1, 65,536, and 65,537 byte boundaries, truncation, invalid UTF-8, duplicate and unknown fields, deep nesting, invalid authentication, wrong version, and wrong registration phase. Shared `protocol/test-vectors/typed-boundaries-v1.json` also feeds exact quoted/decimal version values, numeric values in string fields, unsigned sequence boundaries, feature-list types and limits, and stream-completion count boundaries to both evaluators. The state target models negotiated completion, unknown or duplicate notices, and counts below bytes already copied; it does not run the relay state machine. Java rejects Gson's earlier coercion of malformed typed v1 fields. The stacked cases require a fresh cross-language run before claiming conformance. The evaluator has a 600-second timeout per process; the 64 KiB wire cap is unchanged.
+
+`python -m unittest discover -s scripts -p test_protocol_campaign.py` checks deterministic generation, exact frame boundaries, output isolation, and bounded failure aggregation without launching either runtime. Each run requires a fresh output directory, and the JSON summary records the OS build, CPU, core count, RAM, AC status, Java and Rust versions, Git commit, exact evaluator commands, corpus hash, and result counts. Raw Rust and Java results remain beside the summary. The Windows integration CI job runs a fixed-seed 100-case cross-language smoke after building its release artifacts, with a three-minute step limit. The normal hosted-runner duration remains to be verified by CI; the earlier same-machine local pass preceded the Unicode corpus and runner diagnostic changes and is not a measurement of this revision.
+
+For a long manual campaign, run:
+
+```powershell
+python scripts\protocol_long_campaign.py --seed 20260925 `
+  --minutes-per-target 30 --batch-count 10000 --max-wall-hours 12 `
+  --max-rss-mib 512 --output .dev\protocol-campaign\long-20260925
+```
+
+This measures whole-evaluator process CPU time for framing, typed control, connection headers, and modelled state separately; completion requires at least 30 CPU minutes in each target. It includes harness startup, JSONL handling, and result writing, so it is an upper bound on parser-only CPU time. Each batch has a 600-second timeout, Java uses a 256 MiB heap, and the runner checks peak resident memory about every 50 ms, killing a child if it exceeds the configured ceiling. This is a sampled failure ceiling, not a Windows Job Object hard cap. The runner also checks final CPU and peak RSS through the still-open Windows process handle after exit, with explicit pointer-sized API signatures. `long-summary.json` records machine/toolchain metadata, Git commit, build commands, evaluator binary hash, runtime settings, and target totals. `batches.jsonl` records seeds, corpus hashes, case counts, CPU and wall time, memory, and bounded mismatch details. Only the first successful raw batch per target and any failing batch remain; successful later batches can be regenerated from their recorded seeds. Empty batch directories are removed. The manifest is capped at 16 MiB and each target at 20,000 batches. The command stops on the first mismatch and saves up to 50 exact failing frames in that batch's `first-failures.jsonl`. These frames are isolated, not automatically minimized; reduce each distinct failure and commit a minimal shared regression vector before treating the campaign gate as complete. Do not count a stopped campaign as completed CPU-hours. Only the short corpus belongs in ordinary CI; a full campaign is manual or scheduled. The earlier 556-mismatch run preceded structural alignment; the later fixed-seed 10,000-case and four-target manual campaigns passed on one Windows x86-64 host. See [Protocol validation status](protocol.md#validation-status) for their scope and remaining gates.
+
 ## Manual tunnel test
 
 ```powershell
