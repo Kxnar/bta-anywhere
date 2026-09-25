@@ -160,7 +160,7 @@ public final class NettyTunnelSession implements TunnelSession {
 			.streamHandler(new ChannelInitializer<QuicStreamChannel>() {
 				@Override
 				protected void initChannel(QuicStreamChannel channel) {
-					channel.pipeline().addLast(new IncomingTunnelHandler(NettyTunnelSession.this));
+					channel.pipeline().addLast(new IncomingTunnelHandler(NettyTunnelSession.this, currentGeneration));
 				}
 			})
 			.handler(new ChannelInboundHandlerAdapter() {
@@ -419,10 +419,13 @@ public final class NettyTunnelSession implements TunnelSession {
 		return group;
 	}
 
-	void sendStreamEof(String connectionId, long bytes, QuicStreamChannel stream, String traceId) {
+	void sendStreamEof(long connectionGeneration, String connectionId, long bytes,
+		QuicStreamChannel stream, String traceId) {
+		Channel owner = stream.parent();
 		QuicStreamChannel control = controlChannel;
-		if (control == null || !control.isActive()) {
-			EofTrace.emit(traceId, "eof_notice_write", bytes, "control-inactive");
+		if (connectionGeneration != generation.get() || control == null
+			|| !control.isActive() || control.parent() != owner) {
+			EofTrace.emit(traceId, "eof_notice_write", bytes, "stale-or-inactive-control");
 			abortUnconfirmedCompletion(stream);
 			return;
 		}
@@ -455,9 +458,9 @@ public final class NettyTunnelSession implements TunnelSession {
 		// A locally successful output shutdown may not have sent FIN. Closing the
 		// parent connection makes every pending guest fail instead of waiting for
 		// a completion notice that the relay will never receive.
-		QuicChannel connection = quicChannel;
-		if (connection != null) {
-			connection.close();
+		Channel owner = stream.parent();
+		if (owner != null) {
+			owner.close();
 		} else {
 			stream.close();
 		}

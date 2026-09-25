@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 	private static final Gson GSON = new Gson();
 	private final NettyTunnelSession session;
+	private final long connectionGeneration;
 	private ByteBuf headerBuffer;
 	private int expectedLength = -1;
 	private volatile Channel localChannel;
@@ -31,8 +32,9 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 	private String traceId;
 	private String connectionId;
 
-	IncomingTunnelHandler(NettyTunnelSession session) {
+	IncomingTunnelHandler(NettyTunnelSession session, long connectionGeneration) {
 		this.session = session;
+		this.connectionGeneration = connectionGeneration;
 	}
 
 	@Override
@@ -155,7 +157,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 		ChannelFuture future = new Bootstrap()
 			.group(session.eventLoopGroup())
 			.channel(NioSocketChannel.class)
-			.handler(new LocalToQuicHandler(session, quicContext.channel(), connectionId, traceId))
+			.handler(new LocalToQuicHandler(session, connectionGeneration, quicContext.channel(), connectionId, traceId))
 			.option(ChannelOption.AUTO_READ, false)
 			.option(ChannelOption.ALLOW_HALF_CLOSURE, true)
 			.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10_000)
@@ -285,6 +287,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 
 	private static final class LocalToQuicHandler extends ChannelInboundHandlerAdapter {
 		private final NettyTunnelSession session;
+		private final long connectionGeneration;
 		private final QuicStreamChannel quicChannel;
 		private final String connectionId;
 		private final String traceId;
@@ -293,11 +296,13 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 		private volatile long localReadBytes;
 		private boolean quicOutputShutdownScheduled;
 
-		LocalToQuicHandler(NettyTunnelSession session, Channel quicChannel, String connectionId, String traceId) {
+		LocalToQuicHandler(NettyTunnelSession session, long connectionGeneration, Channel quicChannel,
+			String connectionId, String traceId) {
 			if (!(quicChannel instanceof QuicStreamChannel stream)) {
 				throw new IllegalArgumentException("tunnel bridge requires a QUIC stream channel");
 			}
 			this.session = session;
+			this.connectionGeneration = connectionGeneration;
 			this.quicChannel = stream;
 			this.connectionId = connectionId;
 			this.traceId = traceId;
@@ -403,7 +408,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 				EofTrace.emit(traceId, "quic_shutdown_complete", localReadBytes,
 					result.isSuccess() ? "success" : "failed");
 				if (result.isSuccess()) {
-					session.sendStreamEof(connectionId, localReadBytes, quicChannel, traceId);
+					session.sendStreamEof(connectionGeneration, connectionId, localReadBytes, quicChannel, traceId);
 				} else {
 					quicChannel.close();
 				}
