@@ -688,18 +688,35 @@ where
             trace_eof(trace_id, "relay_tcp_shutdown_complete", None, None);
             return Ok(bytes);
         }
-        let next = bytes
-            .checked_add(received as u64)
-            .context("response byte count overflow")?;
-        if completion
-            .target()?
-            .is_some_and(|announced| next > announced)
-        {
-            bail!("QUIC response exceeds announced length");
+        let mut written = 0;
+        while written < received {
+            let chunk_end = bytes
+                .checked_add((received - written) as u64)
+                .context("response byte count overflow")?;
+            if completion
+                .target()?
+                .is_some_and(|announced| chunk_end > announced)
+            {
+                bail!("QUIC response exceeds announced length");
+            }
+            let count = tokio::select! {
+                biased;
+                changed = notices.changed() => {
+                    changed.context("stream completion notice channel closed")?;
+                    continue;
+                }
+                write = target.write(&buffer[written..received]) => write?,
+            };
+            if count == 0 {
+                bail!("guest TCP write returned zero bytes");
+            }
+            let next = bytes
+                .checked_add(count as u64)
+                .context("response byte count overflow")?;
+            completion.copied(next)?;
+            bytes = next;
+            written += count;
         }
-        target.write_all(&buffer[..received]).await?;
-        completion.copied(next)?;
-        bytes = next;
     }
 }
 
@@ -783,6 +800,44 @@ mod completion_tests {
         assert_eq!(guest_read.read(&mut received).await.unwrap(), 0);
         // The source writer remains open, modelling the missing QUIC FIN.
         drop(source_write);
+    }
+
+    #[tokio::test]
+    async fn invalid_notice_interrupts_a_blocked_partial_guest_write() {
+        let completion = Arc::new(StreamCompletion::new());
+        let (mut source_write, mut source_read) = tokio::io::duplex(64);
+        let (mut guest_write, _guest_read) = tokio::io::duplex(2);
+        let worker_completion = completion.clone();
+        let worker = tokio::spawn(async move {
+            copy_response_with_completion(
+                &mut source_read,
+                &mut guest_write,
+                &worker_completion,
+                "test",
+            )
+            .await
+        });
+        source_write.write_all(b"12345678").await.unwrap();
+        time::timeout(Duration::from_secs(1), async {
+            loop {
+                if completion.state.lock().unwrap().copied == 2 {
+                    break;
+                }
+                tokio::task::yield_now().await;
+            }
+        })
+        .await
+        .expect("guest write never reached backpressure");
+        assert_eq!(completion.notice(8), NoticeResult::Accepted);
+        assert_eq!(completion.notice(8), NoticeResult::Rejected);
+        assert!(
+            time::timeout(Duration::from_secs(1), worker)
+                .await
+                .expect("invalid notice did not interrupt blocked write")
+                .unwrap()
+                .is_err()
+        );
+        assert_eq!(completion.state.lock().unwrap().copied, 2);
     }
 
     #[tokio::test]
