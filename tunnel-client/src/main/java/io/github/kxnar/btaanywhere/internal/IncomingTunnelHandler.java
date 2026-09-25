@@ -29,6 +29,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 	private volatile ChannelFuture lastLocalWrite;
 	private boolean localOutputShutdownScheduled;
 	private String traceId;
+	private String connectionId;
 
 	IncomingTunnelHandler(NettyTunnelSession session) {
 		this.session = session;
@@ -110,6 +111,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 		}
 		validateRemoteAddress(remoteAddress);
 		traceId = EofTrace.id(connectionId);
+		this.connectionId = connectionId;
 		if (headerBuffer.isReadable()) {
 			pendingPayload = headerBuffer.readRetainedSlice(headerBuffer.readableBytes());
 		}
@@ -153,7 +155,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 		ChannelFuture future = new Bootstrap()
 			.group(session.eventLoopGroup())
 			.channel(NioSocketChannel.class)
-			.handler(new LocalToQuicHandler(quicContext.channel(), traceId))
+			.handler(new LocalToQuicHandler(session, quicContext.channel(), connectionId, traceId))
 			.option(ChannelOption.AUTO_READ, false)
 			.option(ChannelOption.ALLOW_HALF_CLOSURE, true)
 			.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10_000)
@@ -282,18 +284,22 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 	}
 
 	private static final class LocalToQuicHandler extends ChannelInboundHandlerAdapter {
+		private final NettyTunnelSession session;
 		private final QuicStreamChannel quicChannel;
+		private final String connectionId;
 		private final String traceId;
 		private volatile boolean localInputShutdown;
 		private volatile ChannelFuture lastQuicWrite;
 		private volatile long localReadBytes;
 		private boolean quicOutputShutdownScheduled;
 
-		LocalToQuicHandler(Channel quicChannel, String traceId) {
+		LocalToQuicHandler(NettyTunnelSession session, Channel quicChannel, String connectionId, String traceId) {
 			if (!(quicChannel instanceof QuicStreamChannel stream)) {
 				throw new IllegalArgumentException("tunnel bridge requires a QUIC stream channel");
 			}
+			this.session = session;
 			this.quicChannel = stream;
+			this.connectionId = connectionId;
 			this.traceId = traceId;
 		}
 
@@ -304,8 +310,14 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 
 		@Override
 		public void channelRead(ChannelHandlerContext context, Object message) {
-			if (traceId != null && message instanceof ByteBuf input) {
-				localReadBytes += input.readableBytes();
+			if (message instanceof ByteBuf input) {
+				int readable = input.readableBytes();
+				if (Long.MAX_VALUE - localReadBytes < readable) {
+					ReferenceCountUtil.release(message);
+					closePair(context.channel(), quicChannel);
+					return;
+				}
+				localReadBytes += readable;
 			}
 			ChannelFuture write = quicChannel.writeAndFlush(message);
 			lastQuicWrite = write;
@@ -326,6 +338,12 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 		public void channelInactive(ChannelHandlerContext context) {
 			EofTrace.emit(traceId, "local_channel_inactive", localReadBytes,
 				localInputShutdown ? "after-input-event" : "without-input-event");
+			if (!localInputShutdown) {
+				// A full local-channel close without an input EOF can follow a reset or
+				// failed bridge write. It must not certify a complete response.
+				quicChannel.close();
+				return;
+			}
 			localInputShutdown = true;
 			scheduleQuicOutputShutdown();
 		}
@@ -384,7 +402,9 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 			quicChannel.shutdownOutput().addListener(result -> {
 				EofTrace.emit(traceId, "quic_shutdown_complete", localReadBytes,
 					result.isSuccess() ? "success" : "failed");
-				if (!result.isSuccess()) {
+				if (result.isSuccess()) {
+					session.sendStreamEof(connectionId, localReadBytes, quicChannel, traceId);
+				} else {
 					quicChannel.close();
 				}
 			});

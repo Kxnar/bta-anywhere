@@ -1,5 +1,6 @@
 package io.github.kxnar.btaanywhere.internal;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.github.kxnar.btaanywhere.ProtocolException;
 import io.github.kxnar.btaanywhere.PublicEndpoint;
@@ -44,6 +45,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 public final class NettyTunnelSession implements TunnelSession {
+	private static final int MAX_PENDING_EOF_NOTICES = 64;
 	private final NioEventLoopGroup group;
 	private final TunnelConfig config;
 	private final InetSocketAddress localTarget;
@@ -56,6 +58,7 @@ public final class NettyTunnelSession implements TunnelSession {
 	private final AtomicInteger reconnectAttempt = new AtomicInteger();
 	private final AtomicLong generation = new AtomicLong();
 	private final AtomicLong pingSequence = new AtomicLong();
+	private final AtomicInteger pendingEofNotices = new AtomicInteger();
 
 	private volatile RelayDescriptor relay;
 	private volatile PublicEndpoint endpoint;
@@ -230,6 +233,9 @@ public final class NettyTunnelSession implements TunnelSession {
 		register.addProperty("type", "register");
 		register.addProperty("version", ProtocolFrames.VERSION);
 		register.addProperty("clientInstanceId", config.clientInstanceId());
+		JsonArray features = new JsonArray();
+		features.add(ProtocolFrames.STREAM_EOF_BYTES);
+		register.add("features", features);
 		if (resumeToken != null) {
 			register.addProperty("resumeToken", resumeToken);
 		}
@@ -273,6 +279,7 @@ public final class NettyTunnelSession implements TunnelSession {
 	}
 
 	private void handleRegistered(JsonObject message) {
+		ProtocolFrames.requireStreamEofFeature(message);
 		sessionId = ProtocolFrames.requiredString(message, "sessionId");
 		resumeToken = ProtocolFrames.requiredString(message, "resumeToken");
 		endpoint = new PublicEndpoint(
@@ -410,6 +417,50 @@ public final class NettyTunnelSession implements TunnelSession {
 
 	EventLoopGroup eventLoopGroup() {
 		return group;
+	}
+
+	void sendStreamEof(String connectionId, long bytes, QuicStreamChannel stream, String traceId) {
+		QuicStreamChannel control = controlChannel;
+		if (control == null || !control.isActive()) {
+			EofTrace.emit(traceId, "eof_notice_write", bytes, "control-inactive");
+			abortUnconfirmedCompletion(stream);
+			return;
+		}
+		if (pendingEofNotices.incrementAndGet() > MAX_PENDING_EOF_NOTICES) {
+			pendingEofNotices.decrementAndGet();
+			EofTrace.emit(traceId, "eof_notice_write", bytes, "queue-full");
+			abortUnconfirmedCompletion(stream);
+			return;
+		}
+		ChannelFuture write;
+		try {
+			write = ProtocolFrames.write(control, ProtocolFrames.streamEofMessage(connectionId, bytes));
+		} catch (RuntimeException failure) {
+			pendingEofNotices.decrementAndGet();
+			EofTrace.emit(traceId, "eof_notice_write", bytes, "failed");
+			abortUnconfirmedCompletion(stream);
+			return;
+		}
+		write.addListener(result -> {
+			pendingEofNotices.decrementAndGet();
+			EofTrace.emit(traceId, "eof_notice_write", bytes,
+				result.isSuccess() ? "success" : "failed");
+			if (!result.isSuccess()) {
+				abortUnconfirmedCompletion(stream);
+			}
+		});
+	}
+
+	private void abortUnconfirmedCompletion(QuicStreamChannel stream) {
+		// A locally successful output shutdown may not have sent FIN. Closing the
+		// parent connection makes every pending guest fail instead of waiting for
+		// a completion notice that the relay will never receive.
+		QuicChannel connection = quicChannel;
+		if (connection != null) {
+			connection.close();
+		} else {
+			stream.close();
+		}
 	}
 
 	InetSocketAddress localTarget() {

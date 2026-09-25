@@ -36,6 +36,7 @@ The client must send `register` first:
   "version": 1,
   "accessToken": "secret value",
   "clientInstanceId": "stable opaque identifier",
+  "features": ["streamEofBytes"],
   "resumeToken": "optional prior resume token"
 }
 ```
@@ -49,11 +50,12 @@ The relay answers:
   "publicHost": "relay.example.net",
   "publicPort": 30000,
   "resumeToken": "new random opaque value",
+  "features": ["streamEofBytes"],
   "leaseSeconds": 90
 }
 ```
 
-The relay rotates the resume token after every successful registration or resume. A resume requires the same access-token hash and client-instance ID. Source-address changes are permitted but observable to the relay.
+The relay rotates the resume token after every successful registration or resume. A resume requires the same access-token hash and client-instance ID. Source-address changes are permitted but observable to the relay. The host requests reliable stream completion with `features`; the relay acknowledges only requested, supported features. The current host requires `streamEofBytes` in the response before it reports an active tunnel. An older relay that omits the feature must be upgraded. An older host may still register with the current relay using the original native-FIN behavior.
 
 Heartbeat messages are:
 
@@ -101,7 +103,13 @@ For each accepted guest, the relay opens a bidirectional QUIC stream and writes 
 
 Unframed BTA bytes begin immediately after the header. The tunnel verifies the version, session ID, non-empty connection ID, and parseable remote socket address before connecting to the local target. The remote address is metadata for diagnostics/protocol evolution; v0.1 does not inject it into BTA, and the local server sees the tunnel connection as loopback.
 
-EOF in either TCP direction becomes the corresponding QUIC stream half-close. Closing one direction must not discard buffered bytes in the other direction.
+EOF in either TCP direction becomes the corresponding QUIC stream half-close. Closing one direction must not discard buffered bytes in the other direction. When `streamEofBytes` was negotiated, the host also sends one authenticated control message after its local TCP input reaches EOF, its final QUIC data write succeeds, and its QUIC output-shutdown callback succeeds:
+
+```json
+{"type":"streamEof","connectionId":"random opaque value","bytes":65536}
+```
+
+`bytes` is the nonnegative count of response bytes submitted to that guest stream, capped at Java's signed 64-bit maximum. The relay accepts the notice only for an active connection ID in that authenticated session. It closes the guest TCP output only after exactly that many bytes have been copied to guest TCP, or on native QUIC FIN when no conflicting notice exists. A short native stream, excess bytes observed before closure, duplicate notice, or contradictory active notice fails the affected stream. A notice for an already finished stream has no effect. The relay does not wait for FIN after copying the announced count and therefore cannot detect bytes sent later by a buggy or dishonest host; legacy Relay mode already trusts that host. Active notice state is bounded by the existing per-session guest limit; the host bounds queued notices. Connection IDs and payloads are excluded from normal logs. A failed control write closes the host's QUIC connection so affected guests disconnect instead of waiting for unconfirmed EOF.
 
 ## Authentication and identifiers
 
@@ -113,4 +121,4 @@ EOF in either TCP direction becomes the corresponding QUIC stream half-close. Cl
 
 ## Compatibility
 
-Protocol changes that alter framing or required semantics require a new protocol version and ALPN. Additive optional JSON properties may be ignored by v1 implementations. A broker, multi-region selection, UDP game transport, and hostname multiplexing are outside v1.
+Protocol changes that alter framing or unnegotiated required semantics require a new protocol version and ALPN. Additive optional JSON properties may be ignored by v1 implementations. `streamEofBytes` is an explicitly negotiated v1 capability: a host that requests it must not silently continue if the acknowledgement is absent. A broker, multi-region selection, UDP game transport, and hostname multiplexing are outside v1.

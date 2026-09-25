@@ -17,7 +17,7 @@ flowchart LR
 
 `bta-anywhere-relay` terminates guest TCP and host QUIC connections. Each registered session owns one public TCP listener because the BTA 8.0.1 handshake does not carry a routing hostname. The relay never parses BTA packets.
 
-The first client-initiated bidirectional QUIC stream is the control stream. Every accepted guest becomes a server-initiated bidirectional stream with a framed `ConnectionOpen` header followed by raw bytes. Default limits are two sessions per token, three sessions per source address, eight active guests per session, and 30 new guest connections per minute per source address. Heartbeats, leases, and a 60-second in-memory grace window allow a disconnected tunnel client to reclaim its port while the relay process remains alive.
+The first client-initiated bidirectional QUIC stream is the control stream. Every accepted guest becomes a server-initiated bidirectional stream with a framed `ConnectionOpen` header followed by raw bytes. The host and relay negotiate `streamEofBytes` at registration. After the local response ends, the host reports its byte count on the authenticated control stream; the relay shuts down guest TCP output only after copying that count, including when QUIC omits a stream FIN. Native FIN remains valid. Default limits are two sessions per token, three sessions per source address, eight active guests per session, and 30 new guest connections per minute per source address. Heartbeats, leases, and a 60-second in-memory grace window allow a disconnected tunnel client to reclaim its port while the relay process remains alive.
 
 The admin listener exposes `/healthz`, `/readyz`, and `/metrics` on loopback by default. Metrics have no per-user, token, address, session, or connection labels.
 
@@ -30,7 +30,7 @@ The `tunnel-client` project has no Minecraft dependency. Its public entry points
 - `RelayDescriptor`, `RelayResolver`, `StaticRelayResolver`, `PublicEndpoint`, `TunnelState`, `TunnelEvent`, and redacted `Secret`
 - `PortMappingService.open(PortMappingRequest)` and renewable `PortMapping`
 
-Netty QUIC carries the control connection and guest streams. A stream connects to the configured local TCP target before reading payload, uses manual reads for backpressure, bounds the connection header to 64 KiB, and propagates half-closes in both directions. Reconnect delay is jittered exponential backoff from one to 30 seconds. A rejected stale resume token is discarded and followed by a clean registration.
+Netty QUIC carries the control connection and guest streams. A stream connects to the configured local TCP target before reading payload, uses manual reads for backpressure, bounds the connection header to 64 KiB, and propagates half-closes in both directions. The client counts local response bytes and sends at most one completion notice after a successful final write and output shutdown; an abrupt local close does not certify completion. It bounds outstanding notices and requires the relay's explicit feature acknowledgement. Reconnect delay is jittered exponential backoff from one to 30 seconds. A rejected stale resume token is discarded and followed by a clean registration.
 
 `DefaultPortMappingService` discovers PCP, NAT-PMP, and UPnP gateways in that order. It rejects loopback, link-local, private, multicast, unspecified, CGNAT, and IPv6 unique-local results; renews at half of the reported lease; and unmaps on close. The backend boundary has deterministic protocol emulators in the test suite.
 

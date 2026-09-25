@@ -11,6 +11,7 @@ The relay access token controls who may allocate relay ports. It is not a guest 
 - TLS 1.3 and fixed ALPN on the host tunnel, with explicit CA/certificate trust, leaf-certificate hostname verification, and no insecure mode.
 - SHA-256-only relay token storage, constant-time comparisons, 256-bit session/resume/control secrets, and redacted Java secret rendering.
 - Framed-message size limits before allocation and raw bounded-buffer streaming with backpressure.
+- Negotiated, authenticated per-stream completion notices with completed-write byte counts; the relay does not certify EOF from an unacknowledged count or an unrelated session. Notices and active tracking are bounded.
 - Per-token, per-host-address, per-session, and per-guest-address quotas.
 - Loopback-only admin endpoint by default and sensitive-data-free metric labels.
 - Official server archive pinning, a 256 MiB download cap, traversal/absolute-path/symbolic-link rejection, and staged extraction.
@@ -34,6 +35,7 @@ The relay access token controls who may allocate relay ports. It is not a guest 
 - v0.1 has no guest companion authentication layer, broker, multi-region routing, DDoS absorption, hole punching, or public relay service.
 - Source-IP quotas are in-memory and per relay process. Restarting the process clears them.
 - Session resume is in-memory. A network interruption can retain the same port during the grace window; a relay process restart creates a fresh registration, often but not contractually on the same port.
+- The current host requires a relay that acknowledges `streamEofBytes`. A mixed-version host/relay pair fails registration with an upgrade message; it does not silently use the older completion behavior. This extension does not make relay traffic confidential or prevent an authenticated host from choosing what response bytes to send.
 - BTA and third-party mods were not designed as a modern hardened internet service. The whitelist reduces exposure but is not a substitute for patching or isolation.
 - Windows ARM64 native QUIC is unavailable upstream for the pinned Netty QUIC release; the supported Windows path is x86-64 Java, including emulation on ARM64 Windows.
 
