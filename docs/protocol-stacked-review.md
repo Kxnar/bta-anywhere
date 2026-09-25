@@ -66,10 +66,22 @@ integration, baseline/candidate performance, or soak.
 The comparator now recursively preserves JSON primitive types and the sign
 of binary64 zero. The Java test evaluator keeps JSON `-0` as negative zero,
 matching Rust. A byte-exact shared `number-negative-zero` frame and Python
-negative tests retain this discovery. The 19 lightweight Python tests pass;
-the corrected evaluators have not yet been rebuilt or rerun, so this revision
-has no validated cross-language case count. Rerun the 100-case, 10,000-case,
-and four-target long campaign from the corrected commit before review.
+negative tests retain this discovery. At clean code commit
+`2f957d7f49684f7e44d9ed0410cc40c2edf37e23`, fresh fixed-seed 100-case
+and 10,000-case Rust/Java differential runs each completed with zero total,
+framing, and typed/modelled-state mismatches. The 100-case corpus includes
+both negative-zero regressions and all retained numeric, surrogate, and typed
+boundary vectors. The release Rust corpus evaluator and Java test evaluator
+both ran; this is not a full Rust/Java test
+suite result. The exact corpus and both raw evaluator outputs are retained in
+the ignored `.dev/protocol-campaign/strict-100-20260925/` and
+`.dev/protocol-campaign/strict-10000-20260925/` directories. Their respective
+corpus SHA-256 values are
+`ba451f67710b0484d9e1513db45561841bf6f696b036c9f104423b65075610d4`
+and `3da524dc73a090dec91b14f2c3c8dc1c259d2de20d17ab98ec7b2cab8505362f`.
+The 19 lightweight campaign tests and three long-runner tests also pass at
+this commit. The four-target long campaign and production integration remain
+open.
 
 Both cross-language evaluators consume the same generated framed corpus and
 canonicalise registration features as a sorted set, absent features as an
