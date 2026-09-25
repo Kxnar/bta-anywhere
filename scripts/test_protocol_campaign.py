@@ -60,6 +60,7 @@ class ProtocolCampaignTest(unittest.TestCase):
         self.assertIn("ping-sequence-u64-overflow", names)
         self.assertIn("ping-sequence-negative-zero", names)
         self.assertIn("register-features-duplicate", names)
+        self.assertIn("register-features-reordered", names)
         self.assertIn("stream-eof-overflow", names)
         self.assertIn("stream-eof-max", names)
         for name, framed, _, _, _ in vectors:

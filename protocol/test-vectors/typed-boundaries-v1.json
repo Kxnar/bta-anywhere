@@ -166,6 +166,7 @@
     {"name":"stream-eof-id-number","typedAccepted":false,"target":"control","phase":"active","expectedSession":"session-test","payloadUtf8":"{\"type\":\"streamEof\",\"connectionId\":7,\"bytes\":5}"},
     {"name":"stream-eof-missing-bytes","typedAccepted":false,"target":"control","phase":"active","expectedSession":"session-test","payloadUtf8":"{\"type\":\"streamEof\",\"connectionId\":\"connection-test\"}"},
     {"name":"stream-eof-max","typedAccepted":true,"target":"control","phase":"active","expectedSession":"session-test","payloadUtf8":"{\"type\":\"streamEof\",\"connectionId\":\"connection-test\",\"bytes\":9223372036854775807}"},
-    {"name":"stream-eof-overflow","typedAccepted":false,"target":"control","phase":"active","expectedSession":"session-test","payloadUtf8":"{\"type\":\"streamEof\",\"connectionId\":\"connection-test\",\"bytes\":9223372036854775808}"}
+    {"name":"stream-eof-overflow","typedAccepted":false,"target":"control","phase":"active","expectedSession":"session-test","payloadUtf8":"{\"type\":\"streamEof\",\"connectionId\":\"connection-test\",\"bytes\":9223372036854775808}"},
+    {"name":"register-features-reordered","typedAccepted":true,"target":"control","phase":"pre","expectedSession":"session-test","payloadUtf8":"{\"type\":\"register\",\"version\":1,\"accessToken\":\"synthetic-test-token\",\"clientInstanceId\":\"test-client\",\"features\":[\"unknownFuture\",\"streamEofBytes\"]}"}
   ]
 }

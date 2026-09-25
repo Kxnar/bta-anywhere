@@ -18,6 +18,8 @@ import java.nio.charset.CodingErrorAction;
 import java.math.BigInteger;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -187,7 +189,13 @@ final class ProtocolFrames {
 				throw new IllegalArgumentException("invalid protocol feature list");
 			}
 		}
-		return element.getAsJsonArray();
+		var sorted = new ArrayList<>(features);
+		Collections.sort(sorted);
+		JsonArray canonical = new JsonArray();
+		for (String feature : sorted) {
+			canonical.add(feature);
+		}
+		return canonical;
 	}
 
 	private static boolean containsFeature(JsonArray offered, String feature) {

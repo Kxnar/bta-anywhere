@@ -17,7 +17,8 @@ fields remain accepted. A malformed completion notice cannot be made
 ambiguous by repeating its byte count or connection ID.
 
 Both cross-language evaluators consume the same generated framed corpus and
-canonicalise accepted registration features and completion counts. The model
+canonicalise registration features as a sorted set, absent features as an
+empty set, and completion counts as exact nonnegative integers. The model
 checks pre-registration, unnegotiated, late, duplicate, and short completion
 notices. It is a test model: production relay state and session-generation
 behaviour still require unit and integration tests. The existing bounded

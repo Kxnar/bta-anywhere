@@ -62,11 +62,13 @@ fn control_semantic(message: protocol::ClientControl, case: &Case) -> (Value, St
     match message {
         protocol::ClientControl::Register {
             version,
-            features,
+            mut features,
             access_token,
             client_instance_id,
             resume_token,
         } => {
+            // Features are a set on the wire; normalise their order for comparison.
+            features.sort_unstable();
             let outcome = if phase != "pre" {
                 "already_registered"
             } else if version != protocol::PROTOCOL_VERSION {
