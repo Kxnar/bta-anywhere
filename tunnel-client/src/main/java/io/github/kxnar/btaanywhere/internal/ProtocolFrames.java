@@ -1,7 +1,12 @@
 package io.github.kxnar.btaanywhere.internal;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.Strictness;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -10,11 +15,21 @@ import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CodingErrorAction;
 import java.math.BigInteger;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.HashSet;
+import java.util.Set;
 
 final class ProtocolFrames {
 	static final int VERSION = 1;
 	static final String ALPN = "bta-anywhere/1";
 	private static final Gson GSON = new Gson();
+	private static final int MAX_JSON_CONTAINERS = 127;
+	private static final Set<String> KNOWN_TOP_LEVEL_PROPERTIES = Set.of(
+		"type", "version", "accessToken", "clientInstanceId", "resumeToken",
+		"sequence", "reason", "sessionId", "publicHost", "publicPort",
+		"leaseSeconds", "code", "message", "retryable", "connectionId", "remoteAddress"
+	);
 
 	private ProtocolFrames() {
 	}
@@ -27,6 +42,64 @@ final class ProtocolFrames {
 				.decode(ByteBuffer.wrap(bytes)).toString();
 		} catch (CharacterCodingException exception) {
 			throw new IllegalArgumentException("protocol frame contains invalid UTF-8", exception);
+		}
+	}
+
+	static JsonObject parseObject(byte[] bytes) {
+		if (bytes.length > ControlFrameDecoder.MAX_FRAME_SIZE) {
+			throw new IllegalArgumentException("protocol frame exceeds 64 KiB");
+		}
+		String json = decodeUtf8(bytes);
+		try (JsonReader reader = new JsonReader(new StringReader(json))) {
+			reader.setStrictness(Strictness.STRICT);
+			scanValue(reader, 0);
+			if (reader.peek() != JsonToken.END_DOCUMENT) {
+				throw new IllegalArgumentException("protocol frame contains trailing JSON");
+			}
+		} catch (IOException exception) {
+			throw new IllegalArgumentException("protocol frame contains invalid JSON", exception);
+		}
+		JsonElement parsed = JsonParser.parseString(json);
+		if (!parsed.isJsonObject()) {
+			throw new IllegalArgumentException("protocol frame must contain a JSON object");
+		}
+		return parsed.getAsJsonObject();
+	}
+
+	private static void scanValue(JsonReader reader, int containers) throws IOException {
+		switch (reader.peek()) {
+			case BEGIN_OBJECT -> {
+				checkDepth(containers);
+				reader.beginObject();
+				Set<String> seenKnown = containers == 0 ? new HashSet<>() : null;
+				while (reader.hasNext()) {
+					String name = reader.nextName();
+					if (seenKnown != null && KNOWN_TOP_LEVEL_PROPERTIES.contains(name)
+						&& !seenKnown.add(name)) {
+						throw new IllegalArgumentException("repeated protocol property: " + name);
+					}
+					scanValue(reader, containers + 1);
+				}
+				reader.endObject();
+			}
+			case BEGIN_ARRAY -> {
+				checkDepth(containers);
+				reader.beginArray();
+				while (reader.hasNext()) {
+					scanValue(reader, containers + 1);
+				}
+				reader.endArray();
+			}
+			case STRING, NUMBER -> reader.nextString();
+			case BOOLEAN -> reader.nextBoolean();
+			case NULL -> reader.nextNull();
+			default -> throw new IllegalArgumentException("protocol frame contains invalid JSON value");
+		}
+	}
+
+	private static void checkDepth(int containers) {
+		if (containers >= MAX_JSON_CONTAINERS) {
+			throw new IllegalArgumentException("protocol JSON nesting exceeds 127 containers");
 		}
 	}
 

@@ -1,6 +1,7 @@
 package io.github.kxnar.btaanywhere.internal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.google.gson.JsonObject;
@@ -15,6 +16,49 @@ import java.util.HexFormat;
 import org.junit.jupiter.api.Test;
 
 final class ProtocolVectorTest {
+	@Test
+	void sharedStructuralVectorsMatchV1Boundaries() throws Exception {
+		Path vectors = Path.of(System.getProperty("btaAnywhereProtocolVectors"));
+		JsonObject document = JsonParser.parseString(
+			Files.readString(vectors.resolve("structural-v1.json"), StandardCharsets.UTF_8)
+		).getAsJsonObject();
+		assertEquals(1, document.get("schemaVersion").getAsInt());
+		for (var item : document.getAsJsonArray("cases")) {
+			JsonObject vector = item.getAsJsonObject();
+			String name = vector.get("name").getAsString();
+			boolean accepted = vector.get("accepted").getAsBoolean();
+			byte[] frame = HexFormat.of().parseHex(vector.get("frameHex").getAsString());
+			if (vector.get("target").getAsString().equals("connection")) {
+				byte[] payload = java.util.Arrays.copyOfRange(frame, Integer.BYTES, frame.length);
+				if (accepted) {
+					assertNotNull(IncomingTunnelHandler.decodeConnectionHeader(payload), name);
+				} else {
+					assertThrows(IllegalArgumentException.class,
+						() -> IncomingTunnelHandler.decodeConnectionHeader(payload), name);
+				}
+				continue;
+			}
+			EmbeddedChannel decoder = new EmbeddedChannel(new ControlFrameDecoder());
+			try {
+				if (accepted) {
+					decoder.writeInbound(decoder.alloc().buffer(frame.length).writeBytes(frame));
+					assertNotNull(decoder.readInbound(), name);
+				} else {
+					assertThrows(DecoderException.class,
+						() -> decoder.writeInbound(decoder.alloc().buffer(frame.length).writeBytes(frame)),
+						name);
+				}
+			} finally {
+				try {
+					decoder.finishAndReleaseAll();
+				} catch (DecoderException exception) {
+					if (accepted) {
+						throw exception;
+					}
+				}
+			}
+		}
+	}
 	@Test
 	void rejectsSharedMalformedUtf8AndNonObjectVectors() throws Exception {
 		Path vectors = Path.of(System.getProperty("btaAnywhereProtocolVectors"));

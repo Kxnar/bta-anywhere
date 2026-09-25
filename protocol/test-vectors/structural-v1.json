@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "name": "duplicate-known-control",
+      "target": "control",
+      "accepted": false,
+      "frameHex": "000000297b2274797065223a2270696e67222c2273657175656e6365223a312c2273657175656e6365223a327d"
+    },
+    {
+      "name": "duplicate-known-connection",
+      "target": "connection",
+      "accepted": false,
+      "frameHex": "0000006d7b2276657273696f6e223a312c2273657373696f6e4964223a2273657373696f6e2d74657374222c2273657373696f6e4964223a226f74686572222c22636f6e6e656374696f6e4964223a2263222c2272656d6f746541646472657373223a223132372e302e302e313a31227d"
+    },
+    {
+      "name": "duplicate-unknown-control",
+      "target": "control",
+      "accepted": true,
+      "frameHex": "000000327b2274797065223a2270696e67222c2273657175656e6365223a312c22667574757265223a312c22667574757265223a327d"
+    },
+    {
+      "name": "depth-127-containers",
+      "target": "control",
+      "accepted": true,
+      "frameHex": "000001237b2274797065223a2270696e67222c2273657175656e6365223a312c22667574757265223a5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b305d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d7d"
+    },
+    {
+      "name": "depth-128-containers",
+      "target": "control",
+      "accepted": false,
+      "frameHex": "000001257b2274797065223a2270696e67222c2273657175656e6365223a312c22667574757265223a5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b305d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d7d"
+    }
+  ]
+}

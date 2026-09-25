@@ -1,8 +1,6 @@
 package io.github.kxnar.btaanywhere.internal;
 
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -27,11 +25,7 @@ final class ControlFrameDecoder extends ByteToMessageDecoder {
 		byte[] json = new byte[(int) length];
 		input.readBytes(json);
 		try {
-			var value = JsonParser.parseString(ProtocolFrames.decodeUtf8(json));
-			if (!value.isJsonObject()) {
-				throw new CorruptedFrameException("control frame must contain a JSON object");
-			}
-			output.add(value.getAsJsonObject());
+			output.add(ProtocolFrames.parseObject(json));
 		} catch (JsonParseException | IllegalArgumentException exception) {
 			throw new CorruptedFrameException("control frame contains invalid JSON", exception);
 		}

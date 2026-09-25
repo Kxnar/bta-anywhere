@@ -1,6 +1,5 @@
 package io.github.kxnar.btaanywhere.internal;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
@@ -18,7 +17,6 @@ import io.netty.util.ReferenceCountUtil;
 
 /** Parses one connection header and then bridges the remaining stream to the local service. */
 final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
-	private static final Gson GSON = new Gson();
 	private final NettyTunnelSession session;
 	private ByteBuf headerBuffer;
 	private int expectedLength = -1;
@@ -103,7 +101,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 	}
 
 	static JsonObject decodeConnectionHeader(byte[] jsonBytes) {
-		return GSON.fromJson(ProtocolFrames.decodeUtf8(jsonBytes), JsonObject.class);
+		return ProtocolFrames.parseObject(jsonBytes);
 	}
 
 	static void validateConnectionHeader(JsonObject header, String expectedSession) {

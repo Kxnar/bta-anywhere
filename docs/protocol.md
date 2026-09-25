@@ -26,6 +26,8 @@ Every JSON message is:
 
 The JSON payload may be at most 65,536 bytes. An oversized length is rejected before allocating its declared payload. Invalid, empty, or non-object JSON is rejected. Shared byte-exact examples are committed under `protocol/test-vectors/` and consumed by both implementations.
 
+V1 JSON has at most 127 object/array containers along any nesting path, counting the root object. A 128th container is rejected. The defined top-level protocol property names shown in this document may each occur only once. Additive unknown properties remain permitted and ignored, including repeated unknown names; the duplicate restriction applies only to defined top-level protocol names. Java now validates these rules before Gson creates a JSON object, matching Rust's effective nesting boundary and rejection of repeated known fields. It also rejects Gson's formerly tolerated nonstandard JSON syntax. No valid v1 frame or 64 KiB size limit changes.
+
 The current hardening tests also reject invalid UTF-8 in both directions and require a numeric, unsigned heartbeat sequence. These are v1 wire requirements; a quoted number is not a sequence number.
 
 ## Control messages
@@ -117,6 +119,6 @@ EOF in either TCP direction becomes the corresponding QUIC stream half-close. Cl
 
 Protocol changes that alter framing or required semantics require a new protocol version and ALPN. Additive optional JSON properties may be ignored by v1 implementations. A broker, multi-region selection, UDP game transport, and hostname multiplexing are outside v1.
 
-## Open v1 conformance findings
+## Validation status
 
-Differential tests currently expose two compatibility-sensitive differences. Rust's typed client-control decoder rejects a repeated known property; Gson retains the last occurrence before Java validation. Rust also rejects an unknown nested property at depth 129 while Gson accepts that case. These differences are retained as failing campaign cases, not treated as agreed v1 semantics. A protocol review must settle compatibility before the conformance gate can pass. Neither difference authorizes raising the 64 KiB frame limit.
+The shared structural regression vectors cover duplicate known and unknown top-level properties and the 127/128-container boundary. The candidate implementation has not yet rerun its 10,000-case differential campaign or same-machine performance comparison after this change. Its conformance and performance gates remain unverified. The extra bounded Rust parse is a possible control-frame CPU cost; it must be measured before review.

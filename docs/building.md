@@ -102,7 +102,7 @@ python scripts\protocol_long_campaign.py --seed 20260925 `
   --max-rss-mib 512 --output .dev\protocol-campaign\long-20260925
 ```
 
-This measures evaluator process CPU time for framing, typed control, connection headers, and modelled state separately; completion requires at least 30 CPU minutes in each target. Each batch has a 600-second timeout, Java uses a 256 MiB heap, and the runner fails if a process exceeds the configured peak resident-memory ceiling. `long-summary.json` and `batches.jsonl` record seeds, case counts, CPU and wall time, memory, and bounded mismatch details. The command stops on the first mismatch and retains its raw batch. Do not count a stopped campaign as completed CPU-hours. Only the short corpus belongs in ordinary CI; a full campaign is manual or scheduled. The current repeated-field and deep-nesting findings in [Protocol](protocol.md) make the conformance gate unresolved.
+This measures evaluator process CPU time for framing, typed control, connection headers, and modelled state separately; completion requires at least 30 CPU minutes in each target. Each batch has a 600-second timeout, Java uses a 256 MiB heap, and the runner fails if a process exceeds the configured peak resident-memory ceiling. `long-summary.json` and `batches.jsonl` record seeds, case counts, CPU and wall time, memory, and bounded mismatch details. The command stops on the first mismatch and retains its raw batch. Do not count a stopped campaign as completed CPU-hours. Only the short corpus belongs in ordinary CI; a full campaign is manual or scheduled. Rerun both campaigns after the structural-rule change; the earlier 556-mismatch result is historical and cannot establish the candidate's current conformance.
 
 ## Manual tunnel test
 

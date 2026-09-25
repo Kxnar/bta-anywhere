@@ -11,7 +11,8 @@ The relay access token controls who may allocate relay ports. It is not a guest 
 - TLS 1.3 and fixed ALPN on the host tunnel, with explicit CA/certificate trust, leaf-certificate hostname verification, and no insecure mode.
 - SHA-256-only relay token storage, constant-time comparisons, 256-bit session/resume/control secrets, and redacted Java secret rendering.
 - Framed-message size limits before allocation and raw bounded-buffer streaming with backpressure.
-- Shared malformed-frame vectors and seeded Windows differential tests for invalid UTF-8, non-object JSON, typed fields, and boundary lengths. These tests do not constitute a security proof or resolve the open v1 conformance findings in [Protocol](protocol.md).
+- Shared malformed-frame vectors and seeded Windows differential tests for invalid UTF-8, non-object JSON, typed fields, and boundary lengths. These tests do not constitute a security proof; current validation status is recorded in [Protocol](protocol.md).
+- Structural regression vectors for repeated defined top-level fields and 127/128-container nesting boundaries. The candidate's full differential and performance campaigns must be rerun before claiming that these rules are cross-language equivalent in operation.
 - Per-token, per-host-address, per-session, and per-guest-address quotas.
 - Loopback-only admin endpoint by default and sensitive-data-free metric labels.
 - Official server archive pinning, a 256 MiB download cap, traversal/absolute-path/symbolic-link rejection, and staged extraction.
