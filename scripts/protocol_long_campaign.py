@@ -90,6 +90,8 @@ def run_measured(command: list[str], environment: dict[str, str], max_rss: int) 
         reader.join(timeout=10)
         if reader.is_alive():
             raise RuntimeError("evaluator output pipe did not close")
+        assert process.stdout is not None
+        process.stdout.close()
     cpu_seconds, peak_rss = process_metrics(process)
     if process.returncode:
         diagnostic = output_tail.decode("utf-8", errors="replace")

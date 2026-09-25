@@ -73,6 +73,8 @@ pub enum FrameError {
     TooLarge(usize),
     #[error("invalid JSON frame: {0}")]
     Json(#[from] serde_json::Error),
+    #[error("invalid UTF-8 JSON frame")]
+    InvalidUtf8(#[from] std::str::Utf8Error),
     #[error("JSON frame must contain an object")]
     NotObject,
 }
@@ -147,6 +149,7 @@ where
     }
     let mut bytes = vec![0_u8; length];
     reader.read_exact(&mut bytes).await?;
+    std::str::from_utf8(&bytes)?;
     if bytes
         .iter()
         .copied()
@@ -255,6 +258,7 @@ mod tests {
         .unwrap();
         for case in document.cases.iter().filter(|case| {
             case.name == "invalid-utf8-object"
+                || case.name == "invalid-utf8-unknown-control"
                 || case.name == "non-object-array"
                 || case.name == "string-sequence"
         }) {
@@ -266,14 +270,19 @@ mod tests {
                 case.name
             );
         }
-        let connection = document
-            .cases
-            .iter()
-            .find(|case| case.name == "invalid-utf8-connection")
-            .unwrap();
-        let frame = hex::decode(&connection.frame_hex).unwrap();
-        let mut reader = frame.as_slice();
-        assert!(read_json::<_, ConnectionOpen>(&mut reader).await.is_err());
+        for name in ["invalid-utf8-connection", "invalid-utf8-unknown-connection"] {
+            let connection = document
+                .cases
+                .iter()
+                .find(|case| case.name == name)
+                .unwrap();
+            let frame = hex::decode(&connection.frame_hex).unwrap();
+            let mut reader = frame.as_slice();
+            assert!(
+                read_json::<_, ConnectionOpen>(&mut reader).await.is_err(),
+                "{name}"
+            );
+        }
     }
 
     #[tokio::test]

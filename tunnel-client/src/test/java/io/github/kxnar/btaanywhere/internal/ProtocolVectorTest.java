@@ -68,7 +68,8 @@ final class ProtocolVectorTest {
 		document.getAsJsonArray("cases").forEach(element -> {
 			JsonObject vector = element.getAsJsonObject();
 			String name = vector.get("name").getAsString();
-			if (!name.equals("invalid-utf8-object") && !name.equals("non-object-array")) {
+			if (!name.equals("invalid-utf8-object") && !name.equals("invalid-utf8-unknown-control")
+				&& !name.equals("non-object-array")) {
 				return;
 			}
 			byte[] frame = HexFormat.of().parseHex(vector.get("frameHex").getAsString());
@@ -108,18 +109,20 @@ final class ProtocolVectorTest {
 		JsonObject document = JsonParser.parseString(
 			Files.readString(vectors.resolve("malformed-v1.json"), StandardCharsets.UTF_8)
 		).getAsJsonObject();
+		var checked = new java.util.HashSet<String>();
 		for (var item : document.getAsJsonArray("cases")) {
 			JsonObject vector = item.getAsJsonObject();
-			if (!vector.get("name").getAsString().equals("invalid-utf8-connection")) {
+			String name = vector.get("name").getAsString();
+			if (!name.equals("invalid-utf8-connection") && !name.equals("invalid-utf8-unknown-connection")) {
 				continue;
 			}
+			checked.add(name);
 			byte[] frame = HexFormat.of().parseHex(vector.get("frameHex").getAsString());
 			byte[] payload = java.util.Arrays.copyOfRange(frame, Integer.BYTES, frame.length);
 			assertThrows(IllegalArgumentException.class,
 				() -> IncomingTunnelHandler.decodeConnectionHeader(payload));
-			return;
 		}
-		throw new AssertionError("invalid-utf8-connection vector is missing");
+		assertEquals(2, checked.size(), "both invalid UTF-8 connection vectors must be present");
 	}
 	@Test
 	void decodesAndEncodesSharedProtocolVectorsByteExactly() throws Exception {

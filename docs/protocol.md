@@ -28,7 +28,7 @@ The JSON payload may be at most 65,536 bytes. An oversized length is rejected be
 
 V1 JSON has at most 127 object/array containers along any nesting path, counting the root object. A 128th container is rejected. The defined top-level protocol property names shown in this document may each occur only once. Additive unknown properties remain permitted and ignored, including repeated unknown names; the duplicate restriction applies only to defined top-level protocol names. Java now validates these rules before Gson creates a JSON object, matching Rust's effective nesting boundary and rejection of repeated known fields. It also rejects Gson's formerly tolerated nonstandard JSON syntax. No valid v1 frame or 64 KiB size limit changes.
 
-The current hardening tests also reject invalid UTF-8 in both directions and require a numeric, unsigned heartbeat sequence. These are v1 wire requirements; a quoted number is not a sequence number.
+The current hardening tests also reject invalid UTF-8 in both directions, including bytes inside an unknown property that the typed parser would otherwise ignore. The Rust reader validates the complete bounded payload before deserializing it. The tests require a numeric, unsigned heartbeat sequence. These are v1 wire requirements; a quoted number is not a sequence number.
 
 ## Control messages
 
