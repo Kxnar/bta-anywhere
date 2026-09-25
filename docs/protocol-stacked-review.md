@@ -38,7 +38,22 @@ Java outputs remain in ignored `.dev/protocol-campaign/surrogate-*` files.
 The Java streaming scan now rejects unpaired surrogates in all decoded names
 and string values. Shared structural vectors cover unknown names, unknown
 values, known fields, and valid high/low pairs. The pre-fix probe failure is
-retained as evidence; only a fresh exact-commit run can establish correction.
+retained as evidence. The exact-commit validation follows.
+
+At code commit `1b4c166a0bd00c44c658e0ede80fa719bd8cbb4e`, the fresh
+fixed-seed 100-case and 10,000-case Rust/Java differential runs each finished
+with zero framing, typed, or modelled-state mismatches. The 100-case corpus
+included all nine surrogate vectors. A separate replay of the pre-fix
+nine-case corpus rejected six unpaired escapes and accepted all three paired
+controls with identical Rust/Java outcomes. Raw summaries, both evaluator
+outputs, and the replay script are retained privately under
+`.dev/protocol-campaign/stacked-surrogate-100-20260925/`,
+`.dev/protocol-campaign/stacked-surrogate-10000-20260925/`, and
+`.dev/protocol-campaign/surrogate-*` in this worktree. The code also passed
+`cargo fmt --all -- --check`, `cargo test --locked --all` (20 relay tests and
+11 corpus tests), `:tunnel-client:test`, and 17 Python generator tests.
+These results do not include the long CPU campaign, repeated shared-port
+integration, baseline/candidate performance, or soak.
 
 Both cross-language evaluators consume the same generated framed corpus and
 canonicalise registration features as a sorted set, absent features as an
