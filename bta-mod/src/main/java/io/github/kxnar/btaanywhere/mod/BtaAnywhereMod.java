@@ -31,7 +31,7 @@ public final class BtaAnywhereMod implements ModInitializer {
 	private void afterGameStart() {
 		Minecraft minecraft = Minecraft.getMinecraft();
 		initialize(minecraft);
-		if (controller.recovery().isPresent()) {
+		if (controller.hasRecoveryArtifacts()) {
 			minecraft.displayScreen(new RecoveryScreen(minecraft.currentScreen));
 		}
 	}

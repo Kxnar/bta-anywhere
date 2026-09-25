@@ -4,6 +4,8 @@ BTA Anywhere writes `bta-anywhere/recovery.json` before starting the managed pro
 
 On the next launch, the mod validates every recorded path and matches process identity before enabling an action. It never kills a process based on PID alone and never restores a backup automatically.
 
+Startup now records launch intent before starting the supervisor. A journal without complete supervisor/server identity, an interrupted `recovery.json.tmp` update, malformed JSON, or a live PID with a different start time or executable blocks both **Open Original** and **Restore Backup**. The recovery screen explains that process and file inspection is needed. An absent recorded PID is not proof that no server owns a save. This also applies to older journals created before launch intent was recorded.
+
 ## Recovery actions
 
 - **Reconnect** is available only when the exact supervisor and server are alive and the supervisor reports ready. It reconnects to `127.0.0.1`; relay and automatic direct mapping may need to be established again.
@@ -34,5 +36,7 @@ If the recovery screen cannot validate the journal:
 4. Use the OS process viewer to determine whether a Java process is still running the exact managed `fabric-server-launch.jar`. Do not kill an unrelated Java PID.
 5. If uncertain, rebooting prevents a stale server process from retaining the save, but it does not repair save data.
 6. Preserve the original save, newest backup, showcase copy, recovery journal, and log before reporting the problem.
+
+For an incomplete identity or interrupted journal update, check both `recovery.json` and `recovery.json.tmp` and verify that neither the managed supervisor nor its server is alive before reopening the original save outside BTA Anywhere. If a PID now belongs to a different process, leave that process alone. The recovery UI deliberately cannot clear this ambiguity for you.
 
 Never unzip a backup over an open world. Never copy a live save into the managed server. Avoid manually editing `level.dat`; BTA 8.0.1 already persists the player's UUID data in the format its dedicated server reads.

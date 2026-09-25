@@ -48,6 +48,8 @@ The generated `bta-anywhere/server/guest-mods.txt` lists gameplay mods guests ne
 
 Do not bypass the guard while a matching managed server or supervisor is alive. Use the recovery screen and [Recovery](recovery.md). If a forced stop was needed, the journal and showcase copy are retained intentionally.
 
+If the screen reports incomplete process identity, malformed journal data, `recovery.json.tmp`, or a live PID with a different identity, keep the original save closed. Preserve those files and the server log, then follow the manual process inspection in [Recovery](recovery.md). Do not stop a process merely because its PID appears in the journal. A partial backup or showcase copy is a diagnostic artifact, never a source for automatic restore.
+
 ## Native QUIC library fails to load
 
 The release JAR contains the Windows x86-64 native. Use an x86-64 Java runtime. Netty QUIC 0.0.73.Final does not publish Windows ARM64; use an x86-64 Java/BTA runtime under Windows ARM64 emulation.

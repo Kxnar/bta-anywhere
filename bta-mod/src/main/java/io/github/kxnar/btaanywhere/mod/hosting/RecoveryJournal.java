@@ -13,12 +13,19 @@ import java.util.Optional;
 
 public final class RecoveryJournal {
 	private static final int SCHEMA_VERSION = 1;
+	private static final long MAXIMUM_JOURNAL_BYTES = 64 * 1024;
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 	private final Path file;
+	private final HostingFaults faults;
 
 	public RecoveryJournal(Path managedDirectory) {
+		this(managedDirectory, HostingFaults.NONE);
+	}
+
+	RecoveryJournal(Path managedDirectory, HostingFaults faults) {
 		file = Objects.requireNonNull(managedDirectory, "managedDirectory").toAbsolutePath().normalize()
 			.resolve("recovery.json");
+		this.faults = Objects.requireNonNull(faults, "faults");
 	}
 
 	public synchronized void write(Entry entry) throws IOException {
@@ -26,25 +33,53 @@ public final class RecoveryJournal {
 		Files.createDirectories(file.getParent());
 		Path temporary = file.resolveSibling(file.getFileName() + ".tmp");
 		Files.writeString(temporary, GSON.toJson(entry), StandardCharsets.UTF_8);
+		faults.hit(HostingFaults.Point.BEFORE_JOURNAL_PUBLICATION);
 		try {
 			Files.move(temporary, file, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
 		} catch (java.nio.file.AtomicMoveNotSupportedException exception) {
 			Files.move(temporary, file, StandardCopyOption.REPLACE_EXISTING);
 		}
+		faults.hit(HostingFaults.Point.AFTER_JOURNAL_PUBLICATION);
 	}
 
 	public synchronized Optional<Entry> read() throws IOException {
-		if (!Files.isRegularFile(file)) {
+		if (Files.exists(file.resolveSibling(file.getFileName() + ".tmp"))) {
+			throw new IOException("incomplete BTA Anywhere recovery journal update; inspect managed processes and recovery files before opening a world");
+		}
+		if (!Files.exists(file)) {
 			return Optional.empty();
 		}
-		Entry entry = GSON.fromJson(Files.readString(file, StandardCharsets.UTF_8), Entry.class);
-		if (entry == null || entry.schemaVersion() != SCHEMA_VERSION) {
-			throw new IOException("unsupported or malformed BTA Anywhere recovery journal");
+		if (!Files.isRegularFile(file) || Files.isSymbolicLink(file)) {
+			throw new IOException("unsafe BTA Anywhere recovery journal file; inspect managed processes before opening a world");
+		}
+		if (Files.size(file) > MAXIMUM_JOURNAL_BYTES) {
+			throw new IOException("BTA Anywhere recovery journal exceeds its size limit; inspect it before opening a world");
+		}
+		Entry entry;
+		try {
+			entry = GSON.fromJson(Files.readString(file, StandardCharsets.UTF_8), Entry.class);
+		} catch (RuntimeException exception) {
+			throw new IOException("malformed BTA Anywhere recovery journal; inspect managed processes and recovery files before opening a world", exception);
+		}
+		if (entry == null || entry.schemaVersion() != SCHEMA_VERSION
+			|| entry.worldMode() == null || entry.networkMode() == null
+			|| entry.originalSavePath() == null || entry.activeSavePath() == null
+			|| entry.worldDirectoryName() == null || entry.backupPath() == null
+			|| entry.processStartTime() == null || entry.executable() == null
+			|| entry.serverStartTime() == null || entry.serverExecutable() == null
+			|| entry.controlFile() == null || entry.serverRuntime() == null
+			|| entry.logFile() == null || entry.createdAt() == null
+			|| entry.originalSavePath().isBlank() || entry.activeSavePath().isBlank()
+			|| entry.serverRuntime().isBlank() || entry.logFile().isBlank()
+			|| entry.worldDirectoryName().isBlank() || entry.localPort() < 1024
+			|| entry.localPort() > 65535) {
+			throw new IOException("unsupported or malformed BTA Anywhere recovery journal; inspect managed processes before opening a world");
 		}
 		return Optional.of(entry);
 	}
 
 	public synchronized void clear() throws IOException {
+		faults.hit(HostingFaults.Point.BEFORE_JOURNAL_CLEAR);
 		Files.deleteIfExists(file);
 	}
 
@@ -70,7 +105,8 @@ public final class RecoveryJournal {
 		int localPort,
 		String serverRuntime,
 		String logFile,
-		String createdAt
+		String createdAt,
+		boolean launchIntent
 	) {
 		public Entry {
 			Objects.requireNonNull(worldMode, "worldMode");
@@ -109,8 +145,21 @@ public final class RecoveryJournal {
 				-1L, "", "", -1L, "", "", "", localPort,
 				serverRuntime.toAbsolutePath().normalize().toString(),
 				logFile.toAbsolutePath().normalize().toString(),
-				Instant.now().toString()
+				Instant.now().toString(), false
 			);
+		}
+
+		public boolean identityRecorded() {
+			return pid > 0 && !processStartTime.isBlank() && !executable.isBlank()
+				&& serverPid > 0 && !serverStartTime.isBlank() && !serverExecutable.isBlank()
+				&& !controlFile.isBlank();
+		}
+
+		public Entry withLaunchIntent() {
+			return new Entry(schemaVersion, worldMode, networkMode, originalSavePath, activeSavePath,
+				worldDirectoryName, backupPath, pid, processStartTime, executable, serverPid,
+				serverStartTime, serverExecutable, controlFile, localPort, serverRuntime, logFile,
+				createdAt, true);
 		}
 
 		public Entry withProcess(ManagedServerProcess managedProcess) {
@@ -124,7 +173,7 @@ public final class RecoveryJournal {
 				worldDirectoryName, backupPath, process.pid(), start, command,
 				control.serverPid(), control.serverStartTime(), control.serverExecutable(),
 				managedProcess.controlFile().toAbsolutePath().normalize().toString(), localPort,
-				serverRuntime, logFile, createdAt
+				serverRuntime, logFile, createdAt, false
 			);
 		}
 	}

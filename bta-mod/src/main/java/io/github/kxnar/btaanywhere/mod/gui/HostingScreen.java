@@ -114,6 +114,7 @@ public final class HostingScreen extends Screen {
 				}
 				// BTA's native changeWorld(null) path forces a save, waits for chunk I/O,
 				// unloads all chunks, invokes onUnload, and closes LevelStorage on the game thread.
+				controller.beforeWorldSave();
 				mc.changeWorld(null);
 				controller.continueAfterWorldClosed();
 			} catch (RuntimeException exception) {

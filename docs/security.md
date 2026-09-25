@@ -16,6 +16,7 @@ The relay access token controls who may allocate relay ports. It is not a guest 
 - Official server archive pinning, a 256 MiB download cap, traversal/absolute-path/symbolic-link rejection, and staged extraction.
 - World path confinement, symbolic-link rejection, disk-headroom checks, atomic backup/journal writes, and no automatic restore.
 - Process recovery matching on PID, start time, and executable; supervisor commands also require a private random control token.
+- Recovery fails closed for incomplete launch identity, malformed/interrupted journals, and live PID identity mismatches; test-only fault callbacks cannot be enabled through production configuration.
 - Online mode, whitelist, maximum-player limit, automatic host operator entry, and warning confirmation before whitelist disablement.
 
 ## Operator responsibilities

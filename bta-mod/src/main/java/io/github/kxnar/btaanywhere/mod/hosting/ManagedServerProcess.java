@@ -243,6 +243,9 @@ public final class ManagedServerProcess implements AutoCloseable {
 					if (!control.matchesSupervisor(process.toHandle())) {
 						throw new IOException("supervisor control identity did not match its process");
 					}
+					if (ProcessHandle.of(control.serverPid()).filter(control::matchesServer).isEmpty()) {
+						throw new IOException("server control identity did not match a live process");
+					}
 					return control;
 				} catch (IOException exception) {
 					lastFailure = exception;

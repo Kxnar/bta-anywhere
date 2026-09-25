@@ -5,6 +5,7 @@ public record RecoveryInspection(
 	boolean supervisorAlive,
 	boolean serverAlive,
 	boolean serverReady,
+	boolean identityAmbiguous,
 	String message
 ) {
 	public boolean canReconnect() {
@@ -16,7 +17,8 @@ public record RecoveryInspection(
 	}
 
 	public boolean canOpenOriginal() {
-		return !supervisorAlive && !serverAlive;
+		return entry.identityRecorded() && !entry.launchIntent() && !identityAmbiguous
+			&& !supervisorAlive && !serverAlive;
 	}
 
 	public boolean canRestore() {

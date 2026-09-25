@@ -105,3 +105,24 @@ Open the printed relay TCP endpoint from another terminal. Type `stop` in the CL
 `.\gradlew.bat :bta-mod:runClient` downloads development-only BTA artifacts through Loom and opens a client. Use a disposable game directory/world. Do not publish anything from `run/` or the Gradle/Loom caches.
 
 Before a release, complete the manual matrix in [Releasing](releasing.md). Automated tests do not prove that every third-party gameplay mod is dedicated-server compatible.
+
+## Disposable-world recovery fault simulation
+
+The Java test suite runs one deterministic seed at every instrumented hosting boundary for Live and Showcase where applicable. It uses temporary synthetic worlds, never a player save. Run the longer file/journal fault simulation with 50 seeds and three clean repetitions:
+
+```powershell
+$env:BTA_FAULT_SEEDS = '50'
+$env:BTA_FAULT_RUNS = '3'
+.\gradlew.bat --no-daemon :bta-mod:test --tests io.github.kxnar.btaanywhere.mod.hosting.CrashFaultCampaignTest --rerun-tasks
+```
+
+Unset those environment variables to return to the short CI profile. The injected exceptions exercise bounded backup, copy, journal, and recovery handling. They do not establish power-loss durability or replace the five disposable-world manual scenarios in [Releasing](releasing.md). The production constructor has no injection switch; only package-private test construction can supply fault callbacks.
+
+For a full controller transition sweep with the synthetic disposable server, run:
+
+```powershell
+$env:BTA_CONTROLLER_MATRIX = '1'
+.\gradlew.bat --no-daemon :bta-mod:test --tests io.github.kxnar.btaanywhere.mod.hosting.HostControllerFaultTest --rerun-tasks
+```
+
+The normal test suite also runs representative hard-crash child JVMs. File and journal crashes retain hidden partial artifacts or an incomplete journal for inspection. The controller crash fixture stops its fake supervisor only after matching the supervisor and server PID, start time, and executable with the private control file, then sending authenticated `STOP`. It preserves the fixture if that verification fails. These tests use a fake server and a synthetic world; the BTA game-thread save/unload path and forced-shutdown scenarios still require manual disposable-world testing.
