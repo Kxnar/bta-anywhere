@@ -164,8 +164,10 @@ its authenticated control file after PID, start time, and executable checks.
 
 `GameDirectoryLeaseTest` checks exclusive ownership, unsafe lock paths, and
 Windows lock release after a disposable child JVM exits abruptly. It also
-checks that a controller rejects a wrong-profile or closed lease. It uses no
-player saves or relay ports. For the UI path, launch two BTA clients against
+checks that the production controller factory owns the lock until clean close,
+rejects a second controller, and cannot restart after close. The hard-crash
+child test uses that factory and checks OS lock release after its abrupt exit.
+These tests use no player saves or relay ports. For the UI path, launch two BTA clients against
 one newly created disposable game profile: the second must show the directory
 error, block ordinary world open/new-world/hosting actions, and leave the
 first client unaffected. Exit the first client, restart the second, and verify

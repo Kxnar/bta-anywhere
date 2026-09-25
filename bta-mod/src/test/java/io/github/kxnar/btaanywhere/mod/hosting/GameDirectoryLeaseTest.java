@@ -1,6 +1,7 @@
 package io.github.kxnar.btaanywhere.mod.hosting;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -11,7 +12,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -37,16 +40,42 @@ final class GameDirectoryLeaseTest {
 	}
 
 	@Test
-	void controllerRejectsWrongOrClosedLease() throws Exception {
+	void controllerFactoryOwnsLeaseAndClosedControllerCannotRestart() throws Exception {
 		Path firstGame = Files.createDirectory(temporaryDirectory.resolve("first-game"));
-		Path otherGame = Files.createDirectory(temporaryDirectory.resolve("other-game"));
-		GameDirectoryLease lease = GameDirectoryLease.acquire(firstGame);
+		HostController first = HostController.open(firstGame);
 		try {
-			assertThrows(IllegalArgumentException.class, () -> new HostController(otherGame, lease));
+			assertTrue(first.hasActiveGameDirectoryLease());
+			assertEquals("owned", first.withActiveGameDirectoryLease(() -> "owned"));
+			assertThrows(GameDirectoryLease.InUseException.class, () -> HostController.open(firstGame));
+			assertThrows(GameDirectoryLease.InUseException.class, () -> GameDirectoryLease.acquire(firstGame));
 		} finally {
-			lease.close();
+			first.close();
 		}
-		assertThrows(IllegalArgumentException.class, () -> new HostController(firstGame, lease));
+		assertFalse(first.hasActiveGameDirectoryLease());
+		AtomicBoolean recoveryActionRan = new AtomicBoolean();
+		assertThrows(IllegalStateException.class,
+			() -> first.withActiveGameDirectoryLease(() -> {
+				recoveryActionRan.set(true);
+				return null;
+			}));
+		assertFalse(recoveryActionRan.get());
+		CompletionException rejected = assertThrows(CompletionException.class,
+			() -> first.requestStart(null, null, null, false).toCompletableFuture().join());
+		assertTrue(rejected.getCause() instanceof IllegalStateException);
+		try (HostController second = HostController.open(firstGame)) {
+			assertTrue(second.hasActiveGameDirectoryLease());
+			assertTrue(Files.isRegularFile(firstGame.resolve("bta-anywhere/client.lock")));
+		}
+	}
+
+	@Test
+	void rawLeaseDoesNotCoverAnotherProfileOrRemainValidAfterClose() throws Exception {
+		Path firstGame = Files.createDirectory(temporaryDirectory.resolve("lease-first-game"));
+		Path otherGame = Files.createDirectory(temporaryDirectory.resolve("lease-other-game"));
+		GameDirectoryLease lease = GameDirectoryLease.acquire(firstGame);
+		assertFalse(lease.covers(otherGame));
+		lease.close();
+		assertFalse(lease.covers(firstGame));
 	}
 
 	@Test

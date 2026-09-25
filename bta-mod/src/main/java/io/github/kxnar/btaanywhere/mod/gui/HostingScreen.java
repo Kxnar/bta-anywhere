@@ -61,14 +61,25 @@ public final class HostingScreen extends Screen {
 
 	public HostingScreen(Screen parent) {
 		super(parent);
-		controller = BtaAnywhereMod.controller(mc);
+		controller = BtaAnywhereMod.activeController(mc);
 		config = BtaAnywhereMod.config(mc);
 		// A reopened hosting screen must not hand off a different world for an active start.
-		handoffPerformed = controller.status().state().isBusy();
+		handoffPerformed = controller != null && controller.status().state().isBusy();
+	}
+
+	private boolean ensureController() {
+		if (controller != null && controller.hasActiveGameDirectoryLease()) {
+			return true;
+		}
+		BtaAnywhereMod.showGameDirectoryFailure(mc, getParentScreen());
+		return false;
 	}
 
 	@Override
 	public void init() {
+		if (!ensureController()) {
+			return;
+		}
 		Keyboard.enableRepeatEvents(true);
 		buttons.clear();
 		int center = width / 2;
@@ -103,6 +114,9 @@ public final class HostingScreen extends Screen {
 
 	@Override
 	public void tick() {
+		if (!ensureController()) {
+			return;
+		}
 		for (TextFieldElement field : fields()) {
 			field.updateCursorCounter();
 		}
@@ -143,7 +157,7 @@ public final class HostingScreen extends Screen {
 
 	@Override
 	protected void buttonClicked(ButtonElement button) {
-		if (!button.enabled) {
+		if (!ensureController() || !button.enabled) {
 			return;
 		}
 		switch (button.id) {
@@ -210,6 +224,9 @@ public final class HostingScreen extends Screen {
 	}
 
 	private void startHosting() {
+		if (!ensureController()) {
+			return;
+		}
 		captureFieldValues();
 		try {
 			selectedWorld = captureWorld();
@@ -257,6 +274,9 @@ public final class HostingScreen extends Screen {
 			"Disable the whitelist?",
 			"Anyone who learns the connection address could join. Online mode remains enabled, but invited usernames will no longer restrict access.",
 			() -> {
+				if (!ensureController()) {
+					return;
+				}
 				whitelistEnabled = false;
 				whitelistButton.displayString = whitelistLabel();
 			}
@@ -285,6 +305,9 @@ public final class HostingScreen extends Screen {
 
 	@Override
 	public void keyPressed(char character, int key, int mouseX, int mouseY) {
+		if (!ensureController()) {
+			return;
+		}
 		if (key != Keyboard.KEY_BACK) {
 			super.keyPressed(character, key, mouseX, mouseY);
 		}
@@ -297,6 +320,9 @@ public final class HostingScreen extends Screen {
 
 	@Override
 	public void mouseClicked(int mouseX, int mouseY, int button) {
+		if (!ensureController()) {
+			return;
+		}
 		super.mouseClicked(mouseX, mouseY, button);
 		for (TextFieldElement field : fields()) {
 			field.mouseClicked(mouseX, mouseY, button);
@@ -311,6 +337,9 @@ public final class HostingScreen extends Screen {
 
 	@Override
 	public void render(int mouseX, int mouseY, float partialTick) {
+		if (!ensureController()) {
+			return;
+		}
 		renderBackground();
 		int center = width / 2;
 		drawStringCenteredShadow(fontRenderer, "BTA Anywhere", center, 9, 0xFFFFFF);

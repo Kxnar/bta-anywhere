@@ -30,7 +30,7 @@ public final class HostControllerHardCrashChildMain {
 		Path world = game.resolve("saves/world");
 		HostOptions options = new HostOptions(mode, NetworkMode.LAN, List.of(), "Host", 8,
 			768, port, true);
-		HostController controller = new HostController(game, faults);
+		HostController controller = HostController.open(game, faults);
 		controller.requestStart(new WorldContext(game, world, "world", "Synthetic world"), options,
 			new BtaAnywhereConfig(), false).toCompletableFuture().get(20, TimeUnit.SECONDS);
 		if (controller.status().state() != HostState.SAVING) {

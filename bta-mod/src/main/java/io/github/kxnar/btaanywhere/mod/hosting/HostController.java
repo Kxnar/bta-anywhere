@@ -57,8 +57,11 @@ public final class HostController implements AutoCloseable {
 	private final RecoveryJournal journal;
 	private final RecoveryService recoveryService;
 	private final ExecutorService executor;
+	private final GameDirectoryLease ownedLease;
 	private final AtomicReference<HostStatus> status = new AtomicReference<>(HostStatus.idle());
 	private final AtomicBoolean cancelRequested = new AtomicBoolean();
+	private final AtomicBoolean closed = new AtomicBoolean();
+	private final Object leaseActionLock = new Object();
 	private final Object resourceLock = new Object();
 	private final Deque<String> logs = new ArrayDeque<>();
 
@@ -85,20 +88,36 @@ public final class HostController implements AutoCloseable {
 		this(gameDirectory, HostingFaults.NONE);
 	}
 
-	public HostController(Path gameDirectory, GameDirectoryLease lease) {
-		this(requireLease(gameDirectory, lease), HostingFaults.NONE);
+	/** Opens a production controller that owns the client-lifetime game-directory lease. */
+	public static HostController open(Path gameDirectory) throws IOException {
+		return open(gameDirectory, HostingFaults.NONE);
 	}
 
-	private static Path requireLease(Path gameDirectory, GameDirectoryLease lease) {
-		if (!Objects.requireNonNull(lease, "lease").covers(gameDirectory)) {
-			throw new IllegalArgumentException("the BTA Anywhere game directory lease is missing, closed, or belongs to another profile");
+	static HostController open(Path gameDirectory, HostingFaults faults) throws IOException {
+		GameDirectoryLease lease = GameDirectoryLease.acquire(gameDirectory);
+		try {
+			return new HostController(gameDirectory, faults, lease);
+		} catch (RuntimeException | Error failure) {
+			try {
+				lease.close();
+			} catch (IOException closeFailure) {
+				failure.addSuppressed(closeFailure);
+			}
+			throw failure;
 		}
-		return gameDirectory;
 	}
 
 	HostController(Path gameDirectory, HostingFaults faults) {
+		this(gameDirectory, faults, null);
+	}
+
+	private HostController(Path gameDirectory, HostingFaults faults, GameDirectoryLease lease) {
 		this.gameDirectory = Objects.requireNonNull(gameDirectory, "gameDirectory").toAbsolutePath().normalize();
 		this.faults = Objects.requireNonNull(faults, "faults");
+		if (lease != null && !lease.covers(this.gameDirectory)) {
+			throw new IllegalArgumentException("the BTA Anywhere game directory lease does not cover this profile");
+		}
+		ownedLease = lease;
 		backups = new WorldBackupService(java.time.Clock.systemUTC(), faults);
 		managedDirectory = this.gameDirectory.resolve("bta-anywhere");
 		distributions = new ServerDistributionManager(managedDirectory);
@@ -117,6 +136,9 @@ public final class HostController implements AutoCloseable {
 		BtaAnywhereConfig config,
 		boolean downloadConfirmed
 	) {
+		if (closed.get()) {
+			return CompletableFuture.failedFuture(new IllegalStateException("the hosting controller is closed"));
+		}
 		Objects.requireNonNull(world, "world");
 		Objects.requireNonNull(options, "options");
 		Objects.requireNonNull(config, "config");
@@ -140,6 +162,9 @@ public final class HostController implements AutoCloseable {
 	}
 
 	public synchronized CompletionStage<Void> continueAfterWorldClosed() {
+		if (closed.get()) {
+			return CompletableFuture.failedFuture(new IllegalStateException("the hosting controller is closed"));
+		}
 		PendingStart requested = pending;
 		if (requested == null || status.get().state() != HostState.SAVING) {
 			return CompletableFuture.failedFuture(new IllegalStateException("hosting is not waiting for a world save"));
@@ -183,6 +208,22 @@ public final class HostController implements AutoCloseable {
 	public HostStatus status() {
 		HostStatus current = status.get();
 		return new HostStatus(current.state(), current.message(), current.connectionAddress(), snapshotLogs());
+	}
+
+	/** True only while a production controller still holds its client game-directory lock. */
+	public boolean hasActiveGameDirectoryLease() {
+		return !closed.get() && ownedLease != null && ownedLease.covers(gameDirectory);
+	}
+
+	/** Serializes recovery actions with close so they cannot outlive this controller's lease. */
+	public <T> T withActiveGameDirectoryLease(java.util.concurrent.Callable<T> action) throws Exception {
+		Objects.requireNonNull(action, "action");
+		synchronized (leaseActionLock) {
+			if (!hasActiveGameDirectoryLease()) {
+				throw new IllegalStateException("the hosting controller no longer owns this game directory");
+			}
+			return action.call();
+		}
 	}
 
 	public Optional<RecoveryJournal.Entry> recovery() {
@@ -248,6 +289,9 @@ public final class HostController implements AutoCloseable {
 	}
 
 	public synchronized void adoptRecoveredSession(RecoveryInspection inspection) {
+		if (closed.get()) {
+			throw new IllegalStateException("the hosting controller is closed");
+		}
 		Objects.requireNonNull(inspection, "inspection");
 		if (!inspection.canReconnect() || status.get().state() != HostState.IDLE) {
 			throw new IllegalStateException("recovered server is not ready to reconnect");
@@ -744,12 +788,26 @@ public final class HostController implements AutoCloseable {
 
 	@Override
 	public void close() {
+		synchronized (leaseActionLock) {
+			if (!closed.compareAndSet(false, true)) {
+				return;
+			}
+		}
+		boolean clean = false;
 		try {
-			stop().toCompletableFuture().get(5, TimeUnit.MINUTES);
+			clean = stop().toCompletableFuture().get(5, TimeUnit.MINUTES);
 		} catch (Exception exception) {
 			appendLog("Shutdown cleanup did not complete: " + rootMessage(exception));
+		} finally {
+			executor.shutdownNow();
+			if (clean && ownedLease != null) {
+				try {
+					ownedLease.close();
+				} catch (IOException exception) {
+					appendLog("Could not release BTA Anywhere game directory lease");
+				}
+			}
 		}
-		executor.shutdownNow();
 	}
 
 	private final class TunnelEventSubscriber implements Flow.Subscriber<TunnelEvent> {

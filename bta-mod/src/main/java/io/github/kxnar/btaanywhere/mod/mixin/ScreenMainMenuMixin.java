@@ -1,7 +1,6 @@
 package io.github.kxnar.btaanywhere.mod.mixin;
 
 import io.github.kxnar.btaanywhere.mod.BtaAnywhereMod;
-import io.github.kxnar.btaanywhere.mod.gui.RecoveryScreen;
 import net.minecraft.client.gui.ButtonElement;
 import net.minecraft.client.gui.Screen;
 import net.minecraft.client.gui.ScreenMainMenu;
@@ -34,7 +33,7 @@ public abstract class ScreenMainMenuMixin {
 			return;
 		}
 		Screen screen = (Screen) (Object) this;
-		screen.mc.displayScreen(new RecoveryScreen(screen));
+		BtaAnywhereMod.openRecoveryScreen(screen.mc, screen);
 		callback.cancel();
 	}
 }

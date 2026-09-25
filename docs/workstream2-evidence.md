@@ -67,6 +67,21 @@ tools, manual journal edits, and unusual network filesystem lock behavior
 are not established by this guarantee. Focused unit evidence is recorded
 below; two-client disposable UI evidence is still pending.
 
+A follow-up API review found that the public constructor on `1b3a355`
+accepted a caller-owned lease and checked it only once. Although the mod kept
+that lease until shutdown, an external same-process caller could close its
+handle while the controller remained active. The current refinement makes
+`HostController.open` acquire and own the lease, with no public constructor
+that accepts an externally closable lock. `close()` releases it only after a
+clean stop; uncertain cleanup retains the lock until process exit. A closed
+controller rejects new hosting and recovery adoption. Recovery actions run
+under a controller lease guard, and already-open hosting/recovery screens
+redirect to the directory error when their controller closes. The pause-menu
+path checks availability before reading controller status. Focused controller
+and disposable child tests passed; real client UI behavior still needs a
+disposable profile check. The campaign result below is for the earlier
+`1b3a355` revision.
+
 ## User value and design
 
 Interrupted hosting now leaves recovery evidence that prevents an ambiguous
@@ -103,7 +118,7 @@ and verified output root.
 The stacked safety correction was checked with these commands on 2026-09-25:
 
 ```powershell
-$env:JAVA_HOME = 'D:\Documents\BTA\.tools\jdk-21'
+# Set JAVA_HOME to a local JDK 21 installation before running Gradle.
 .\gradlew.bat --no-daemon :bta-mod:test `
   --tests io.github.kxnar.btaanywhere.mod.hosting.GameDirectoryLeaseTest `
   --tests io.github.kxnar.btaanywhere.mod.hosting.HostControllerHardCrashTest `
@@ -128,6 +143,43 @@ checks do not transfer the earlier 4,350-case result to the stacked revision,
 nor do they satisfy integration, soak, release-build performance, or manual
 game gates.
 
+The controller-owned lease revision compiled and passed focused
+`GameDirectoryLeaseTest` and `HostControllerHardCrashTest` on 2026-09-25:
+9 tests, zero failures/errors, one Windows symlink-permission skip. The first
+compile found two unused-resource warnings in the new child tests under
+`-Werror`; those were corrected before any test ran. Full Gradle `check build`
+then passed with 39 mod tests, zero failures/errors, and four skips (the two
+opt-in campaign/timing checks and two symlink-permission checks). The lease
+test verifies closed controllers cannot restart hosting or execute recovery
+callbacks. The child test verifies failed cleanup retains the lease until
+process exit, after which a new controller can acquire it. Minecraft UI
+paths compiled but still need the two-client disposable-profile walkthrough.
+The full 4,350-case campaign has not run on this revision.
+
+On clean stacked commit `1b3a35529659c97594722b605883ce535c129a2a`,
+the full deterministic controller campaign ran with the command below and
+passed all 4,350 synthetic cases: 29 applicable mode/fault-point pairs,
+50 seeds each, and three clean fixture repetitions of 1,450 cases. The raw
+JSONL contains 4,350 passing rows and zero failures; no failed fixture was
+retained. Gradle reported 21 minutes 22 seconds. The manifest records
+2026-09-25 20:34:48–20:55:47 UTC and the private manifest retains machine
+and toolchain details. The checks include the synthetic original-world SHA-256
+manifest, recovery-journal and process-identity policy, and authenticated
+fake-server cleanup. This is synthetic fault evidence, not an actual BTA
+save/unload or forced-shutdown test.
+
+```powershell
+# Set JAVA_HOME to a local JDK 21 installation before running Gradle.
+powershell -ExecutionPolicy Bypass -File .\scripts\run_controller_fault_campaign.ps1 -Profile full
+```
+
+Raw results for this stacked run are under ignored
+`.dev/controller-fault-campaign/run-342088cbb62e4f3e98f318eed630b04c/`
+in the stacked checkout. The manifest, JSONL, and summary must remain together.
+The subsequent controller-owned lease factory changes production code, so
+this result remains historical evidence
+for `1b3a355` and does not establish the new revision's campaign gate.
+
 | Check | Result | Raw evidence |
 |---|---|---|
 | Controller smoke | 29/29 applicable cases passed. | `.dev/controller-fault-campaign/run-34eb892096714104b076870be8324895/` |
@@ -135,18 +187,18 @@ game gates.
 | Mod unit/crash/guard suite, rerun 2026-09-25 | 29 tests, 0 failures, 2 skips. The opt-in full campaign is deliberately skipped in normal test runs; a Windows symlink alias test skipped because this account lacks link-creation privilege. The XML was later replaced by subsequent Gradle runs. | `.dev/workstream2-gradle-test-20260925.log` |
 | Mod suite after one-write change | Gradle `:bta-mod:test --rerun-tasks` succeeded. The timing/campaign Gradle runs later replaced its XML reports, so a retained per-test count is unavailable for this specific rerun. | `.dev/workstream2-gradle-after-one-write-20260925.log` |
 | Full controller campaign after one-write change | 4,350/4,350 passed on clean `f8fb80a`: 1,450 cases in each of three clean fixture runs, 0 failed, 0 retained fixtures. | `.dev/controller-fault-campaign/run-a5caa8eb09c64129ab1a5bc20d1863d6/manifest.json`, `scenarios.jsonl`, `summary.json` |
+| Clean stacked campaign at `1b3a355` | 4,350/4,350 passed: 3 repetitions of 1,450; 0 failed or retained fixtures. This predates the controller-owned lease factory. | Stacked checkout `.dev/controller-fault-campaign/run-342088cbb62e4f3e98f318eed630b04c/manifest.json`, `scenarios.jsonl`, `summary.json` |
 | Serial half-close, one prior run | 100/100 iterations passed. | `.dev/workstream2-integration/serial-100.log` |
 | Concurrent integration, one prior run | 100 waves of eight streams passed. | `.dev/workstream2-integration/concurrent-100x8.log` |
 
 Historical `.dev/controller-fault-campaign/` and `.dev/prelaunch-timing/`
-paths below are relative to the original isolated checkout at
-`D:\Documents\BTA-crash-fault-injection`, not the stacked checkout. Retain
+paths below are relative to the original isolated W2 checkout, not the
+stacked checkout. Retain
 that ignored evidence directory privately alongside the branch review.
 
 The first full campaign manifest records commit
 `55c81bbe69f177a772d6a9e48ba310f0ab2c2358`, a clean worktree,
-Windows 11 build 26200, Intel Core i9-10900K, 20 logical cores,
-16,923,529,216 bytes RAM, Java 21.0.12.1, and Rust 1.97.1. The campaign ran
+Windows 11 build 26200, Java 21.0.12.1, and Rust 1.97.1. The campaign ran
 from 2026-09-25 02:41:09 UTC to 02:57:54 UTC. Results are ignored local files;
 retain them outside Git when handing off the branch. These results are
 deterministic fake-server simulations, not real-game, power-loss, or player
@@ -166,7 +218,7 @@ one-write change, not the manual game or power-loss gates.
 Exact local commands for the synthetic checks:
 
 ```powershell
-$env:JAVA_HOME = 'D:\Documents\BTA\.tools\jdk-21'
+# Set JAVA_HOME to a local JDK 21 installation before running Gradle.
 .\gradlew.bat --no-daemon :bta-mod:test --rerun-tasks
 powershell -ExecutionPolicy Bypass -File .\scripts\run_controller_fault_campaign.ps1 -Profile smoke
 powershell -ExecutionPolicy Bypass -File .\scripts\run_controller_fault_campaign.ps1 -Profile full
@@ -196,12 +248,14 @@ calls only its package-private constructor. To reproduce from a **fresh,
 clean, detached** historical worktree:
 
 ```powershell
-git worktree add --detach D:\Documents\BTA-crash-perf-baseline 05d0c2d
+$baselineCheckout = Join-Path (Split-Path (Get-Location) -Parent) 'BTA-crash-perf-baseline'
+# Set JAVA_HOME to a local JDK 21 installation before running the probe.
+git worktree add --detach $baselineCheckout 05d0c2d
 powershell -ExecutionPolicy Bypass -File .\scripts\prepare_prelaunch_baseline.ps1 `
-  -BaselineCheckout D:\Documents\BTA-crash-perf-baseline
+  -BaselineCheckout $baselineCheckout
 powershell -ExecutionPolicy Bypass -File .\scripts\run_prelaunch_timing.ps1 `
-  -BaselineCheckout D:\Documents\BTA-crash-perf-baseline `
-  -JavaHome D:\Documents\BTA\.tools\jdk-21 -Rounds 3
+  -BaselineCheckout $baselineCheckout `
+  -JavaHome $env:JAVA_HOME -Rounds 3
 ```
 
 Run that only during a quiet machine window; the runner alternates baseline and

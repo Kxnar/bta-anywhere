@@ -22,6 +22,51 @@ import org.junit.jupiter.api.Test;
 
 final class HostControllerHardCrashTest {
 	@Test
+	void failedCleanupKeepsControllerOwnedLeaseUntilDisposableChildExits() throws Exception {
+		Path tempRoot = Path.of(System.getProperty("java.io.tmpdir")).toAbsolutePath().normalize();
+		Path game = Files.createTempDirectory(tempRoot, "bta-host-crash-");
+		boolean cleaned = false;
+		try {
+			Path world = game.resolve("saves/world");
+			Files.createDirectories(world);
+			Files.writeString(game.resolve(".bta-fault-disposable"), "synthetic world only");
+			byte[] original = "synthetic-disposable-world".getBytes(StandardCharsets.UTF_8);
+			Files.write(world.resolve("level.dat"), original);
+			HostControllerFaultTest.installFakeRuntime(game.resolve("bta-anywhere/server"));
+			int port = HostControllerFaultTest.availablePort();
+			Path javaExecutable = Path.of(System.getProperty("java.home"), "bin", "java.exe");
+			Process child = new ProcessBuilder(javaExecutable.toString(), "-cp",
+				System.getProperty("java.class.path"), HostControllerLeaseFailureChildMain.class.getName(),
+				game.toString(), Integer.toString(port)).redirectErrorStream(true).start();
+			if (!child.waitFor(45, TimeUnit.SECONDS)) {
+				throw new AssertionError("lease-failure child timed out; fixture retained at " + game);
+			}
+			String output = new String(child.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+			assertEquals(92, child.exitValue(), output);
+			assertTrue(output.contains("LEASE_RETAINED"));
+			assertArrayEquals(original, Files.readAllBytes(world.resolve("level.dat")));
+			RecoveryInspection inspection = new RecoveryService(game).inspect().orElseThrow();
+			assertFalse(inspection.canOpenOriginal());
+			stopThroughVerifiedControl(game);
+			try (HostController restarted = HostController.open(game)) {
+				assertTrue(restarted.hasActiveGameDirectoryLease());
+				assertTrue(Files.isRegularFile(game.resolve("bta-anywhere/client.lock")));
+			}
+			deleteVerifiedFixture(game, tempRoot);
+			cleaned = true;
+		} finally {
+			if (!cleaned) {
+				try {
+					stopThroughVerifiedControl(game);
+				} catch (Exception exception) {
+					System.err.println("Retained disposable lease-failure fixture for manual review: " + game
+						+ " (verified control cleanup unavailable: " + exception.getMessage() + ")");
+				}
+			}
+		}
+	}
+
+	@Test
 	void failedLaunchAfterVerifiedProcessStartCannotClearUnownedJournal() throws Exception {
 		for (WorldMode mode : WorldMode.values()) {
 			checkUnownedLaunchFailure(mode);
@@ -133,6 +178,11 @@ final class HostControllerHardCrashTest {
 			}
 			String output = new String(child.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
 			assertEquals(91, child.exitValue(), mode + "/" + point + " " + output);
+			try (HostController restarted = HostController.open(game)) {
+				assertTrue(restarted.hasActiveGameDirectoryLease());
+				assertTrue(Files.isRegularFile(game.resolve("bta-anywhere/client.lock")),
+					"the child crash must release its OS lease without deleting the stable lock file");
+			}
 			assertArrayEquals(original, Files.readAllBytes(world.resolve("level.dat")));
 			RecoveryInspection inspection = new RecoveryService(game).inspect().orElseThrow();
 			assertFalse(inspection.canOpenOriginal());

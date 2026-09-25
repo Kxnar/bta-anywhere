@@ -48,8 +48,10 @@ create, or host a single-player world from that directory. The lock file is
 not deleted on shutdown; Windows releases the lock when the owning process
 exits, including after a crash. The recovery journal still governs a managed
 server that survives its client.
-The public hosting-controller constructor requires a live lease for that same
-normalized game directory; the naked constructor is package-private for
+The public hosting-controller factory acquires and owns the lease; callers
+cannot close the controller's lock independently. A clean controller shutdown
+releases it after hosting cleanup; ambiguous cleanup retains the lease until
+the client process exits. Naked constructors are package-private for
 disposable tests. Reflection and external tools that modify saves are outside
 this cooperative lock boundary.
 

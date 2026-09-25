@@ -40,8 +40,9 @@ public final class BtaAnywhereMod implements ModInitializer {
 	private void afterGameStart() {
 		Minecraft minecraft = Minecraft.getMinecraft();
 		initialize(minecraft);
-		if (gameDirectoryFailure != null) {
-			minecraft.displayScreen(new GameDirectoryInUseScreen(minecraft.currentScreen, gameDirectoryFailure));
+		if (usableController() == null) {
+			minecraft.displayScreen(new GameDirectoryInUseScreen(minecraft.currentScreen,
+				directoryFailureMessage()));
 			return;
 		}
 		if (controller.hasRecoveryArtifacts()) {
@@ -50,16 +51,28 @@ public final class BtaAnywhereMod implements ModInitializer {
 	}
 
 	public static HostController controller(Minecraft minecraft) {
-		initialize(minecraft);
-		if (controller == null) {
-			throw new IllegalStateException("BTA Anywhere cannot use this game directory: " + gameDirectoryFailure);
+		HostController active = activeController(minecraft);
+		if (active == null) {
+			throw new IllegalStateException("BTA Anywhere cannot use this game directory: "
+				+ directoryFailureMessage());
 		}
-		return controller;
+		return active;
+	}
+
+	/** Returns null when startup failed or a previously opened controller was closed. */
+	public static HostController activeController(Minecraft minecraft) {
+		initialize(minecraft);
+		return usableController();
+	}
+
+	public static void showGameDirectoryFailure(Minecraft minecraft, Screen parent) {
+		minecraft.displayScreen(new GameDirectoryInUseScreen(parent, directoryFailureMessage()));
 	}
 
 	public static boolean hasRecoveryArtifacts(Minecraft minecraft) {
 		initialize(minecraft);
-		return controller != null && controller.hasRecoveryArtifacts();
+		HostController active = usableController();
+		return active != null && active.hasRecoveryArtifacts();
 	}
 
 	public static BtaAnywhereConfig config(Minecraft minecraft) {
@@ -69,23 +82,35 @@ public final class BtaAnywhereMod implements ModInitializer {
 
 	public static void openHostingScreen(Minecraft minecraft, Screen parent) {
 		initialize(minecraft);
-		minecraft.displayScreen(controller == null
-			? new GameDirectoryInUseScreen(parent, gameDirectoryFailure)
+		minecraft.displayScreen(usableController() == null
+			? new GameDirectoryInUseScreen(parent, directoryFailureMessage())
 			: new HostingScreen(parent));
+	}
+
+	public static void openRecoveryScreen(Minecraft minecraft, Screen parent) {
+		initialize(minecraft);
+		minecraft.displayScreen(usableController() == null
+			? new GameDirectoryInUseScreen(parent, directoryFailureMessage())
+			: new RecoveryScreen(parent));
 	}
 
 	public static void clientTick(Minecraft minecraft) {
 		BlockedOpenScreen blocked = BLOCKED_OPEN_SCREEN.getAndSet(null);
 		if (blocked != null) {
+			if (usableController() == null) {
+				minecraft.displayScreen(new GameDirectoryInUseScreen(minecraft.currentScreen,
+					directoryFailureMessage()));
+				return;
+			}
 			minecraft.displayScreen(switch (blocked) {
 				case RECOVERY -> new RecoveryScreen(minecraft.currentScreen);
 				case HOSTING -> new HostingScreen(minecraft.currentScreen);
 				case GAME_DIRECTORY -> new GameDirectoryInUseScreen(minecraft.currentScreen,
-					gameDirectoryFailure);
+					directoryFailureMessage());
 			});
 			return;
 		}
-		HostController active = controller;
+		HostController active = usableController();
 		if (active == null) {
 			return;
 		}
@@ -95,7 +120,7 @@ public final class BtaAnywhereMod implements ModInitializer {
 
 	public static boolean blockSinglePlayerWorldOpen(Minecraft minecraft, String worldDirectoryName) {
 		initialize(minecraft);
-		HostController active = controller;
+		HostController active = usableController();
 		if (active == null) {
 			BLOCKED_OPEN_SCREEN.set(BlockedOpenScreen.GAME_DIRECTORY);
 			return true;
@@ -117,7 +142,7 @@ public final class BtaAnywhereMod implements ModInitializer {
 
 	public static boolean blockNewSinglePlayerWorld(Minecraft minecraft) {
 		initialize(minecraft);
-		if (controller == null) {
+		if (usableController() == null) {
 			BLOCKED_OPEN_SCREEN.set(BlockedOpenScreen.GAME_DIRECTORY);
 			return true;
 		}
@@ -128,6 +153,16 @@ public final class BtaAnywhereMod implements ModInitializer {
 		return true;
 	}
 
+	private static HostController usableController() {
+		HostController active = controller;
+		return active != null && active.hasActiveGameDirectoryLease() ? active : null;
+	}
+
+	private static String directoryFailureMessage() {
+		return gameDirectoryFailure == null
+			? GameDirectoryLease.UNAVAILABLE_MESSAGE : gameDirectoryFailure;
+	}
+
 	private static void initialize(Minecraft minecraft) {
 		if (controller != null || gameDirectoryFailure != null) {
 			return;
@@ -136,9 +171,9 @@ public final class BtaAnywhereMod implements ModInitializer {
 			if (controller != null || gameDirectoryFailure != null) {
 				return;
 			}
-			GameDirectoryLease acquired;
+			HostController created;
 			try {
-				acquired = GameDirectoryLease.acquire(minecraft.getMinecraftDir().toPath());
+				created = HostController.open(minecraft.getMinecraftDir().toPath());
 			} catch (GameDirectoryLease.InUseException exception) {
 				config = new BtaAnywhereConfig();
 				gameDirectoryFailure = GameDirectoryLease.IN_USE_MESSAGE;
@@ -158,25 +193,11 @@ public final class BtaAnywhereMod implements ModInitializer {
 					LOGGER.error("Could not load BTA Anywhere configuration; using an in-memory default");
 					config = new BtaAnywhereConfig();
 				}
-				HostController created = new HostController(minecraft.getMinecraftDir().toPath(), acquired);
-				Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-					try {
-						created.close();
-					} finally {
-						try {
-							acquired.close();
-						} catch (IOException exception) {
-							LOGGER.error("Could not release BTA Anywhere game directory lease");
-						}
-					}
-				}, "bta-anywhere-shutdown"));
+				Runtime.getRuntime().addShutdownHook(new Thread(created::close,
+					"bta-anywhere-shutdown"));
 				controller = created;
 			} catch (RuntimeException exception) {
-				try {
-					acquired.close();
-				} catch (IOException ignored) {
-					// The failed client cannot continue; Windows releases the handle on exit.
-				}
+				created.close();
 				config = new BtaAnywhereConfig();
 				gameDirectoryFailure = GameDirectoryLease.UNAVAILABLE_MESSAGE;
 				LOGGER.error("BTA Anywhere could not initialize with an exclusive game directory lease");
