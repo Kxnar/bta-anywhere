@@ -33,6 +33,11 @@ All listed artifacts are local ignored files under
 source of the statuses below. Earlier exact shell invocations were not retained;
 profile, commit, toolchains, configuration, and artifact hashes are in each
 JSON. These were synthetic loopback runs, not a real player trial.
+For schema 2-7, the `commit` field was the Git checkout from which the harness
+was run; it did not identify the source checkout of each artifact argument.
+The artifact SHA-256 values identify the measured files, but those older JSON
+files alone cannot prove which source commit built them. Keep this limitation
+when using the historical table for an interview or candidate comparison.
 Every artifact in the table records the same production relay SHA-256
 `8a87166e976f1bae14ea1a5a0a4ce5b3f438ef35e09a1a27961dd18ee6c37a88`
 and tunnel JAR SHA-256
@@ -67,7 +72,7 @@ different observed failure shapes. A shared underlying cause has not been
 established. Earlier full-sequence stalls prompted the diagnostic profiles;
 the schema-3/4 JSON records separate failed runs, although schema 3 omitted
 its failing case.
-No schema-5, schema-6, or schema-7 full baseline or two-hour soak result exists in this
+No schema-5, schema-6, schema-7, or schema-8 full baseline or two-hour soak result exists in this
 worktree.
 
 The schema-4 sender counts of about 1.4–1.9 MiB per stream are near the Java
@@ -163,6 +168,25 @@ reproduce the actual relay stall. The 16 benchmark unit tests and Python syntax
 check passed. The shared-port eight-stream diagnostic has **not** been run with
 this change while concurrent EOF integration work is active. Run it with the
 command in `docs/benchmarking.md` before interpreting this instrumentation.
+
+## Schema 8 artifact provenance (2026-09-25)
+
+Alternating candidate and baseline runs may pass binaries from different
+worktrees to the same benchmark script. Schema 8 therefore records separate
+Git revision and dirty status for the harness script, relay executable, and
+tunnel JAR, inferred from each file's containing checkout. Missing or unreadable
+checkout state is explicitly `unavailable`. It also retains each artifact's
+SHA-256, which identifies the exact file measured. No source checkout path or
+raw Git error enters the JSON. This provenance is an inference from file
+location, not a cryptographic build attestation; copied artifacts and dirty
+builds need independent build records before a source-level comparison.
+
+`python -m unittest discover -s scripts -p test_benchmark_relay.py` passed
+18 tests, including a temporary Git checkout test for clean, dirty, and
+outside-checkout artifacts, and a summary test with three distinct source
+revisions. Python syntax and `git diff --check` also passed. No shared-port
+benchmark was run for this reporting-only change. The full baseline, focused
+stall reproduction, five clean-process integration runs, and soak remain open.
 
 ## Open acceptance gates
 

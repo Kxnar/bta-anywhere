@@ -33,7 +33,7 @@ import traceback
 from datetime import datetime, timezone
 from pathlib import Path
 
-SCHEMA_VERSION = 7
+SCHEMA_VERSION = 8
 SIZES = (1024, 65536, 1048576)
 ACTIVE_METRIC = "bta_anywhere_active_connections"
 CHUNK = 65536
@@ -522,6 +522,40 @@ def process_sample(process: subprocess.Popen[str]) -> dict[str, float | int]:
             "peak_working_set_bytes": memory.PeakWorkingSetSize}
 
 
+def source_provenance(artifact: Path) -> dict[str, str | bool]:
+    """Infer source revision from the checkout containing a file, without retaining paths."""
+
+    def git(directory: Path, *args: str) -> subprocess.CompletedProcess[str] | None:
+        try:
+            return subprocess.run(["git", "-C", str(directory), *args], text=True,
+                                  capture_output=True, timeout=10, check=False)
+        except (OSError, subprocess.TimeoutExpired):
+            return None
+
+    root_query = git(artifact.parent, "rev-parse", "--show-toplevel")
+    if root_query is None:
+        return {"status": "unavailable", "reason": "git_query_unavailable"}
+    if root_query.returncode != 0 or not root_query.stdout.strip():
+        return {"status": "unavailable", "reason": "not_in_git_checkout"}
+    root = Path(root_query.stdout.strip())
+    head_query = git(root, "rev-parse", "HEAD")
+    dirty_query = git(root, "status", "--porcelain=v1", "--untracked-files=normal")
+    if (head_query is None or dirty_query is None or head_query.returncode != 0
+            or dirty_query.returncode != 0):
+        return {"status": "unavailable", "reason": "git_query_unavailable"}
+    commit = head_query.stdout.strip()
+    if not re.fullmatch(r"[0-9a-fA-F]{40,64}", commit):
+        return {"status": "unavailable", "reason": "source_commit_unavailable"}
+    return {"status": "available", "commit": commit.lower(),
+            "dirty": bool(dirty_query.stdout.strip())}
+
+
+def provenance_label(source: dict | None) -> str:
+    if source and source.get("status") == "available":
+        return f"`{source['commit']}` (dirty={source['dirty']})"
+    return f"unavailable ({(source or {}).get('reason', 'not_recorded')})"
+
+
 def machine_info(java: str) -> dict:
     def output(command: list[str]) -> str:
         result = subprocess.run(command, text=True, capture_output=True, timeout=15, check=True)
@@ -992,8 +1026,21 @@ def run_diagnostic_eight_relay(rig: Rig, seed: int, result: dict) -> dict:
 
 def markdown(result: dict) -> str:
     lines = ["# BTA Anywhere loopback benchmark", "", f"Status: **{result['status']}**; profile: `{result['profile']}`; schema: {result.get('schema_version', SCHEMA_VERSION)}.",
-             "", f"Commit: `{result['commit']}`. Windows x86-64, release relay and shaded tunnel.", "",
-             "| Streams | Size | Mode | Direct p95 ms | Relay p95 ms | Relay added p95 ms |", "|---:|---:|---|---:|---:|---:|"]
+             "", "Windows x86-64, release relay and shaded tunnel."]
+    if sources := result.get("source_provenance"):
+        lines += [f"Harness source: {provenance_label(sources.get('harness'))}.",
+                  f"Relay artifact source: {provenance_label(sources.get('relay'))}.",
+                  f"Tunnel artifact source: {provenance_label(sources.get('tunnel'))}."]
+        if artifacts := result.get("artifacts"):
+            lines.append(f"Artifact SHA-256: relay `{artifacts['relay_sha256']}`; "
+                         f"tunnel `{artifacts['tunnel_sha256']}`.")
+        lines.append("Source revisions are inferred from the containing Git checkouts; "
+                     "the artifact hashes identify the measured files.")
+    else:
+        lines.append(f"Legacy reported commit: `{result.get('commit', 'unavailable')}`; "
+                     "artifact source revisions were not recorded.")
+    lines += ["", "| Streams | Size | Mode | Direct p95 ms | Relay p95 ms | Relay added p95 ms |",
+              "|---:|---:|---|---:|---:|---:|"]
     for case in result.get("latency") or result.get("latency_partial", []):
         lines.append(f"| {case['concurrency']} | {case['payload_bytes']} | {case['mode']} | "
                      f"{case['paths']['direct']['latency_ms']['p95']:.2f} | "
@@ -1070,9 +1117,13 @@ def main() -> int:
     relay_binary, tunnel_jar = args.relay_binary.resolve(), args.tunnel_jar.resolve()
     if not relay_binary.is_file() or not tunnel_jar.is_file():
         raise SystemExit("release relay binary and shaded tunnel JAR must exist")
-    commit = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+    sources = {"method": "containing_git_checkout",
+               "harness": source_provenance(Path(__file__).resolve()),
+               "relay": source_provenance(relay_binary),
+               "tunnel": source_provenance(tunnel_jar)}
     result = {"schema_version": SCHEMA_VERSION, "status": "FAILED", "profile": args.profile,
-              "commit": commit, "started_utc": datetime.now(timezone.utc).isoformat(),
+              "source_provenance": sources,
+              "started_utc": datetime.now(timezone.utc).isoformat(),
               "configuration": {"seed": args.seed, "sizes_bytes": SIZES, "concurrency": [1, 8],
                                 "accepts_per_minute_test_override": 10000,
                                 "relay_log_level_during_measurement": "warn",

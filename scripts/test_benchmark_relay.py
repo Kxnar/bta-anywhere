@@ -2,9 +2,13 @@
 
 import socket
 import socketserver
+import subprocess
+import tempfile
 import threading
 import unittest
 import math
+import shutil
+from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
@@ -128,6 +132,57 @@ class BenchmarkTests(unittest.TestCase):
     def test_generated_payload_is_reproducible(self):
         self.assertEqual(benchmark.payload(17, 1024, 4), benchmark.payload(17, 1024, 4))
         self.assertNotEqual(benchmark.payload(17, 1024, 4), benchmark.payload(17, 1024, 5))
+
+    @unittest.skipUnless(shutil.which("git"), "Git unavailable")
+    def test_artifact_provenance_uses_its_checkout_and_reports_dirty_or_unavailable(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            repo = Path(temporary) / "candidate"
+            repo.mkdir()
+            subprocess.run(["git", "init", "-q", str(repo)], check=True, capture_output=True)
+            (repo / ".gitignore").write_text("target/\n", encoding="utf-8")
+            tracked = repo / "source.txt"
+            tracked.write_text("original", encoding="utf-8")
+            subprocess.run(["git", "-C", str(repo), "add", ".gitignore", "source.txt"],
+                           check=True, capture_output=True)
+            subprocess.run(["git", "-C", str(repo), "-c", "user.name=Benchmark Test",
+                            "-c", "user.email=benchmark@example.invalid", "commit", "-qm", "source"],
+                           check=True, capture_output=True)
+            binary = repo / "target" / "relay.exe"
+            binary.parent.mkdir()
+            binary.write_bytes(b"synthetic artifact")
+            expected = subprocess.check_output(["git", "-C", str(repo), "rev-parse", "HEAD"],
+                                               text=True).strip()
+            clean = benchmark.source_provenance(binary)
+            self.assertEqual(clean, {"status": "available", "commit": expected, "dirty": False})
+            tracked.write_text("modified", encoding="utf-8")
+            self.assertTrue(benchmark.source_provenance(binary)["dirty"])
+            tracked.write_text("original", encoding="utf-8")
+            (repo / "untracked.txt").write_text("new", encoding="utf-8")
+            self.assertTrue(benchmark.source_provenance(binary)["dirty"])
+            outside = Path(temporary) / "copied-relay.exe"
+            outside.write_bytes(b"copy")
+            unavailable = benchmark.source_provenance(outside)
+            self.assertEqual(unavailable, {"status": "unavailable", "reason": "not_in_git_checkout"})
+            self.assertNotIn(str(repo), str(clean) + str(unavailable))
+            with mock.patch.object(benchmark.subprocess, "run", side_effect=OSError("private path")):
+                self.assertEqual(benchmark.source_provenance(binary),
+                                 {"status": "unavailable", "reason": "git_query_unavailable"})
+
+    def test_markdown_distinguishes_harness_relay_and_tunnel_sources(self):
+        report = benchmark.markdown({
+            "status": "PASS", "profile": "smoke", "schema_version": 8,
+            "source_provenance": {"method": "containing_git_checkout",
+                                  "harness": {"status": "available", "commit": "a" * 40,
+                                              "dirty": False},
+                                  "relay": {"status": "available", "commit": "b" * 40,
+                                            "dirty": True},
+                                  "tunnel": {"status": "unavailable",
+                                             "reason": "not_in_git_checkout"}},
+            "artifacts": {"relay_sha256": "c" * 64, "tunnel_sha256": "d" * 64}})
+        self.assertIn("Harness source: `" + "a" * 40 + "` (dirty=False)", report)
+        self.assertIn("Relay artifact source: `" + "b" * 40 + "` (dirty=True)", report)
+        self.assertIn("Tunnel artifact source: unavailable (not_in_git_checkout)", report)
+        self.assertIn("relay `" + "c" * 64 + "`", report)
 
     def test_diagnostic_progress_is_bounded_and_rejects_invalid_updates(self):
         with self.assertRaises(ValueError):

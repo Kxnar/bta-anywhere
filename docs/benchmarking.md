@@ -26,8 +26,10 @@ baseline. Run the unchanged commit three times, preferably interleaving a
 candidate between baseline runs on the same machine. Compare median throughput
 and p95 latency. Variation above 15% between unchanged runs blocks performance
 comparison until the environmental cause is recorded. A candidate comparison
-uses the same seed, machine, binaries built from each recorded commit, and
-configuration. Do not move a threshold after seeing the result.
+uses the same seed, machine, binaries built from each recorded source commit,
+and configuration. Confirm relay and tunnel artifact source fields before
+attributing a difference to a candidate. Do not move a threshold after seeing
+the result.
 
 The full profile covers both direct and relayed TCP, 1 and 8 streams, 1 KiB,
 64 KiB, and 1 MiB payloads, request/response and half-close modes. Each latency
@@ -79,8 +81,9 @@ smoke run as the two-hour gate.
 
 `benchmark-results/` is ignored because results are machine-specific. Keep
 the JSON and generated Markdown with the review, not in the repository. JSON
-schema version 7 includes environment and toolchains, commit and artifact
-hashes, test configuration, raw samples, aggregate p50/p95/p99, CPU time,
+schema version 8 includes environment and toolchains, separate harness, relay,
+and tunnel source revisions, artifact hashes, test configuration, raw samples,
+aggregate p50/p95/p99, CPU time,
 working set/peak resident memory, reconnection, failures, and run duration.
 The soak records memory samples for manual growth review; a successful data
 transfer run alone does not close that review gate.
@@ -142,6 +145,22 @@ comparison against normal mode. No payload bytes, addresses, tokens, or raw
 exception messages enter the progress samples. The counter array is capped at
 eight streams and the time series at 90 samples; failed runs still exit nonzero
 and retain the final snapshot.
+
+Schema 8 records `source_provenance.harness`, `.relay`, and `.tunnel`
+independently. Each available entry has a Git commit and a `dirty` boolean for
+tracked or untracked, non-ignored checkout changes at measurement time. The
+harness entry comes from the checkout containing this Python script; relay and
+tunnel entries come from the checkout containing each supplied artifact path.
+An artifact outside a Git checkout, or one whose Git state cannot be read,
+gets `status: unavailable` with a reason. No checkout paths or Git error text
+are retained in this field. The existing SHA-256 values identify the exact
+relay executable and tunnel JAR measured. Checkout inference alone does not
+prove that a file was built from that commit, especially when it was copied
+or the checkout was dirty; keep build commands and hashes with a review.
+Earlier schema 2-7 `commit` values identify the working checkout used to run
+the harness and cannot independently identify artifacts passed from another
+checkout. Do not attribute a candidate result from those files using that
+field alone. The artifact hashes remain usable for file identity.
 
 The test config binds all services to loopback and raises only its disposable
 relay's per-source accept rate from 30 to 10,000/minute so repeated latency
