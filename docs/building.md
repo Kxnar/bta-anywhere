@@ -136,4 +136,7 @@ The full profile requires a clean Git worktree, fixes 50 deterministic synthetic
 
 The separate Workstream 2 performance gate measures median pre-server-launch orchestration time from a same-machine baseline and candidate with injection disabled. Relay/tunnel throughput measurements do not cover that gate. No pre-launch timing comparison is recorded by this campaign.
 
+The historical implementation, retained synthetic campaign, skipped checks, and
+remaining review gates are recorded in [Workstream 2 evidence](workstream2-evidence.md).
+
 The normal test suite also runs representative hard-crash child JVMs. File and journal crashes retain hidden partial artifacts or an incomplete journal for inspection. The controller crash fixture stops its fake supervisor only after matching the supervisor and server PID, start time, and executable with the private control file, then sending authenticated `STOP`. It preserves the fixture if that verification fails. These tests use a fake server and a synthetic world; the BTA game-thread save/unload path and forced-shutdown scenarios still require manual disposable-world testing.
