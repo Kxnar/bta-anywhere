@@ -17,7 +17,7 @@ public abstract class ScreenMainMenuMixin {
 	@Inject(method = "init", at = @At("TAIL"))
 	private void btaAnywhere$addRecoveryButton(CallbackInfo callback) {
 		Screen screen = (Screen) (Object) this;
-		if (BtaAnywhereMod.controller(screen.mc).recovery().isEmpty()) {
+		if (!BtaAnywhereMod.controller(screen.mc).hasRecoveryArtifacts()) {
 			return;
 		}
 		screen.buttons.add(new ButtonElement(

@@ -63,6 +63,8 @@ public final class HostingScreen extends Screen {
 		super(parent);
 		controller = BtaAnywhereMod.controller(mc);
 		config = BtaAnywhereMod.config(mc);
+		// A reopened hosting screen must not hand off a different world for an active start.
+		handoffPerformed = controller.status().state().isBusy();
 	}
 
 	@Override
@@ -114,6 +116,7 @@ public final class HostingScreen extends Screen {
 				}
 				// BTA's native changeWorld(null) path forces a save, waits for chunk I/O,
 				// unloads all chunks, invokes onUnload, and closes LevelStorage on the game thread.
+				controller.beforeWorldSave();
 				mc.changeWorld(null);
 				controller.continueAfterWorldClosed();
 			} catch (RuntimeException exception) {

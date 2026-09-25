@@ -4,10 +4,22 @@ BTA Anywhere writes `bta-anywhere/recovery.json` before starting the managed pro
 
 On the next launch, the mod validates every recorded path and matches process identity before enabling an action. It never kills a process based on PID alone and never restores a backup automatically.
 
+The ordinary single-player world selector checks both the current in-process Live handoff and the recovery journal before opening a save. It blocks the original Live world during backup and launch even before the journal exists; existing alternate save paths are compared by file identity, and differently cased names are blocked. The hosting screen shows the in-process state and stop control; a journal block opens the recovery screen. Other worlds remain available. A valid Showcase journal leaves the original world available because the managed server uses a separate copy. If the journal is malformed or an update is incomplete, the active world cannot be identified safely, so all single-player opens and new-world creation are blocked. The appropriate screen opens on the next client tick. Do not bypass the guard by opening the save through another tool or mod.
+
+Startup records launch intent in its first published journal, immediately after
+the backup or Showcase copy and before mod mirroring or supervisor start. A
+journal without complete supervisor/server identity, an interrupted
+`recovery.json.tmp` update, malformed JSON, or a live PID with a different
+start time or executable blocks both **Open Original** and **Restore Backup**.
+The recovery screen explains that process and file inspection is needed. An
+absent recorded PID is not proof that no server owns a save. This also applies
+to older journals created before launch intent was recorded.
+
 ## Recovery actions
 
 - **Reconnect** is available only when the exact supervisor and server are alive and the supervisor reports ready. It reconnects to `127.0.0.1`; relay and automatic direct mapping may need to be established again.
 - **Graceful Stop** authenticates to the matching supervisor, sends the BTA `stop` command, waits, and cleans a showcase copy only after a clean exit.
+- If control data or either process identity is missing or mismatched, stop fails and leaves the process and journal for manual inspection. A failed authenticated STOP is not followed by an unauthenticated client-side force kill. The supervisor may force-stop its own verified child after a valid authenticated STOP times out; that result is unclean and retains the journal.
 - **Open Logs** opens the recorded log or log directory.
 - **Restore Backup** is available only for a live-world session with a managed backup and no matching process alive. It requires a second confirmation.
 - **Open Original (keep recovery files)** is available only when no matching process owns the save. It clears the active journal so BTA can open the original while retaining logs, backups, and crash artifacts for manual inspection.
@@ -34,5 +46,7 @@ If the recovery screen cannot validate the journal:
 4. Use the OS process viewer to determine whether a Java process is still running the exact managed `fabric-server-launch.jar`. Do not kill an unrelated Java PID.
 5. If uncertain, rebooting prevents a stale server process from retaining the save, but it does not repair save data.
 6. Preserve the original save, newest backup, showcase copy, recovery journal, and log before reporting the problem.
+
+For an incomplete identity or interrupted journal update, check both `recovery.json` and `recovery.json.tmp` and verify that neither the managed supervisor nor its server is alive before reopening the original save outside BTA Anywhere. If a PID now belongs to a different process, leave that process alone. The recovery UI deliberately cannot clear this ambiguity for you.
 
 Never unzip a backup over an open world. Never copy a live save into the managed server. Avoid manually editing `level.dat`; BTA 8.0.1 already persists the player's UUID data in the format its dedicated server reads.

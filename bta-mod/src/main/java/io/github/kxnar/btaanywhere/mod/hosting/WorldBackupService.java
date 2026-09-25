@@ -27,13 +27,19 @@ public final class WorldBackupService {
 	private static final DateTimeFormatter TIMESTAMP =
 		DateTimeFormatter.ofPattern("uuuuMMdd-HHmmss").withZone(ZoneOffset.UTC);
 	private final Clock clock;
+	private final HostingFaults faults;
 
 	public WorldBackupService() {
 		this(Clock.systemUTC());
 	}
 
 	WorldBackupService(Clock clock) {
+		this(clock, HostingFaults.NONE);
+	}
+
+	WorldBackupService(Clock clock, HostingFaults faults) {
 		this.clock = Objects.requireNonNull(clock, "clock");
+		this.faults = Objects.requireNonNull(faults, "faults");
 	}
 
 	public long validateSpace(Path worldDirectory, Path managedDirectory) throws IOException {
@@ -68,6 +74,7 @@ public final class WorldBackupService {
 		Path temporary = backupDirectory.resolve("." + destination.getFileName() + ".tmp-" + UUID.randomUUID());
 		try {
 			writeZip(world, temporary);
+			faults.hit(HostingFaults.Point.BEFORE_BACKUP_OR_COPY_PUBLICATION);
 			moveAtomically(temporary, destination);
 		} finally {
 			Files.deleteIfExists(temporary);
@@ -86,6 +93,7 @@ public final class WorldBackupService {
 		Path temporary = showcaseDirectory.resolve("." + destination.getFileName() + ".partial-" + UUID.randomUUID());
 		try {
 			copyTree(world, temporary);
+			faults.hit(HostingFaults.Point.BEFORE_BACKUP_OR_COPY_PUBLICATION);
 			moveAtomically(temporary, destination);
 		} catch (IOException | RuntimeException exception) {
 			deleteManagedTree(temporary, showcaseDirectory);
@@ -118,7 +126,7 @@ public final class WorldBackupService {
 		return size[0];
 	}
 
-	private static void writeZip(Path world, Path destination) throws IOException {
+	private void writeZip(Path world, Path destination) throws IOException {
 		try (ZipOutputStream output = new ZipOutputStream(
 			new BufferedOutputStream(Files.newOutputStream(destination)))) {
 			Files.walkFileTree(world, new SimpleFileVisitor<>() {
@@ -149,13 +157,14 @@ public final class WorldBackupService {
 						input.transferTo(output);
 					}
 					output.closeEntry();
+					faults.hit(HostingFaults.Point.DURING_BACKUP_OR_COPY);
 					return FileVisitResult.CONTINUE;
 				}
 			});
 		}
 	}
 
-	private static void copyTree(Path source, Path destination) throws IOException {
+	private void copyTree(Path source, Path destination) throws IOException {
 		Files.walkFileTree(source, new SimpleFileVisitor<>() {
 			@Override
 			public FileVisitResult preVisitDirectory(Path directory, BasicFileAttributes attributes) throws IOException {
@@ -173,6 +182,7 @@ public final class WorldBackupService {
 				}
 				Files.copy(file, destination.resolve(source.relativize(file)),
 					StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
+				faults.hit(HostingFaults.Point.DURING_BACKUP_OR_COPY);
 				return FileVisitResult.CONTINUE;
 			}
 		});

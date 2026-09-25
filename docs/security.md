@@ -17,6 +17,9 @@ The relay access token controls who may allocate relay ports. It is not a guest 
 - Official server archive pinning, a 256 MiB download cap, traversal/absolute-path/symbolic-link rejection, and staged extraction.
 - World path confinement, symbolic-link rejection, disk-headroom checks, atomic backup/journal writes, and no automatic restore.
 - Process recovery matching on PID, start time, and executable; supervisor commands also require a private random control token.
+- Managed-process STOP checks the retained supervisor and server identity against the private control file before sending the authenticated command. A failed control request retains recovery evidence rather than force-killing a process from the client.
+- Recovery fails closed for incomplete launch identity, malformed/interrupted journals, and live PID identity mismatches; test-only fault callbacks cannot be enabled through production configuration.
+- Ordinary BTA single-player opens are guarded against reopening the original Live save during in-process handoff and while its recovery journal remains; an unidentifiable journal blocks all single-player opens.
 - Online mode, whitelist, maximum-player limit, automatic host operator entry, and warning confirmation before whitelist disablement.
 
 ## Operator responsibilities

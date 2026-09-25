@@ -5,6 +5,8 @@ import io.github.kxnar.btaanywhere.mod.config.ConfigStore;
 import io.github.kxnar.btaanywhere.mod.gui.HostingScreen;
 import io.github.kxnar.btaanywhere.mod.gui.RecoveryScreen;
 import io.github.kxnar.btaanywhere.mod.hosting.HostController;
+import io.github.kxnar.btaanywhere.mod.hosting.WorldOpenGuard;
+import java.util.concurrent.atomic.AtomicReference;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Screen;
@@ -21,6 +23,9 @@ public final class BtaAnywhereMod implements ModInitializer {
 	private static final Object INITIALIZATION_LOCK = new Object();
 	private static volatile HostController controller;
 	private static volatile BtaAnywhereConfig config;
+	private static final AtomicReference<BlockedOpenScreen> BLOCKED_OPEN_SCREEN = new AtomicReference<>();
+
+	private enum BlockedOpenScreen { HOSTING, RECOVERY }
 
 	@Override
 	public void onInitialize() {
@@ -31,7 +36,7 @@ public final class BtaAnywhereMod implements ModInitializer {
 	private void afterGameStart() {
 		Minecraft minecraft = Minecraft.getMinecraft();
 		initialize(minecraft);
-		if (controller.recovery().isPresent()) {
+		if (controller.hasRecoveryArtifacts()) {
 			minecraft.displayScreen(new RecoveryScreen(minecraft.currentScreen));
 		}
 	}
@@ -52,12 +57,44 @@ public final class BtaAnywhereMod implements ModInitializer {
 	}
 
 	public static void clientTick(Minecraft minecraft) {
+		BlockedOpenScreen blocked = BLOCKED_OPEN_SCREEN.getAndSet(null);
+		if (blocked != null) {
+			minecraft.displayScreen(blocked == BlockedOpenScreen.RECOVERY
+				? new RecoveryScreen(minecraft.currentScreen)
+				: new HostingScreen(minecraft.currentScreen));
+			return;
+		}
 		HostController active = controller;
 		if (active == null) {
 			return;
 		}
 		boolean multiplayerPresent = minecraft.currentWorld != null && minecraft.isMultiplayerWorld();
 		active.observeConnectedWorld(multiplayerPresent, minecraft.currentScreen instanceof ScreenConnectFailed);
+	}
+
+	public static boolean blockSinglePlayerWorldOpen(Minecraft minecraft, String worldDirectoryName) {
+		HostController active = controller(minecraft);
+		var gameDirectory = minecraft.getMinecraftDir().toPath();
+		var inMemoryLiveWorld = active.liveOriginalNeedingGuard();
+		if (inMemoryLiveWorld.isPresent()
+			&& WorldOpenGuard.blocksLiveWorld(gameDirectory, worldDirectoryName, inMemoryLiveWorld.get())) {
+			BLOCKED_OPEN_SCREEN.set(active.hasRecoveryArtifacts()
+				? BlockedOpenScreen.RECOVERY : BlockedOpenScreen.HOSTING);
+			return true;
+		}
+		if (WorldOpenGuard.blocks(gameDirectory, worldDirectoryName)) {
+			BLOCKED_OPEN_SCREEN.set(BlockedOpenScreen.RECOVERY);
+			return true;
+		}
+		return false;
+	}
+
+	public static boolean blockNewSinglePlayerWorld(Minecraft minecraft) {
+		if (!WorldOpenGuard.blocksNewWorld(minecraft.getMinecraftDir().toPath())) {
+			return false;
+		}
+		BLOCKED_OPEN_SCREEN.set(BlockedOpenScreen.RECOVERY);
+		return true;
 	}
 
 	private static void initialize(Minecraft minecraft) {

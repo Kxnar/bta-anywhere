@@ -31,6 +31,8 @@ Record the Windows version, architecture, Java runtime, BTA profile, and mod lis
 - [ ] Clean stop removes only a showcase copy; crash retains it.
 - [ ] Confirmed restore moves the current save aside and never runs while a recorded process matches.
 
+For crash-consistency fault-injection changes, additionally run the full synthetic fault campaign documented in [Building](building.md) three times with clean temporary directories, then complete five distinct manual disposable-world interruptions: client termination, supervisor termination, server termination, forced Windows shutdown, and malformed recovery data. Record the original-world manifest, journal/copy/backup state, process identities, and recovery-screen actions for each. Automated fake-server tests do not check these boxes.
+
 Do not check a box based only on a unit test. Attach sanitized logs and the disposable test procedure to the release notes or tracking issue.
 
 ## 3. Inspect artifacts
