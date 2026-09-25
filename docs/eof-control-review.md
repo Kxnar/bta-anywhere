@@ -66,6 +66,12 @@ measured capacity or a production default. All services bind to loopback.
 | Final `3e0fe53` schema-8 full profile, run 1 | PASS in 1,339.74 s; zero transfer failures, mismatches, missing EOFs, timeouts, or leaked gauges; eight-stream relay throughput median 18.50 MiB/s; process-restart endpoint changed, 55-second link drop resumed the bridge-backed endpoint | One of three unchanged runs; no valid pre-fix full baseline; no soak |
 | Mixed version checks | Three old-host/new-relay serial half-closes PASS; new-host/old-relay registration fails with upgrade instruction | Focused compatibility checks |
 
+During the final full profile, the relay used 575.03 process CPU seconds and
+peaked at 24.73 MiB working set; the tunnel used 945.97 process CPU seconds
+and peaked at 419.75 MiB. Both processes terminated cleanly. These are
+single-run synthetic loopback measurements and have no accepted before/after
+memory comparison yet.
+
 The earlier full-profile relay and tunnel hashes were
 `a28615a1fa0b098da0c6c7d1debbaef5769d411b4c1c2d8f9afe89968c2f72f8`
 and `f4b88f4b20a51d5406d48024a44d90c312f5e7154f081a7a0d9297b045b60732`.
