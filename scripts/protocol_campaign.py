@@ -441,15 +441,15 @@ def compare_results(rust: list[dict], java: list[dict], kinds: list[str]) -> dic
     typed_mismatches = 0
     counts = {}
     for index, (left, right) in enumerate(zip(rust, java)):
-        if left.get("id") != index or right.get("id") != index:
+        if not semantic_equal(left.get("id"), index) or not semantic_equal(right.get("id"), index):
             raise ValueError(f"evaluator output ID is missing or out of order at case {index}")
         kind = kinds[index]
         counts[kind] = counts.get(kind, 0) + 1
-        framing_differs = (left["accepted"] != right["accepted"]
+        framing_differs = (not semantic_equal(left["accepted"], right["accepted"])
                            or not semantic_equal(left["semantic"], right["semantic"]))
-        typed_differs = (left["typedAccepted"] != right["typedAccepted"]
+        typed_differs = (not semantic_equal(left["typedAccepted"], right["typedAccepted"])
                          or not semantic_equal(left["typedSemantic"], right["typedSemantic"])
-                         or left["stateOutcome"] != right["stateOutcome"])
+                         or not semantic_equal(left["stateOutcome"], right["stateOutcome"]))
         framing_mismatches += int(framing_differs)
         typed_mismatches += int(typed_differs)
         if framing_differs or typed_differs:

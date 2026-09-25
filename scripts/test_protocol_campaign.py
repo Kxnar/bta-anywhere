@@ -129,11 +129,28 @@ class ProtocolCampaignTest(unittest.TestCase):
         self.assertEqual(report["framingMismatchCount"], 1)
         self.assertFalse(report["mismatches"][0]["semanticEqual"])
 
+    def test_comparison_preserves_types_in_result_flags_and_state(self):
+        rust = {"id": 0, "accepted": True, "semantic": None,
+                "typedAccepted": False, "typedSemantic": None,
+                "stateOutcome": True}
+        for field, replacement, framing, typed in (
+                ("accepted", 1, 1, 0),
+                ("typedAccepted", 0, 0, 1),
+                ("stateOutcome", 1, 0, 1)):
+            with self.subTest(field=field):
+                java = {**rust, field: replacement}
+                report = campaign.compare_results([rust], [java], ["case"])
+                self.assertEqual(report["mismatchCount"], 1)
+                self.assertEqual(report["framingMismatchCount"], framing)
+                self.assertEqual(report["typedMismatchCount"], typed)
+
     def test_comparison_rejects_missing_or_out_of_order_results(self):
         with self.assertRaises(ValueError):
             campaign.compare_results([], [], ["valid-ping"])
         with self.assertRaises(ValueError):
             campaign.compare_results([{"id": 1}], [{"id": 0}], ["valid-ping"])
+        with self.assertRaises(ValueError):
+            campaign.compare_results([{"id": False}], [{"id": 0}], ["valid-ping"])
 
     def test_nonempty_output_directory_is_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
