@@ -48,6 +48,13 @@ class StalledDiagnosticEcho(socketserver.BaseRequestHandler):
 
 
 class BenchmarkTests(unittest.TestCase):
+    def test_stop_process_reports_already_exited_child_as_unclean(self):
+        for returncode in (0, 7):
+            with self.subTest(returncode=returncode):
+                process = SimpleNamespace(returncode=returncode,
+                                          poll=lambda: returncode, stdin=None)
+                self.assertFalse(benchmark.stop_process(process))
+
     def test_percentile_interpolates_and_rejects_missing_samples(self):
         self.assertAlmostEqual(benchmark.percentile([1.0, 3.0, 5.0], 95), 4.8)
         self.assertEqual(benchmark.summary([1.0, 3.0])["count"], 2)

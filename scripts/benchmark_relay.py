@@ -590,7 +590,10 @@ def total_ram() -> int:
 def stop_process(process: subprocess.Popen[str] | None, graceful: bool = False) -> bool:
     if process is None:
         return True
-    if process.poll() is None and graceful and process.stdin:
+    was_running = process.poll() is None
+    if not was_running:
+        return False
+    if graceful and process.stdin:
         with contextlib.suppress(OSError):
             process.stdin.write("stop\n")
             process.stdin.flush()
