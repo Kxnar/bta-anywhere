@@ -18,16 +18,16 @@ troubleshooting documentation without textual conflicts. The branches change
 different production modules: EOF changes the Rust relay and Java tunnel;
 W2 changes the BTA mod and supervisor. Review still needs to verify that
 their combined release artifacts, lifecycle, and documentation behave as
-specified. No build, test, benchmark, soak, or real-game scenario had run on
-the stacked branch when this note was written. The prior 4,350-case campaign
-and alternating timing comparison below are evidence for W2's earlier code,
-not same-commit evidence for the stacked candidate. Run the existing short
-and full W2 suites, then the serial and concurrent integration harnesses
-**sequentially** on the stacked commit. Repeat the full campaign with three
-clean synthetic fixture runs, record a release-build same-machine baseline
-and candidate comparison, and complete the five manual disposable-world
-interruptions before treating this branch as merge eligible. The two-hour
-soak and five consecutive full Windows integration runs remain open.
+specified. The controller-owned lease revision has since passed focused
+lease/crash checks and full Gradle `check build`; those results are recorded
+below. The prior 4,350-case campaign and alternating timing comparison below
+are evidence for earlier code, not same-commit evidence for the current
+candidate. Run the full campaign with three clean synthetic fixture runs, then
+the serial and concurrent integration harnesses **sequentially** on the
+stacked commit. Record a release-build same-machine baseline and candidate
+comparison, and complete the five manual disposable-world interruptions
+before treating this branch as merge eligible. The two-hour soak and five
+consecutive full Windows integration runs remain open.
 
 ### Review-discovered launch cleanup hazard
 
