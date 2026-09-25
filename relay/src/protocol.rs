@@ -68,6 +68,8 @@ pub enum FrameError {
     TooLarge(usize),
     #[error("invalid JSON frame: {0}")]
     Json(#[from] serde_json::Error),
+    #[error("JSON frame must contain an object")]
+    NotObject,
 }
 
 pub async fn read_json<R, T>(reader: &mut R) -> Result<T, FrameError>
@@ -81,6 +83,14 @@ where
     }
     let mut bytes = vec![0_u8; length];
     reader.read_exact(&mut bytes).await?;
+    if bytes
+        .iter()
+        .copied()
+        .find(|byte| !byte.is_ascii_whitespace())
+        != Some(b'{')
+    {
+        return Err(FrameError::NotObject);
+    }
     Ok(serde_json::from_slice(&bytes)?)
 }
 
@@ -120,6 +130,18 @@ mod tests {
         frame_hex: String,
     }
 
+    #[derive(Deserialize)]
+    struct MalformedDocument {
+        cases: Vec<MalformedVector>,
+    }
+
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct MalformedVector {
+        name: String,
+        frame_hex: String,
+    }
+
     #[tokio::test]
     async fn round_trips_connection_header() {
         let expected = ConnectionOpen {
@@ -142,6 +164,35 @@ mod tests {
             read_json::<_, ConnectionOpen>(&mut reader).await,
             Err(FrameError::TooLarge(_))
         ));
+    }
+
+    #[tokio::test]
+    async fn shared_malformed_object_vectors_are_rejected() {
+        let document: MalformedDocument = serde_json::from_str(include_str!(
+            "../../protocol/test-vectors/malformed-v1.json"
+        ))
+        .unwrap();
+        for case in document.cases.iter().filter(|case| {
+            case.name == "invalid-utf8-object"
+                || case.name == "non-object-array"
+                || case.name == "string-sequence"
+        }) {
+            let frame = hex::decode(&case.frame_hex).unwrap();
+            let mut reader = frame.as_slice();
+            assert!(
+                read_json::<_, ClientControl>(&mut reader).await.is_err(),
+                "{}",
+                case.name
+            );
+        }
+        let connection = document
+            .cases
+            .iter()
+            .find(|case| case.name == "invalid-utf8-connection")
+            .unwrap();
+        let frame = hex::decode(&connection.frame_hex).unwrap();
+        let mut reader = frame.as_slice();
+        assert!(read_json::<_, ConnectionOpen>(&mut reader).await.is_err());
     }
 
     #[test]

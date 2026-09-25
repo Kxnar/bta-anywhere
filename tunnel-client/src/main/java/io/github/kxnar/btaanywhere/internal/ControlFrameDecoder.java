@@ -7,7 +7,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.CorruptedFrameException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 final class ControlFrameDecoder extends ByteToMessageDecoder {
@@ -28,12 +27,12 @@ final class ControlFrameDecoder extends ByteToMessageDecoder {
 		byte[] json = new byte[(int) length];
 		input.readBytes(json);
 		try {
-			var value = JsonParser.parseString(new String(json, StandardCharsets.UTF_8));
+			var value = JsonParser.parseString(ProtocolFrames.decodeUtf8(json));
 			if (!value.isJsonObject()) {
 				throw new CorruptedFrameException("control frame must contain a JSON object");
 			}
 			output.add(value.getAsJsonObject());
-		} catch (JsonParseException exception) {
+		} catch (JsonParseException | IllegalArgumentException exception) {
 			throw new CorruptedFrameException("control frame contains invalid JSON", exception);
 		}
 	}

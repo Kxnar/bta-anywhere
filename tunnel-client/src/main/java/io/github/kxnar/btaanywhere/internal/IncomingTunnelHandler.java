@@ -15,7 +15,6 @@ import io.netty.channel.socket.ChannelInputShutdownReadComplete;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.incubator.codec.quic.QuicStreamChannel;
 import io.netty.util.ReferenceCountUtil;
-import java.nio.charset.StandardCharsets;
 
 /** Parses one connection header and then bridges the remaining stream to the local service. */
 final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
@@ -92,22 +91,8 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 		}
 		byte[] jsonBytes = new byte[expectedLength];
 		headerBuffer.readBytes(jsonBytes);
-		JsonObject header = GSON.fromJson(new String(jsonBytes, StandardCharsets.UTF_8), JsonObject.class);
-		if (header == null) {
-			throw new IllegalArgumentException("connection header must be a JSON object");
-		}
-		int version = ProtocolFrames.requiredInt(header, "version");
-		String headerSession = ProtocolFrames.requiredString(header, "sessionId");
-		String connectionId = ProtocolFrames.requiredString(header, "connectionId");
-		String remoteAddress = ProtocolFrames.requiredString(header, "remoteAddress");
-		if (version != ProtocolFrames.VERSION || !headerSession.equals(session.sessionId())) {
-			throw new IllegalArgumentException("connection stream belongs to an invalid protocol or session");
-		}
-		if (headerSession.isBlank() || headerSession.length() > 128
-			|| connectionId.isBlank() || connectionId.length() > 128) {
-			throw new IllegalArgumentException("connection stream identifiers are invalid");
-		}
-		validateRemoteAddress(remoteAddress);
+		JsonObject header = decodeConnectionHeader(jsonBytes);
+		validateConnectionHeader(header, session.sessionId());
 		if (headerBuffer.isReadable()) {
 			pendingPayload = headerBuffer.readRetainedSlice(headerBuffer.readableBytes());
 		}
@@ -115,6 +100,28 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 		headerBuffer = null;
 		connectLocal(context);
 		return true;
+	}
+
+	static JsonObject decodeConnectionHeader(byte[] jsonBytes) {
+		return GSON.fromJson(ProtocolFrames.decodeUtf8(jsonBytes), JsonObject.class);
+	}
+
+	static void validateConnectionHeader(JsonObject header, String expectedSession) {
+		if (header == null) {
+			throw new IllegalArgumentException("connection header must be a JSON object");
+		}
+		int version = ProtocolFrames.requiredInt(header, "version");
+		String headerSession = ProtocolFrames.requiredString(header, "sessionId");
+		String connectionId = ProtocolFrames.requiredString(header, "connectionId");
+		String remoteAddress = ProtocolFrames.requiredString(header, "remoteAddress");
+		if (version != ProtocolFrames.VERSION || !headerSession.equals(expectedSession)) {
+			throw new IllegalArgumentException("connection stream belongs to an invalid protocol or session");
+		}
+		if (headerSession.isBlank() || headerSession.length() > 128
+			|| connectionId.isBlank() || connectionId.length() > 128) {
+			throw new IllegalArgumentException("connection stream identifiers are invalid");
+		}
+		validateRemoteAddress(remoteAddress);
 	}
 
 	static void validateRemoteAddress(String value) {

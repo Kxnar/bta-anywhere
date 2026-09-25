@@ -48,6 +48,36 @@ tasks.withType<Test>().configureEach {
 	}
 }
 
+tasks.register<JavaExec>("protocolCorpus") {
+	group = "verification"
+	description = "Run the test-only Java protocol corpus evaluator"
+	maxHeapSize = "256m"
+	dependsOn(tasks.testClasses)
+	classpath = sourceSets.test.get().runtimeClasspath
+	mainClass = "io.github.kxnar.btaanywhere.internal.ProtocolCorpusMain"
+	val corpus = providers.gradleProperty("protocolCorpus")
+	val output = providers.gradleProperty("protocolCorpusOutput")
+	doFirst {
+		if (!corpus.isPresent || !output.isPresent) {
+			throw GradleException("protocolCorpus and protocolCorpusOutput properties are required")
+		}
+	}
+	argumentProviders.add(CommandLineArgumentProvider { listOf(corpus.get(), output.get()) })
+}
+
+tasks.register("protocolCorpusClasspath") {
+	group = "verification"
+	description = "Write the test-only protocol evaluator classpath for long campaigns"
+	dependsOn(tasks.testClasses)
+	val output = providers.gradleProperty("protocolCorpusClasspathOutput")
+	doLast {
+		if (!output.isPresent) {
+			throw GradleException("protocolCorpusClasspathOutput property is required")
+		}
+		file(output.get()).writeText(sourceSets.test.get().runtimeClasspath.asPath)
+	}
+}
+
 tasks.jar {
 	manifest.attributes["Main-Class"] = application.mainClass.get()
 }

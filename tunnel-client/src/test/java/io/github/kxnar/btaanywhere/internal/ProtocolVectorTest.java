@@ -1,11 +1,13 @@
 package io.github.kxnar.btaanywhere.internal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.handler.codec.DecoderException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,6 +15,68 @@ import java.util.HexFormat;
 import org.junit.jupiter.api.Test;
 
 final class ProtocolVectorTest {
+	@Test
+	void rejectsSharedMalformedUtf8AndNonObjectVectors() throws Exception {
+		Path vectors = Path.of(System.getProperty("btaAnywhereProtocolVectors"));
+		JsonObject document = JsonParser.parseString(
+			Files.readString(vectors.resolve("malformed-v1.json"), StandardCharsets.UTF_8)
+		).getAsJsonObject();
+		document.getAsJsonArray("cases").forEach(element -> {
+			JsonObject vector = element.getAsJsonObject();
+			String name = vector.get("name").getAsString();
+			if (!name.equals("invalid-utf8-object") && !name.equals("non-object-array")) {
+				return;
+			}
+			byte[] frame = HexFormat.of().parseHex(vector.get("frameHex").getAsString());
+			EmbeddedChannel decoder = new EmbeddedChannel(new ControlFrameDecoder());
+			assertThrows(DecoderException.class,
+				() -> decoder.writeInbound(decoder.alloc().buffer(frame.length).writeBytes(frame)), name);
+			decoder.finishAndReleaseAll();
+		});
+	}
+
+	@Test
+	void rejectsSharedStringSequenceAtTypedControlBoundary() throws Exception {
+		Path vectors = Path.of(System.getProperty("btaAnywhereProtocolVectors"));
+		JsonObject document = JsonParser.parseString(
+			Files.readString(vectors.resolve("malformed-v1.json"), StandardCharsets.UTF_8)
+		).getAsJsonObject();
+		for (var item : document.getAsJsonArray("cases")) {
+			JsonObject vector = item.getAsJsonObject();
+			if (!vector.get("name").getAsString().equals("string-sequence")) {
+				continue;
+			}
+			byte[] frame = HexFormat.of().parseHex(vector.get("frameHex").getAsString());
+			EmbeddedChannel decoder = new EmbeddedChannel(new ControlFrameDecoder());
+			decoder.writeInbound(decoder.alloc().buffer(frame.length).writeBytes(frame));
+			JsonObject message = decoder.readInbound();
+			assertThrows(IllegalArgumentException.class,
+				() -> ProtocolFrames.requiredUnsignedLong(message, "sequence"));
+			decoder.finishAndReleaseAll();
+			return;
+		}
+		throw new AssertionError("string-sequence vector is missing");
+	}
+
+	@Test
+	void rejectsSharedInvalidUtf8ConnectionHeader() throws Exception {
+		Path vectors = Path.of(System.getProperty("btaAnywhereProtocolVectors"));
+		JsonObject document = JsonParser.parseString(
+			Files.readString(vectors.resolve("malformed-v1.json"), StandardCharsets.UTF_8)
+		).getAsJsonObject();
+		for (var item : document.getAsJsonArray("cases")) {
+			JsonObject vector = item.getAsJsonObject();
+			if (!vector.get("name").getAsString().equals("invalid-utf8-connection")) {
+				continue;
+			}
+			byte[] frame = HexFormat.of().parseHex(vector.get("frameHex").getAsString());
+			byte[] payload = java.util.Arrays.copyOfRange(frame, Integer.BYTES, frame.length);
+			assertThrows(IllegalArgumentException.class,
+				() -> IncomingTunnelHandler.decodeConnectionHeader(payload));
+			return;
+		}
+		throw new AssertionError("invalid-utf8-connection vector is missing");
+	}
 	@Test
 	void decodesAndEncodesSharedProtocolVectorsByteExactly() throws Exception {
 		Path vectors = Path.of(System.getProperty("btaAnywhereProtocolVectors"));

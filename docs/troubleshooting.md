@@ -14,6 +14,8 @@ Relay mode is skipped until all of these are valid in `<game-directory>/config/b
 
 Use the standalone CLI's `doctor` command to distinguish native-library loading from network/TLS failures.
 
+If a protocol corpus run fails, inspect its `summary.json` and the bounded case IDs in the ignored `.dev/protocol-campaign/` output. Re-run with the recorded seed and case count. A typed mismatch means a wire-compatibility decision is needed; changing the seed, frame limit, or gate to obtain a pass would hide the failure. Do not attach live tokens or player traffic to a corpus report.
+
 ## Direct mode displays `<your-public-ip>`
 
 No PCP, NAT-PMP, or UPnP gateway returned a usable public address. Causes include router support being disabled, a host firewall, multiple nested routers, ISP CGNAT, or a private/CGNAT mapping result.

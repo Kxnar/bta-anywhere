@@ -81,6 +81,29 @@ python scripts\windows_half_close_smoke.py `
 45,076-byte regression size. Failure output includes the iteration label, guest
 source port, relay metrics, and bounded process logs.
 
+## Protocol conformance campaign
+
+On Windows x86-64, run the seeded short corpus after setting JDK 21 as `JAVA_HOME`:
+
+```powershell
+python scripts\protocol_campaign.py --seed 20260925 --count 10000 `
+  --output .dev\protocol-campaign\seed-20260925
+```
+
+The command runs the Rust release test evaluator and Java test evaluator against identical framed bytes. It writes `corpus.jsonl`, both raw outcome files, and `summary.json` beneath the ignored output directory. The summary separates framing/JSON equivalence from typed control/header and modelled state/authentication decisions. It exits nonzero for any difference. The corpus includes exact 0, 1, 65,536, and 65,537 byte boundaries, truncation, invalid UTF-8, duplicate and unknown fields, deep nesting, invalid authentication, wrong version, and wrong registration phase. The evaluator has a 600-second timeout per process; the 64 KiB wire cap is unchanged.
+
+`python -m unittest discover -s scripts -p test_protocol_campaign.py` checks deterministic generation, exact frame boundaries, and failure aggregation without launching either runtime. A short cross-language CI profile is proposed but not wired into the existing workflow while the documented conformance differences remain unresolved; the raw 10,000-case command currently exits nonzero.
+
+For a long manual campaign, run:
+
+```powershell
+python scripts\protocol_long_campaign.py --seed 20260925 `
+  --minutes-per-target 30 --batch-count 10000 --max-wall-hours 12 `
+  --max-rss-mib 512 --output .dev\protocol-campaign\long-20260925
+```
+
+This measures evaluator process CPU time for framing, typed control, connection headers, and modelled state separately; completion requires at least 30 CPU minutes in each target. Each batch has a 600-second timeout, Java uses a 256 MiB heap, and the runner fails if a process exceeds the configured peak resident-memory ceiling. `long-summary.json` and `batches.jsonl` record seeds, case counts, CPU and wall time, memory, and bounded mismatch details. The command stops on the first mismatch and retains its raw batch. Do not count a stopped campaign as completed CPU-hours. Only the short corpus belongs in ordinary CI; a full campaign is manual or scheduled. The current repeated-field and deep-nesting findings in [Protocol](protocol.md) make the conformance gate unresolved.
+
 ## Manual tunnel test
 
 ```powershell

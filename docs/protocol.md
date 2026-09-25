@@ -26,6 +26,8 @@ Every JSON message is:
 
 The JSON payload may be at most 65,536 bytes. An oversized length is rejected before allocating its declared payload. Invalid, empty, or non-object JSON is rejected. Shared byte-exact examples are committed under `protocol/test-vectors/` and consumed by both implementations.
 
+The current hardening tests also reject invalid UTF-8 in both directions and require a numeric, unsigned heartbeat sequence. These are v1 wire requirements; a quoted number is not a sequence number.
+
 ## Control messages
 
 The client must send `register` first:
@@ -114,3 +116,7 @@ EOF in either TCP direction becomes the corresponding QUIC stream half-close. Cl
 ## Compatibility
 
 Protocol changes that alter framing or required semantics require a new protocol version and ALPN. Additive optional JSON properties may be ignored by v1 implementations. A broker, multi-region selection, UDP game transport, and hostname multiplexing are outside v1.
+
+## Open v1 conformance findings
+
+Differential tests currently expose two compatibility-sensitive differences. Rust's typed client-control decoder rejects a repeated known property; Gson retains the last occurrence before Java validation. Rust also rejects an unknown nested property at depth 129 while Gson accepts that case. These differences are retained as failing campaign cases, not treated as agreed v1 semantics. A protocol review must settle compatibility before the conformance gate can pass. Neither difference authorizes raising the 64 KiB frame limit.

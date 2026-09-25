@@ -19,6 +19,8 @@ flowchart LR
 
 The first client-initiated bidirectional QUIC stream is the control stream. Every accepted guest becomes a server-initiated bidirectional stream with a framed `ConnectionOpen` header followed by raw bytes. Default limits are two sessions per token, three sessions per source address, eight active guests per session, and 30 new guest connections per minute per source address. Heartbeats, leases, and a 60-second in-memory grace window allow a disconnected tunnel client to reclaim its port while the relay process remains alive.
 
+Protocol conformance tests consume the same versioned JSON and frame vectors in Rust and Java. A seeded Windows corpus compares framed JSON, typed control and connection headers, and modelled registration/authentication phase decisions. The model is a test oracle; the relay integration tests remain the check of live state transitions.
+
 The admin listener exposes `/healthz`, `/readyz`, and `/metrics` on loopback by default. Metrics have no per-user, token, address, session, or connection labels.
 
 ## Java tunnel library
