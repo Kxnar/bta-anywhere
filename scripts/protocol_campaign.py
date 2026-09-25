@@ -199,6 +199,21 @@ def boundary_cases() -> list[tuple[str, bytes, str, str, str]]:
     ]
 
 
+def typed_boundary_cases() -> list[tuple[str, bytes, str, str, str]]:
+    vectors = ROOT / "protocol" / "test-vectors" / "typed-boundaries-v1.json"
+    document = json.loads(vectors.read_text(encoding="utf-8"))
+    if document["schemaVersion"] != 1:
+        raise ValueError("unsupported typed boundary vector schema")
+    cases = []
+    for case in document["cases"]:
+        payload = case["payloadUtf8"].encode("utf-8")
+        if len(payload) > MAX_FRAME:
+            raise ValueError(f"typed boundary exceeds 64 KiB: {case['name']}")
+        cases.append((case["name"], frame(payload), case["target"],
+                      case["phase"], case["expectedSession"]))
+    return cases
+
+
 STATE_KINDS = {"valid-ping", "valid-register", "invalid-auth", "unsupported-version",
                "register-active", "empty-client-id", "ping-before-register",
                "close-before-register", "unicode-client-id-at-limit",
@@ -213,6 +228,10 @@ def write_corpus(path: Path, seed: int, count: int, target_group: str = "all") -
     rng = random.Random(seed)
     kinds = []
     edges = boundary_cases() if target_group in ("all", "framing") else []
+    edges += [case for case in typed_boundary_cases()
+              if target_group in ("all", "framing")
+              or target_group == case[2]
+              or target_group == "state" and case[2] == "control"]
     generated_index = 0
     with path.open("w", encoding="utf-8", newline="\n") as handle:
         for index in range(count):

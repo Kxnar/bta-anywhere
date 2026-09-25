@@ -49,6 +49,27 @@ class ProtocolCampaignTest(unittest.TestCase):
                 self.assertEqual(int.from_bytes(data[:4], "big"), expected_length)
                 self.assertEqual(len(data) - 4, expected_length)
 
+    def test_typed_coercion_boundaries_are_shared_exact_frames(self):
+        vectors = campaign.typed_boundary_cases()
+        names = {name for name, _, _, _, _ in vectors}
+        self.assertIn("register-version-string", names)
+        self.assertIn("register-id-number", names)
+        self.assertIn("connection-version-decimal", names)
+        self.assertIn("connection-id-number", names)
+        self.assertIn("ping-sequence-u64-max", names)
+        self.assertIn("ping-sequence-u64-overflow", names)
+        self.assertIn("ping-sequence-negative-zero", names)
+        for name, framed, _, _, _ in vectors:
+            with self.subTest(name=name):
+                self.assertEqual(int.from_bytes(framed[:4], "big"), len(framed) - 4)
+                self.assertIsInstance(json.loads(framed[4:]), dict)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "connection.jsonl"
+            kinds = campaign.write_corpus(path, 55, 100, "connection")
+            self.assertIn("connection-version-string", kinds)
+            self.assertIn("connection-id-number", kinds)
+            self.assertNotIn("register-version-string", kinds)
+
     def test_comparison_reports_typed_failure_separately(self):
         rust = {"id": 0, "accepted": True, "semantic": {"type": "ping"},
                 "typedAccepted": False, "typedSemantic": None, "stateOutcome": "syntax_rejected"}
