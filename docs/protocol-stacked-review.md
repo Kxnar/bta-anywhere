@@ -21,6 +21,16 @@ hardening with a negative unit test, not a cross-language differential claim.
 Unsigned 64-bit accessors reject literals longer than 20 digits before doing
 large-integer conversion, preserving the existing wire range.
 
+A targeted five-frame private probe after the initial 100-case and 10,000-case
+passes found that Gson accepted numbers outside `serde_json`'s finite range
+and retained different semantics for out-of-range but finite numbers. Its
+generator and Rust/Java outputs are retained under the ignored
+`.dev/protocol-campaign/unknown-number-*` paths in this worktree. The decoder
+now checks finite numeric range before building Gson objects, and shared
+structural vectors plus the deterministic smoke corpus cover the observed
+accepted and rejected boundaries. Earlier zero-mismatch runs do not validate
+this correction; rerun them from its final commit.
+
 Both cross-language evaluators consume the same generated framed corpus and
 canonicalise registration features as a sorted set, absent features as an
 empty set, and completion counts as exact nonnegative integers. The model

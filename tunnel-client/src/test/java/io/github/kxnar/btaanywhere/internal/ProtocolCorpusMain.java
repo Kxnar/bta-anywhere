@@ -1,6 +1,9 @@
 package io.github.kxnar.btaanywhere.internal;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.codec.DecoderException;
@@ -9,6 +12,7 @@ import java.io.BufferedWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.math.BigInteger;
 import java.util.HexFormat;
 
 /** Test-only Windows differential runner; no production entry point or dependency. */
@@ -31,7 +35,7 @@ public final class ProtocolCorpusMain {
 				result.add("id", testCase.get("id"));
 				result.addProperty("accepted", semantic != null);
 				if (semantic != null) {
-					result.add("semantic", semantic);
+					result.add("semantic", canonicalSemantic(semantic));
 				} else {
 					result.add("semantic", com.google.gson.JsonNull.INSTANCE);
 				}
@@ -44,6 +48,38 @@ public final class ProtocolCorpusMain {
 				output.newLine();
 			}
 		}
+	}
+
+	private static final BigInteger MAX_U64 = new BigInteger("18446744073709551615");
+	private static final BigInteger MIN_I64 = BigInteger.valueOf(Long.MIN_VALUE);
+
+	/** Match serde_json Value's integer/finite-float representation for comparisons. */
+	private static JsonElement canonicalSemantic(JsonElement value) {
+		if (value.isJsonObject()) {
+			JsonObject object = new JsonObject();
+			for (var field : value.getAsJsonObject().entrySet()) {
+				object.add(field.getKey(), canonicalSemantic(field.getValue()));
+			}
+			return object;
+		}
+		if (value.isJsonArray()) {
+			JsonArray array = new JsonArray();
+			for (JsonElement item : value.getAsJsonArray()) {
+				array.add(canonicalSemantic(item));
+			}
+			return array;
+		}
+		if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isNumber()) {
+			return value;
+		}
+		String literal = value.getAsString();
+		if (literal.matches("-?(0|[1-9][0-9]*)")) {
+			BigInteger integer = new BigInteger(literal);
+			if (integer.compareTo(MIN_I64) >= 0 && integer.compareTo(MAX_U64) <= 0) {
+				return new JsonPrimitive(integer);
+			}
+		}
+		return new JsonPrimitive(Double.parseDouble(literal));
 	}
 
 	static JsonObject typedOutcome(JsonObject message, JsonObject testCase) {

@@ -95,7 +95,19 @@ final class ProtocolFrames {
 				}
 				reader.endArray();
 			}
-			case STRING, NUMBER -> reader.nextString();
+			case STRING -> reader.nextString();
+			case NUMBER -> {
+				// serde_json rejects a JSON number that overflows its finite f64
+				// fallback. Gson otherwise retains an arbitrarily large lazy number.
+				String literal = reader.nextString();
+				try {
+					if (!Double.isFinite(Double.parseDouble(literal))) {
+						throw new IllegalArgumentException("protocol JSON number exceeds finite range");
+					}
+				} catch (NumberFormatException exception) {
+					throw new IllegalArgumentException("protocol JSON contains invalid number", exception);
+				}
+			}
 			case BOOLEAN -> reader.nextBoolean();
 			case NULL -> reader.nextNull();
 			default -> throw new IllegalArgumentException("protocol frame contains invalid JSON value");

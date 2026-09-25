@@ -74,6 +74,18 @@ class ProtocolCampaignTest(unittest.TestCase):
             self.assertIn("connection-id-number", kinds)
             self.assertNotIn("register-version-string", kinds)
 
+    def test_numeric_boundaries_are_shared_and_in_ci_smoke(self):
+        numeric = {name: framed for name, framed, _, _, _ in campaign.numeric_boundary_cases()}
+        for name in ("number-u64-max", "number-u64-overflow", "number-i64-min",
+                     "number-negative-underflow", "number-small-exponent",
+                     "number-large-exponent", "number-long-integer"):
+            self.assertIn(name, numeric)
+            self.assertEqual(int.from_bytes(numeric[name][:4], "big"), len(numeric[name]) - 4)
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "smoke.jsonl"
+            kinds = campaign.write_corpus(output, 20260925, 100)
+            self.assertTrue(set(numeric).issubset(kinds))
+
     def test_comparison_reports_typed_failure_separately(self):
         rust = {"id": 0, "accepted": True, "semantic": {"type": "ping"},
                 "typedAccepted": False, "typedSemantic": None, "stateOutcome": "syntax_rejected"}

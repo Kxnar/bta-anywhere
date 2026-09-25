@@ -120,8 +120,11 @@ fn control_semantic(message: protocol::ClientControl, case: &Case) -> (Value, St
             } else {
                 "notice_accepted"
             };
-            (serde_json::json!({"type":"streamEof","connectionId":connection_id,
-                "bytes":bytes}), state.into())
+            (
+                serde_json::json!({"type":"streamEof","connectionId":connection_id,
+                "bytes":bytes}),
+                state.into(),
+            )
         }
     }
 }

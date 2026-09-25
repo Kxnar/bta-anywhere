@@ -250,6 +250,23 @@ def boundary_cases() -> list[tuple[str, bytes, str, str, str]]:
     ]
 
 
+def numeric_boundary_cases() -> list[tuple[str, bytes, str, str, str]]:
+    vectors = ROOT / "protocol" / "test-vectors" / "structural-v1.json"
+    document = json.loads(vectors.read_text(encoding="utf-8"))
+    if document["schemaVersion"] != 1:
+        raise ValueError("unsupported structural boundary vector schema")
+    cases = []
+    for case in document["cases"]:
+        if not case["name"].startswith("number-"):
+            continue
+        framed = bytes.fromhex(case["frameHex"])
+        if (len(framed) < 4 or len(framed) - 4 > MAX_FRAME
+                or int.from_bytes(framed[:4], "big") != len(framed) - 4):
+            raise ValueError(f"invalid shared numeric frame: {case['name']}")
+        cases.append((case["name"], framed, case["target"], "active", "session-test"))
+    return cases
+
+
 def typed_boundary_cases() -> list[tuple[str, bytes, str, str, str]]:
     vectors = ROOT / "protocol" / "test-vectors" / "typed-boundaries-v1.json"
     document = json.loads(vectors.read_text(encoding="utf-8"))
@@ -295,6 +312,8 @@ def write_corpus(path: Path, seed: int, count: int, target_group: str = "all") -
     rng = random.Random(seed)
     kinds = []
     edges = boundary_cases() if target_group in ("all", "framing") else []
+    if target_group in ("all", "framing", "control", "state"):
+        edges += numeric_boundary_cases()
     edges += [case for case in typed_boundary_cases()
               if target_group in ("all", "framing")
               or target_group == case[2]

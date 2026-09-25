@@ -30,6 +30,19 @@ V1 JSON has at most 127 object/array containers along any nesting path, counting
 
 The current hardening tests also reject invalid UTF-8 in both directions, including bytes inside an unknown property that the typed parser would otherwise ignore. The Rust reader validates the complete bounded payload before deserializing it. The tests require a numeric, unsigned heartbeat sequence. These are v1 wire requirements; a quoted number is not a sequence number.
 
+V1 JSON numbers use `serde_json`'s finite numeric range for both known and
+unknown fields. Integer literals within signed 64-bit negative and unsigned
+64-bit positive bounds retain exact integer semantics. Other numeric literals
+are accepted only when they convert to a finite binary64 value; for example,
+`1e-400` underflows to zero, while `1e400` and a 309-digit integer are
+rejected. The Java decoder checks this bounded range before Gson builds its
+tree, and the differential evaluator canonicalises finite numbers to the
+same integer-or-binary64 semantics. Typed protocol fields have stricter
+ranges: `version` and `publicPort` are unsigned 16-bit integers; heartbeat
+`sequence` is unsigned 64-bit; `streamEof.bytes` is a nonnegative integer no
+larger than Java's signed 64-bit maximum. Decimal or exponent forms cannot
+stand in for those typed integer fields.
+
 Typed v1 string fields must contain JSON strings. The `version` and `publicPort` fields consumed by the Java tunnel must be JSON unsigned integers within the Rust `u16` range; decimal, exponent, quoted, negative, and out-of-range values are rejected. This removes Gson's earlier coercion of malformed fields, including quoted versions and numeric identifiers. A peer that relied on those malformed representations will fail to interoperate after this hardening; documented valid v1 frames and the `bta-anywhere/1` version/ALPN remain unchanged. There is no plaintext or permissive fallback. The shared typed boundary vectors give both implementations the same exact frames and acceptance expectations.
 
 ## Control messages
