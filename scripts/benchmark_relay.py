@@ -32,7 +32,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 SIZES = (1024, 65536, 1048576)
 ACTIVE_METRIC = "bta_anywhere_active_connections"
 CHUNK = 65536
@@ -228,6 +228,71 @@ def free_port() -> int:
         return sock.getsockname()[1]
 
 
+def free_port_pair() -> int:
+    for _ in range(100):
+        first = free_port()
+        if first >= 65535:
+            continue
+        try:
+            with socket.socket() as left, socket.socket() as right:
+                left.bind(("127.0.0.1", first))
+                right.bind(("127.0.0.1", first + 1))
+            return first
+        except OSError:
+            continue
+    raise RuntimeError("could not find two consecutive loopback TCP ports")
+
+
+class UdpBridge:
+    """One datagram at a time, with no queue, for a benchmark-owned link drop."""
+
+    def __init__(self, relay_port: int):
+        self.relay = ("127.0.0.1", relay_port)
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.socket.bind(("127.0.0.1", 0))
+        self.socket.settimeout(0.2)
+        self.port = self.socket.getsockname()[1]
+        self.peer: tuple[str, int] | None = None
+        self.drop_until = 0.0
+        self.stop_event = threading.Event()
+        self.forwarded = 0
+        self.dropped = 0
+        self.thread = threading.Thread(target=self._pump, name="benchmark-udp-bridge", daemon=True)
+        self.thread.start()
+
+    def _pump(self) -> None:
+        while not self.stop_event.is_set():
+            try:
+                data, source = self.socket.recvfrom(65535)
+            except socket.timeout:
+                continue
+            except OSError:
+                break
+            if source == self.relay:
+                destination = self.peer
+            else:
+                self.peer = source
+                destination = self.relay
+            if time.monotonic() < self.drop_until:
+                self.dropped += 1
+                continue
+            if destination is not None:
+                with contextlib.suppress(OSError):
+                    self.socket.sendto(data, destination)
+                    self.forwarded += 1
+
+    def drop_for(self, seconds: float) -> None:
+        if not 0 < seconds <= 90:
+            raise ValueError("link drop must last at most 90 seconds")
+        self.drop_until = time.monotonic() + seconds
+        time.sleep(seconds)
+
+    def close(self) -> None:
+        self.stop_event.set()
+        self.socket.close()
+        self.thread.join(timeout=2)
+
+
 class FileTime(ctypes.Structure):
     _fields_ = [("low", ctypes.c_ulong), ("high", ctypes.c_ulong)]
 
@@ -320,16 +385,21 @@ class Rig:
         self.logs = logs
         self.redactions: list[str] = []
         self.events: queue.Queue[str] = queue.Queue(maxsize=256)
+        self.relay_events: queue.Queue[int] = queue.Queue(maxsize=32)
         self.temporary = tempfile.TemporaryDirectory(prefix="bta-benchmark-")
         self.work = Path(self.temporary.name)
         self.relay: subprocess.Popen[str] | None = None
         self.tunnel: subprocess.Popen[str] | None = None
         self.echo: EchoServer | None = None
         self.echo_thread: threading.Thread | None = None
+        self.bridge: UdpBridge | None = None
+        self.tcp_port = free_port_pair()
         ports: set[int] = set()
-        while len(ports) < 3:
-            ports.add(free_port())
-        self.quic_port, self.admin_port, self.tcp_port = sorted(ports)
+        while len(ports) < 2:
+            candidate = free_port()
+            if candidate not in (self.tcp_port, self.tcp_port + 1):
+                ports.add(candidate)
+        self.quic_port, self.admin_port = sorted(ports)
         self.public_port: int | None = None
 
     def reader(self, stream, label: str) -> None:
@@ -342,19 +412,53 @@ class Rig:
             if label == "tunnel-out":
                 with contextlib.suppress(queue.Full):
                     self.events.put_nowait(line)
+            if label.startswith("relay-") and "resumed relay session" in line:
+                match = re.search(r"\bport=(\d+)\b", line)
+                if match:
+                    with contextlib.suppress(queue.Full):
+                        self.relay_events.put_nowait(int(match.group(1)))
 
-    def launch(self, args: list[str], label: str, stdin) -> subprocess.Popen[str]:
+    def launch(self, args: list[str], label: str, stdin,
+               env: dict[str, str] | None = None) -> subprocess.Popen[str]:
         process = subprocess.Popen(args, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                   text=True, bufsize=1)
+                                   text=True, bufsize=1, env=env)
         assert process.stdout and process.stderr
         for stream, suffix in ((process.stdout, "out"), (process.stderr, "err")):
             threading.Thread(target=self.reader, args=(stream, f"{label}-{suffix}"), daemon=True).start()
         return process
 
-    def start_relay(self) -> None:
+    def start_relay(self, log_level: str = "warn") -> None:
+        relay_env = dict(os.environ)
+        relay_env["RUST_LOG"] = log_level
         self.relay = self.launch([str(self.relay_binary), "run", "--config", str(self.work / "relay" / "relay.toml")],
-                                 "relay", subprocess.DEVNULL)
+                                 "relay", subprocess.DEVNULL, relay_env)
         wait_until(lambda: bool(http_get(self.admin_port, "/readyz")), 20, "relay ready")
+
+    def start_tunnel(self, relay_port: int) -> int:
+        assert self.echo
+        development = self.work / "relay"
+        while not self.events.empty():
+            with contextlib.suppress(queue.Empty):
+                self.events.get_nowait()
+        self.tunnel = self.launch([self.java, "-jar", str(self.tunnel_jar), "expose",
+                                   "--relay", f"127.0.0.1:{relay_port}",
+                                   "--ca", str(development / "trust.pem"),
+                                   "--token-file", str(development / "access.token"),
+                                   "--local", f"127.0.0.1:{self.echo.server_address[1]}",
+                                   "--client-id", "benchmark-v1"], "tunnel", subprocess.PIPE)
+        pattern = re.compile(r"^Public endpoint: (?:\[[^]]+]|[^:]+):(\d+)$")
+        deadline = time.monotonic() + 30
+        while time.monotonic() < deadline:
+            if self.tunnel.poll() is not None:
+                raise RuntimeError(f"tunnel exited during registration: {self.tunnel.returncode}")
+            try:
+                line = self.events.get(timeout=0.2)
+            except queue.Empty:
+                continue
+            match = pattern.match(line)
+            if match:
+                return int(match.group(1))
+        raise TimeoutError("tunnel did not publish a public endpoint")
 
     def __enter__(self):
         try:
@@ -374,7 +478,7 @@ class Rig:
             'quic_listen = "0.0.0.0:25575"': f'quic_listen = "127.0.0.1:{self.quic_port}"',
             'tcp_bind_ip = "0.0.0.0"': 'tcp_bind_ip = "127.0.0.1"',
             'tcp_port_start = 30000': f'tcp_port_start = {self.tcp_port}',
-            'tcp_port_end = 30100': f'tcp_port_end = {self.tcp_port}',
+            'tcp_port_end = 30100': f'tcp_port_end = {self.tcp_port + 1}',
             'admin_listen = "127.0.0.1:9090"': f'admin_listen = "127.0.0.1:{self.admin_port}"',
             'max_accepts_per_minute = 30': 'max_accepts_per_minute = 10000',
         }
@@ -387,27 +491,7 @@ class Rig:
         self.echo_thread = threading.Thread(target=self.echo.serve_forever, daemon=True)
         self.echo_thread.start()
         self.start_relay()
-        self.tunnel = self.launch([self.java, "-jar", str(self.tunnel_jar), "expose",
-                                   "--relay", f"127.0.0.1:{self.quic_port}",
-                                   "--ca", str(development / "trust.pem"),
-                                   "--token-file", str(development / "access.token"),
-                                   "--local", f"127.0.0.1:{self.echo.server_address[1]}",
-                                   "--client-id", "benchmark-v1"], "tunnel", subprocess.PIPE)
-        pattern = re.compile(r"^Public endpoint: (?:\[[^]]+]|[^:]+):(\d+)$")
-        deadline = time.monotonic() + 30
-        while time.monotonic() < deadline:
-            if self.tunnel.poll() is not None:
-                raise RuntimeError(f"tunnel exited during registration: {self.tunnel.returncode}")
-            try:
-                line = self.events.get(timeout=0.2)
-            except queue.Empty:
-                continue
-            match = pattern.match(line)
-            if match:
-                self.public_port = int(match.group(1))
-                break
-        if self.public_port is None:
-            raise TimeoutError("tunnel did not publish a public endpoint")
+        self.public_port = self.start_tunnel(self.quic_port)
         return self
 
     def metric(self, name: str) -> float:
@@ -424,7 +508,7 @@ class Rig:
         self.relay = None
         time.sleep(1)
         started = time.perf_counter()
-        self.start_relay()
+        self.start_relay(log_level="info")
         probe = payload(123, 1024, 0)
         wait_until(lambda: reconnect_probe(old_port, probe), timeout, "tunnel reconnect")
         if self.metric("bta_anywhere_active_sessions") != 1:
@@ -432,12 +516,77 @@ class Rig:
         return {"scenario": "relay_restart_interrupts_tunnel_quic_connection",
                 "completion_ms": (time.perf_counter() - started) * 1000,
                 "old_endpoint_probe_succeeded": True,
-                "fixed_one_port_range_limits_endpoint_retention_claim": True,
+                "endpoint_after_reconnect_not_printed_by_cli": True,
                 "old_port": old_port, "relay_before_restart": relay_before,
                 "relay_after_restart": process_sample(self.relay)}
 
+    def restart_tunnel_process(self) -> dict:
+        assert self.tunnel and self.public_port is not None
+        old_port = self.public_port
+        started = time.perf_counter()
+        if not stop_process(self.tunnel):
+            raise RuntimeError("benchmark tunnel process did not terminate")
+        self.tunnel = None
+        self.bridge = UdpBridge(self.quic_port)
+        try:
+            new_port = self.start_tunnel(self.bridge.port)
+            transfer(new_port, "request_response", payload(123, 1024, 1), 5)
+        except (RuntimeError, TimeoutError, OSError, AssertionError) as error:
+            return {"scenario": "tunnel_process_restart_with_new_in_memory_state",
+                    "available": False, "old_port": old_port,
+                    "old_process_terminated": True,
+                    "completion_ms": (time.perf_counter() - started) * 1000,
+                    "failure": bounded_failure(error)}
+        self.public_port = new_port
+        return {"scenario": "tunnel_process_restart_with_new_in_memory_state",
+                "available": True, "old_port": old_port, "new_port": new_port,
+                "old_process_terminated": True,
+                "endpoint_retained": old_port == new_port,
+                "completion_ms": (time.perf_counter() - started) * 1000,
+                "bridge_loopback_port": self.bridge.port,
+                "relay_port_range": [self.tcp_port, self.tcp_port + 1]}
+
+    def interrupt_tunnel_link(self, drop_seconds: float = 55, timeout: float = 90) -> dict:
+        assert self.bridge and self.tunnel and self.public_port is not None
+        bridge_port = self.public_port
+        while not self.relay_events.empty():
+            with contextlib.suppress(queue.Empty):
+                self.relay_events.get_nowait()
+        before_dropped = self.bridge.dropped
+        started = time.perf_counter()
+        self.bridge.drop_for(drop_seconds)
+        resumed_port = None
+        available = False
+        probe = payload(123, 1024, 2)
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            if self.tunnel.poll() is not None:
+                break
+            with contextlib.suppress(queue.Empty):
+                resumed_port = self.relay_events.get(timeout=0.2)
+            if reconnect_probe(bridge_port, probe):
+                available = True
+                if resumed_port is None:
+                    with contextlib.suppress(queue.Empty):
+                        resumed_port = self.relay_events.get(timeout=2)
+                break
+        return {"scenario": "tunnel_link_udp_drop_with_process_alive",
+                "bridge_backed_endpoint_before_drop": bridge_port,
+                "endpoint_after_resume_event": resumed_port,
+                "endpoint_retained_by_byte_exact_probe": available,
+                "resume_event_port_matches": resumed_port == bridge_port if resumed_port is not None else None,
+                "resume_observed": resumed_port is not None,
+                "available": available,
+                "completion_ms": (time.perf_counter() - started) * 1000,
+                "configured_drop_seconds": drop_seconds,
+                "dropped_datagrams": self.bridge.dropped - before_dropped,
+                "forwarded_datagrams": self.bridge.forwarded,
+                "bridge_queue_capacity": 0}
+
     def __exit__(self, *_):
         self.tunnel_clean = stop_process(self.tunnel, graceful=True)
+        if self.bridge:
+            self.bridge.close()
         self.relay_clean = stop_process(self.relay)
         if self.echo:
             self.echo.shutdown()
@@ -555,6 +704,17 @@ def markdown(result: dict) -> str:
     lines += ["", "Results are synthetic loopback observations, not WAN or player capacity.",
               "The local benchmark config permits 10,000 accepts/minute; production defaults are unchanged.",
               "CPU/memory samples, reconnect, EOF/byte checks, soak details and failure diagnostics are in JSON."]
+    if process := result.get("tunnel_process_restart"):
+        lines += ["", f"Tunnel-process restart: available={process['available']}; "
+                  f"old port={process['old_port']}; new port={process.get('new_port', 'unavailable')}; "
+                  f"endpoint retained={process.get('endpoint_retained', 'unknown')}; "
+                  f"completion={process['completion_ms']:.2f} ms."]
+    if link := result.get("tunnel_link_interruption"):
+        lines += [f"Tunnel-link UDP drop: {link['configured_drop_seconds']} s; "
+                  f"recovered={link['available']}; same bridge-backed endpoint="
+                  f"{link['endpoint_retained_by_byte_exact_probe']}; "
+                  f"resume event observed={link['resume_observed']}; "
+                  f"completion={link['completion_ms']:.2f} ms."]
     if result.get("failure"):
         lines += ["", f"Failure: {result['failure']['type']}: {result['failure']['message']}"]
     return "\n".join(lines) + "\n"
@@ -588,6 +748,8 @@ def main() -> int:
               "commit": commit, "started_utc": datetime.now(timezone.utc).isoformat(),
               "configuration": {"seed": args.seed, "sizes_bytes": SIZES, "concurrency": [1, 8],
                                 "accepts_per_minute_test_override": 10000,
+                                "relay_log_level_during_measurement": "warn",
+                                "relay_log_level_during_recovery": "info",
                                 "soak_seconds": args.soak_seconds if args.profile == "soak" else None},
               "machine": machine_info(args.java),
               "artifacts": {"relay_sha256": hashlib.sha256(relay_binary.read_bytes()).hexdigest(),
@@ -618,6 +780,17 @@ def main() -> int:
                         "working_set_bytes_after": after[name]["working_set_bytes"]}
                         for name in ("relay", "tunnel")}
                     result["reconnect"] = rig.reconnect(90)
+                    result["tunnel_process_restart"] = rig.restart_tunnel_process()
+                    if not result["tunnel_process_restart"]["available"]:
+                        raise AssertionError("tunnel process could not re-register within 30 seconds")
+                    result["tunnel_link_interruption"] = rig.interrupt_tunnel_link()
+                    if not result["tunnel_link_interruption"]["available"]:
+                        raise AssertionError("tunnel link did not resume within the bounded window")
+                    link_result = result["tunnel_link_interruption"]
+                    if not link_result["endpoint_retained_by_byte_exact_probe"]:
+                        raise AssertionError("bridge-backed endpoint did not recover")
+                    if link_result["resume_event_port_matches"] is False:
+                        raise AssertionError("resume event port differs from bridge-backed endpoint")
                 rig.assert_idle()
                 result["final_process_sample"] = {"relay": process_sample(rig.relay),
                                                    "tunnel": process_sample(rig.tunnel)}
@@ -639,6 +812,9 @@ def main() -> int:
         result["failures"].append(result["failure"])
         result["failure_counts"][failure_category(error)] += 1
         result["diagnostics"] = list(logs)[-50:]
+        if rig is not None and hasattr(rig, "relay_clean"):
+            result["clean_shutdown_after_failure"] = {
+                "relay": rig.relay_clean, "tunnel": rig.tunnel_clean}
     finally:
         result["elapsed_seconds"] = time.perf_counter() - started
         result["finished_utc"] = datetime.now(timezone.utc).isoformat()

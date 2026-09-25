@@ -50,6 +50,42 @@ class BenchmarkTests(unittest.TestCase):
         self.assertEqual(benchmark.payload(17, 1024, 4), benchmark.payload(17, 1024, 4))
         self.assertNotEqual(benchmark.payload(17, 1024, 4), benchmark.payload(17, 1024, 5))
 
+    def test_summary_distinguishes_process_and_link_recovery(self):
+        report = benchmark.markdown({
+            "status": "PASS", "profile": "smoke", "commit": "abc",
+            "tunnel_process_restart": {"available": True, "old_port": 1000,
+                                       "new_port": 1001, "endpoint_retained": False,
+                                       "completion_ms": 12.0},
+            "tunnel_link_interruption": {"configured_drop_seconds": 55,
+                                         "available": True,
+                                         "endpoint_retained_by_byte_exact_probe": True,
+                                         "resume_observed": True,
+                                         "completion_ms": 56000.0}})
+        self.assertIn("endpoint retained=False", report)
+        self.assertIn("same bridge-backed endpoint=True", report)
+
+    def test_udp_bridge_forwards_and_drops_without_queued_replay(self):
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as relay:
+            relay.bind(("127.0.0.1", 0))
+            relay.settimeout(1)
+            bridge = benchmark.UdpBridge(relay.getsockname()[1])
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
+                    client.bind(("127.0.0.1", 0))
+                    client.settimeout(0.3)
+                    client.sendto(b"before", ("127.0.0.1", bridge.port))
+                    data, source = relay.recvfrom(100)
+                    self.assertEqual(data, b"before")
+                    relay.sendto(b"reply", source)
+                    self.assertEqual(client.recvfrom(100)[0], b"reply")
+                    bridge.drop_until = benchmark.time.monotonic() + 0.1
+                    client.sendto(b"dropped", ("127.0.0.1", bridge.port))
+                    with self.assertRaises(socket.timeout):
+                        relay.recvfrom(100)
+                    self.assertGreaterEqual(bridge.dropped, 1)
+            finally:
+                bridge.close()
+
     def test_soak_rejects_unbounded_duration_before_starting_processes(self):
         for duration in (math.inf, math.nan, 7199, 14401):
             with self.subTest(duration=duration), self.assertRaises(ValueError):

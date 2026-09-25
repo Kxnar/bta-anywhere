@@ -38,11 +38,24 @@ alternating direct/relay order. The byte pattern and validation are identical
 for both paths. Request/response waits for an exact reply without a guest
 half-close; half-close waits for a guest EOF before the server replies. Every
 test also checks server EOF. Throughput uses persistent bidirectional streams.
-The reconnect test restarts the disposable relay, interrupting the tunnel QUIC
-connection. It measures recovery from relay readiness and probes the previous
-endpoint. The test has a fixed one-port pool, so that probe does not prove
-general endpoint retention; a tunnel-process or link-only interruption is not
-measured by this first harness version.
+After throughput, three separate recovery cases run. First, the disposable
+relay restarts, interrupting the tunnel QUIC connection; the old endpoint is
+probed, although the CLI does not print a post-reconnect endpoint. Second, the
+benchmark terminates its tunnel process and launches a fresh one with no
+in-memory resume token. Its new CLI endpoint is parsed and compared with the
+old endpoint; reallocation is reported rather than hidden. This test uses a
+two-port disposable relay range while retaining normal token/session limits.
+Third, a benchmark-owned loopback UDP bridge drops both directions for 55
+seconds while the new tunnel process stays alive. The bridge holds no packet
+queue, and it is closed after the test. The resumed relay session's port is
+compared with the bridge-backed session established immediately before the
+drop, separately from the original direct-path endpoint. A byte-exact probe
+checks that the bridge-backed endpoint still works; the relay resume event
+provides supporting port evidence. Bridge traffic does not enter latency or
+throughput measurements.
+The disposable relay uses `RUST_LOG=warn` during data-path measurement and
+`RUST_LOG=info` only after relay restart for recovery-event evidence. These
+settings are recorded in JSON for consistent future comparisons.
 
 Before reviewing a data-path or lifecycle change, run the bounded two-hour soak:
 
@@ -65,7 +78,7 @@ smoke run as the two-hour gate.
 
 `benchmark-results/` is ignored because results are machine-specific. Keep
 the JSON and generated Markdown with the review, not in the repository. JSON
-schema version 2 includes environment and toolchains, commit and artifact
+schema version 3 includes environment and toolchains, commit and artifact
 hashes, test configuration, raw samples, aggregate p50/p95/p99, CPU time,
 working set/peak resident memory, reconnection, failures, and run duration.
 The soak records memory samples for manual growth review; a successful data
