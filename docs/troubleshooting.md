@@ -1,5 +1,14 @@
 # Troubleshooting
 
+## Loopback benchmark fails
+
+Run the short profile from [Benchmarking](benchmarking.md) after building the
+release relay and shaded tunnel. Check that no other integration harness owns
+the selected local ports, the JDK is x86-64, and the JSON `failure` and bounded
+`diagnostics` fields identify the case. Keep raw machine-specific files in the
+ignored `benchmark-results/` directory. A latency or throughput regression
+needs repeat runs on the same machine before interpretation.
+
 ## Relay is not selectable
 
 Relay mode is skipped until all of these are valid in `<game-directory>/config/bta-anywhere.json`: hostname, port 1–65535, non-empty access token, and a certificate path resolving to a regular file beneath the game directory. Close and reopen BTA after editing the file.
