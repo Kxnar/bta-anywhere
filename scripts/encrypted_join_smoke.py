@@ -133,10 +133,10 @@ def status_probe(icon: bool, port: int) -> bytes:
             + (len(host) // 2).to_bytes(2, "big") + host + port.to_bytes(4, "big"))
 
 
-def wrong_pin(encoded: str, field: str) -> str:
+def replace_invitation_field(encoded: str, field: str, value: object) -> str:
     payload = encoded.split(":", 1)[1]
     document = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))
-    document[field] = "0" * 64
+    document[field] = value
     canonical = json.dumps(document, separators=(",", ":")).encode("utf-8")
     return "BTAE1:" + base64.urlsafe_b64encode(canonical).decode("ascii").rstrip("=")
 
@@ -248,12 +248,17 @@ def main() -> int:
             if local.count() != admitted:
                 raise AssertionError("plaintext guest opened a local server socket")
             stop(guest)
+            assert host.stdin is not None
+            host.stdin.write("invite\n")
+            host.stdin.flush()
+            security_invite = "BTAE1:" + wait_event(events, "invitation")
+            wait_event(events, "invitation-id")
             guest = subprocess.Popen([args.java, "-jar", str(args.tunnel_jar), "join-encrypted"],
                                      stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE, text=True, bufsize=1)
             read_lines(guest, "wrong-pin-guest", events, diagnostics)
             assert guest.stdin is not None
-            guest.stdin.write(wrong_pin(encoded, "hostSpkiSha256") + "\n")
+            guest.stdin.write(replace_invitation_field(security_invite, "hostSpkiSha256", "0" * 64) + "\n")
             guest.stdin.flush()
             wrong_pin_port = int(wait_event(events, "guest-address").rsplit(":", 1)[1])
             denied(wrong_pin_port)
@@ -265,7 +270,7 @@ def main() -> int:
                                      stderr=subprocess.PIPE, text=True, bufsize=1)
             read_lines(guest, "wrong-relay-pin-guest", events, diagnostics)
             assert guest.stdin is not None
-            guest.stdin.write(wrong_pin(encoded, "relaySpkiSha256") + "\n")
+            guest.stdin.write(replace_invitation_field(security_invite, "relaySpkiSha256", "0" * 64) + "\n")
             guest.stdin.flush()
             wrong_relay_port = int(wait_event(events, "guest-address").rsplit(":", 1)[1])
             denied(wrong_relay_port)
@@ -273,7 +278,38 @@ def main() -> int:
                 raise AssertionError("wrong-relay-pin guest opened a local server socket")
             stop(guest)
 
-            assert host.stdin is not None
+            for label, field, value in (
+                ("tampered-capability", "joinCapability", "A" * 43),
+                ("wrong-session", "hostSessionId", "A" * 43),
+                ("expired", "expiresAtEpochMillis", int(time.time() * 1000) - 1000),
+            ):
+                guest = subprocess.Popen([args.java, "-jar", str(args.tunnel_jar), "join-encrypted"],
+                                         stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                         stderr=subprocess.PIPE, text=True, bufsize=1)
+                read_lines(guest, label, events, diagnostics)
+                assert guest.stdin is not None
+                guest.stdin.write(replace_invitation_field(security_invite, field, value) + "\n")
+                guest.stdin.flush()
+                bad_port = int(wait_event(events, "guest-address").rsplit(":", 1)[1])
+                denied(bad_port)
+                if local.count() != admitted:
+                    raise AssertionError(f"{label} opened a local server socket")
+                stop(guest)
+
+            # These failures must not spend the unmodified invitation.
+            guest = subprocess.Popen([args.java, "-jar", str(args.tunnel_jar), "join-encrypted"],
+                                     stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE, text=True, bufsize=1)
+            read_lines(guest, "valid-after-rejections", events, diagnostics)
+            assert guest.stdin is not None
+            guest.stdin.write(security_invite + "\n")
+            guest.stdin.flush()
+            valid_port = int(wait_event(events, "guest-address").rsplit(":", 1)[1])
+            if send_local(valid_port, b"\x02valid-after-rejections") != b"\x02valid-after-rejections":
+                raise AssertionError("rejected invitations spent the valid capability")
+            admitted = local.count()
+            stop(guest)
+
             host.stdin.write("invite\n")
             host.stdin.flush()
             revoked_invite = "BTAE1:" + wait_event(events, "invitation")
@@ -316,7 +352,17 @@ def main() -> int:
                 guest.stdin.write("stop\n")
                 guest.stdin.flush()
                 guest.wait(timeout=4)
-            print("Encrypted join smoke passed: basic/icon and rate-limited status, malformed prefaces, 45,076-byte half-close, replay/wrong-host-pin/wrong-relay-pin/revoked/plaintext rejection, active shutdown, no unauthorised local sockets.")
+            stop(host)
+            deadline = time.monotonic() + 5
+            while time.monotonic() < deadline:
+                try:
+                    with socket.create_connection(("127.0.0.1", public), timeout=0.25):
+                        time.sleep(0.05)
+                except OSError:
+                    break
+            else:
+                raise AssertionError("host stop left the encrypted public listener open")
+            print("Encrypted join smoke passed: status, half-close, replay, pin/capability/session/expiry/revocation/plaintext rejection, admission before local sockets, guest shutdown and host listener cleanup.")
             return 0
         except BaseException:
             print("\n".join(diagnostics[-80:]))
