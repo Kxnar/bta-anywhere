@@ -143,3 +143,59 @@ Open the printed relay TCP endpoint from another terminal. Type `stop` in the CL
 `.\gradlew.bat :bta-mod:runClient` downloads development-only BTA artifacts through Loom and opens a client. Use a disposable game directory/world. Do not publish anything from `run/` or the Gradle/Loom caches.
 
 Before a release, complete the manual matrix in [Releasing](releasing.md). Automated tests do not prove that every third-party gameplay mod is dedicated-server compatible.
+
+## Disposable-world recovery fault simulation
+
+The Java test suite runs one deterministic seed at every instrumented hosting boundary for Live and Showcase where applicable. It uses temporary synthetic worlds, never a player save. Run the longer file/journal fault simulation with 50 seeds and three clean repetitions:
+
+```powershell
+$env:BTA_FAULT_SEEDS = '50'
+$env:BTA_FAULT_RUNS = '3'
+.\gradlew.bat --no-daemon :bta-mod:test --tests io.github.kxnar.btaanywhere.mod.hosting.CrashFaultCampaignTest --rerun-tasks
+```
+
+Unset those environment variables to return to the short CI profile. The injected exceptions exercise bounded backup, copy, journal, and recovery handling. They do not establish power-loss durability or replace the five disposable-world manual scenarios in [Releasing](releasing.md). The production constructor has no injection switch; only package-private test construction can supply fault callbacks.
+
+For a full controller transition sweep with the synthetic disposable server, run:
+
+```powershell
+$env:BTA_CONTROLLER_MATRIX = '1'
+.\gradlew.bat --no-daemon :bta-mod:test --tests io.github.kxnar.btaanywhere.mod.hosting.HostControllerFaultTest --rerun-tasks
+```
+
+The normal CI profile of `HostControllerFaultTest` covers a short representative controller matrix. The separate opt-in controller campaign runs the actual `HostController`, backup/journal path, and fake supervisor against 29 applicable Live/Showcase fault cases. First validate its runner with the smoke profile; reserve a quiet machine window before the full campaign:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\run_controller_fault_campaign.ps1 -Profile smoke
+powershell -ExecutionPolicy Bypass -File .\scripts\run_controller_fault_campaign.ps1 -Profile full
+```
+
+The full profile requires a clean Git worktree, fixes 50 deterministic synthetic-world seeds for each applicable fault case, and repeats them in three clean fixture runs (4,350 controller scenarios). It stops on the first failure. Per-case JSONL, a run manifest with Git/Windows/hardware/toolchain data, and a completion summary are written under ignored `.dev/controller-fault-campaign/run-*`; the script prints the exact run directory. Only a completed full run with `summary.json` and no failures counts toward this campaign gate. The output root refuses a new run when prior evidence exceeds 480 MiB, and each JSONL file is capped at 16 MiB. Every case checks a SHA-256 world-file manifest, journal and process identity, recovery/reopen decisions, absence of automatic restore, bounded partial artifacts, and authenticated supervisor cleanup. A failed fixture is retained for inspection; never delete it while a matching managed process is alive. These are fake-server fault simulations, not BTA client save/unload, real power-loss, or real-player tests.
+
+The separate Workstream 2 performance gate measures median pre-server-launch orchestration time from a same-machine baseline and candidate with injection disabled. Relay/tunnel throughput measurements do not cover that gate. No pre-launch timing comparison is recorded by this campaign.
+
+The historical implementation, retained synthetic campaign, skipped checks, and
+remaining review gates are recorded in [Workstream 2 evidence](workstream2-evidence.md).
+
+The normal test suite also runs representative hard-crash child JVMs. File and journal crashes retain hidden partial artifacts or an incomplete journal for inspection. The controller crash fixture stops its fake supervisor only after matching the supervisor and server PID, start time, and executable with the private control file, then sending authenticated `STOP`. It preserves the fixture if that verification fails. These tests use a fake server and a synthetic world; the BTA game-thread save/unload path and forced-shutdown scenarios still require manual disposable-world testing.
+
+The focused launch-failure regression starts a fake supervisor from a marked
+temporary world, injects failure after its control identity is verified but
+before `HostController` receives the process handle, and then calls Stop in
+Live and Showcase modes. It asserts that the launch-intent journal and Live
+world-open guard remain, while Showcase retains its separate copy. Its
+paired pre-launch failure case asserts that Stop may clear the journal when no
+process launch was attempted. The live fake supervisor is stopped only through
+its authenticated control file after PID, start time, and executable checks.
+
+`GameDirectoryLeaseTest` checks exclusive ownership, unsafe lock paths, and
+Windows lock release after a disposable child JVM exits abruptly. It also
+checks that the production controller factory owns the lock until clean close,
+rejects a second controller, and cannot restart after close. The hard-crash
+child test uses that factory and checks OS lock release after its abrupt exit.
+These tests use no player saves or relay ports. For the UI path, launch two BTA clients against
+one newly created disposable game profile: the second must show the directory
+error, block ordinary world open/new-world/hosting actions, and leave the
+first client unaffected. Exit the first client, restart the second, and verify
+that recovery checks still govern any retained journal. Record the profile
+path and results privately; never run this against a user profile.

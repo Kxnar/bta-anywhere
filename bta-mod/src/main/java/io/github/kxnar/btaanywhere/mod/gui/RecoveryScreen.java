@@ -28,12 +28,23 @@ public final class RecoveryScreen extends Screen {
 
 	public RecoveryScreen(Screen parent) {
 		super(parent);
-		controller = BtaAnywhereMod.controller(mc);
+		controller = BtaAnywhereMod.activeController(mc);
 		recoveryService = new RecoveryService(mc.getMinecraftDir().toPath());
+	}
+
+	private boolean ensureController() {
+		if (controller != null && controller.hasActiveGameDirectoryLease()) {
+			return true;
+		}
+		BtaAnywhereMod.showGameDirectoryFailure(mc, getParentScreen());
+		return false;
 	}
 
 	@Override
 	public void init() {
+		if (!ensureController()) {
+			return;
+		}
 		buttons.clear();
 		int center = width / 2;
 		reconnectButton = add(new ButtonElement(0, center - 102, height / 2 - 20, 100, 20, "Reconnect"));
@@ -48,6 +59,9 @@ public final class RecoveryScreen extends Screen {
 
 	@Override
 	public void tick() {
+		if (!ensureController()) {
+			return;
+		}
 		String world = worldToOpen;
 		if (world != null) {
 			worldToOpen = null;
@@ -59,15 +73,22 @@ public final class RecoveryScreen extends Screen {
 
 	@Override
 	protected void buttonClicked(ButtonElement button) {
-		if (!button.enabled || working) {
+		if (!ensureController() || !button.enabled || working) {
 			return;
 		}
 		RecoveryInspection current = inspection;
 		switch (button.id) {
 			case 0 -> {
 				if (current != null && current.canReconnect()) {
-					controller.adoptRecoveredSession(current);
-					mc.displayScreen(new ScreenConnecting(mc, "127.0.0.1", current.entry().localPort()));
+					try {
+						controller.withActiveGameDirectoryLease(() -> {
+							controller.adoptRecoveredSession(current);
+							mc.displayScreen(new ScreenConnecting(mc, "127.0.0.1", current.entry().localPort()));
+							return null;
+						});
+					} catch (Exception exception) {
+						message = exception.getMessage();
+					}
 				}
 			}
 			case 1 -> {
@@ -96,8 +117,9 @@ public final class RecoveryScreen extends Screen {
 			case 4 -> {
 				if (current != null) {
 					try {
-						worldToOpen = recoveryService.clearAndOpenOriginal(current);
-					} catch (IOException exception) {
+						worldToOpen = controller.withActiveGameDirectoryLease(
+							() -> recoveryService.clearAndOpenOriginal(current));
+					} catch (Exception exception) {
 						message = exception.getMessage();
 					}
 				}
@@ -113,10 +135,11 @@ public final class RecoveryScreen extends Screen {
 		working = true;
 		CompletableFuture.runAsync(() -> {
 			try {
-				Optional<RecoveryInspection> recovered = recoveryService.inspect();
+				Optional<RecoveryInspection> recovered = controller.withActiveGameDirectoryLease(
+					recoveryService::inspect);
 				inspection = recovered.orElse(null);
 				message = recovered.map(RecoveryInspection::message).orElse("No recovery journal remains.");
-			} catch (IOException exception) {
+			} catch (Exception exception) {
 				message = "Recovery inspection failed: " + exception.getMessage();
 			} finally {
 				working = false;
@@ -129,7 +152,10 @@ public final class RecoveryScreen extends Screen {
 		message = "Working...";
 		CompletableFuture.runAsync(() -> {
 			try {
-				action.run();
+				controller.withActiveGameDirectoryLease(() -> {
+					action.run();
+					return null;
+				});
 			} catch (Exception exception) {
 				message = exception.getMessage() == null ? exception.getClass().getSimpleName() : exception.getMessage();
 			} finally {
@@ -156,14 +182,18 @@ public final class RecoveryScreen extends Screen {
 
 	private void updateButtons() {
 		RecoveryInspection current = inspection;
-		reconnectButton.enabled = !working && current != null && current.canReconnect();
-		stopButton.enabled = !working && current != null && current.canGracefullyStop();
-		restoreButton.enabled = !working && current != null && current.canRestore();
-		openOriginalButton.enabled = !working && current != null && current.canOpenOriginal();
+		boolean active = controller.hasActiveGameDirectoryLease();
+		reconnectButton.enabled = active && !working && current != null && current.canReconnect();
+		stopButton.enabled = active && !working && current != null && current.canGracefullyStop();
+		restoreButton.enabled = active && !working && current != null && current.canRestore();
+		openOriginalButton.enabled = active && !working && current != null && current.canOpenOriginal();
 	}
 
 	@Override
 	public void render(int mouseX, int mouseY, float partialTick) {
+		if (!ensureController()) {
+			return;
+		}
 		renderBackground();
 		drawStringCenteredShadow(fontRenderer, "BTA Anywhere Recovery", width / 2, height / 2 - 72, 0xFFFFFF);
 		java.util.List<String> lines = fontRenderer.splitCharsIntoLines(message, Math.min(290, width - 24),

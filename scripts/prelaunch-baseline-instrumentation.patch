@@ -1,0 +1,15 @@
+diff --git a/bta-mod/src/main/java/io/github/kxnar/btaanywhere/mod/hosting/HostController.java b/bta-mod/src/main/java/io/github/kxnar/btaanywhere/mod/hosting/HostController.java
+index 3ab25c8..cc1d50a 100644
+--- a/bta-mod/src/main/java/io/github/kxnar/btaanywhere/mod/hosting/HostController.java
++++ b/bta-mod/src/main/java/io/github/kxnar/btaanywhere/mod/hosting/HostController.java
+@@ -52,0 +53 @@ public final class HostController implements AutoCloseable {
++	private final HostingFaults timingFaults;
+@@ -81,0 +83,4 @@ public final class HostController implements AutoCloseable {
++		this(gameDirectory, HostingFaults.NONE);
++	}
++
++	HostController(Path gameDirectory, HostingFaults timingFaults) {
+@@ -82,0 +88 @@ public final class HostController implements AutoCloseable {
++		this.timingFaults = Objects.requireNonNull(timingFaults, "timingFaults");
+@@ -313,0 +320 @@ public final class HostController implements AutoCloseable {
++			timingFaults.hit(HostingFaults.Point.BEFORE_SUPERVISOR_LAUNCH);

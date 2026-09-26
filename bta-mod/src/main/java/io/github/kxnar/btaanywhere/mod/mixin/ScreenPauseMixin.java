@@ -1,6 +1,7 @@
 package io.github.kxnar.btaanywhere.mod.mixin;
 
 import io.github.kxnar.btaanywhere.mod.BtaAnywhereMod;
+import io.github.kxnar.btaanywhere.mod.hosting.HostController;
 import io.github.kxnar.btaanywhere.mod.hosting.HostState;
 import net.minecraft.client.gui.ButtonElement;
 import net.minecraft.client.gui.Screen;
@@ -17,7 +18,11 @@ public abstract class ScreenPauseMixin {
 	@Inject(method = "init", at = @At("TAIL"))
 	private void btaAnywhere$addHostButton(CallbackInfo callback) {
 		Screen screen = (Screen) (Object) this;
-		HostState state = BtaAnywhereMod.controller(screen.mc).status().state();
+		HostController controller = BtaAnywhereMod.activeController(screen.mc);
+		if (controller == null) {
+			return;
+		}
+		HostState state = controller.status().state();
 		boolean managedSession = state != HostState.IDLE;
 		boolean singlePlayerWorld = screen.mc.currentWorld != null && !screen.mc.isMultiplayerWorld();
 		if (!managedSession && !singlePlayerWorld) {

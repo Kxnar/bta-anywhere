@@ -49,7 +49,19 @@ public final class ManagedServerProcess implements AutoCloseable {
 		Path logFile,
 		Consumer<String> logConsumer
 	) throws IOException {
+		return start(runtime, activeWorld, options, logFile, logConsumer, HostingFaults.NONE);
+	}
+
+	static ManagedServerProcess start(
+		Path runtime,
+		Path activeWorld,
+		HostOptions options,
+		Path logFile,
+		Consumer<String> logConsumer,
+		HostingFaults faults
+	) throws IOException {
 		Objects.requireNonNull(options, "options");
+		Objects.requireNonNull(faults, "faults");
 		Path serverRoot = runtime.toAbsolutePath().normalize();
 		Path world = activeWorld.toAbsolutePath().normalize();
 		if (!Files.isDirectory(serverRoot) || !Files.isRegularFile(serverRoot.resolve("fabric-server-launch.jar"))) {
@@ -83,21 +95,13 @@ public final class ManagedServerProcess implements AutoCloseable {
 		Process process = builder.start();
 		try {
 			SupervisorControlFile control = awaitControlFile(process, controlFile, Duration.ofSeconds(15));
+			faults.afterSupervisorProcessStarted(process, controlFile);
 			return new ManagedServerProcess(process, control, controlFile, resolvedLog, logConsumer);
 		} catch (IOException | InterruptedException exception) {
-			process.destroy();
-			try {
-				if (!process.waitFor(5, TimeUnit.SECONDS)) {
-					process.destroyForcibly();
-				}
-			} catch (InterruptedException interrupted) {
-				Thread.currentThread().interrupt();
-			}
-			Files.deleteIfExists(controlFile);
 			if (exception instanceof InterruptedException) {
 				Thread.currentThread().interrupt();
 			}
-			throw new IOException("could not start the recoverable server supervisor", exception);
+			throw new IOException("could not verify the new server supervisor; its process and control file were retained for manual inspection before reopening the world", exception);
 		}
 	}
 
@@ -127,31 +131,33 @@ public final class ManagedServerProcess implements AutoCloseable {
 
 	public boolean stopGracefully(Duration timeout) throws IOException, InterruptedException {
 		if (!process.isAlive()) {
+			if (ProcessHandle.of(control.serverPid()).filter(control::matchesServer).isPresent()) {
+				throw new IOException("supervisor exited but the recorded server is still alive; recovery files were retained");
+			}
 			return process.exitValue() == 0;
+		}
+		SupervisorControlFile recorded = SupervisorControlFile.read(controlFile);
+		if (!control.equals(recorded) || !control.matchesSupervisor(process.toHandle())
+			|| ProcessHandle.of(control.serverPid()).filter(control::matchesServer).isEmpty()) {
+			throw new IOException("supervisor or server identity does not match its control file; refusing STOP and retaining recovery files");
 		}
 		String response;
 		try {
 			long requestTimeout = Math.min(Integer.MAX_VALUE, timeout.toMillis() + 15_000L);
 			response = control.request("STOP", Math.toIntExact(requestTimeout));
 		} catch (IOException exception) {
-			process.destroy();
-			if (!process.waitFor(5, TimeUnit.SECONDS)) {
-				process.destroyForcibly();
-				process.waitFor(5, TimeUnit.SECONDS);
-			}
-			throw new IOException("could not contact the server supervisor for a graceful stop", exception);
+			throw new IOException("authenticated supervisor STOP failed; process and recovery files were retained", exception);
 		}
 		if (process.waitFor(5, TimeUnit.SECONDS)) {
 			awaitOutputClosed();
-			Files.deleteIfExists(controlFile);
-			return response.equals("STOPPED clean=true") && process.exitValue() == 0;
+			boolean childStopped = ProcessHandle.of(control.serverPid()).filter(control::matchesServer).isEmpty();
+			boolean clean = childStopped && response.equals("STOPPED clean=true") && process.exitValue() == 0;
+			if (clean) {
+				Files.deleteIfExists(controlFile);
+			}
+			return clean;
 		}
-		process.destroy();
-		if (!process.waitFor(5, TimeUnit.SECONDS)) {
-			process.destroyForcibly();
-			process.waitFor(5, TimeUnit.SECONDS);
-		}
-		return false;
+		throw new IOException("supervisor did not exit after authenticated STOP; process and recovery files were retained");
 	}
 
 	public Process process() {
@@ -242,6 +248,9 @@ public final class ManagedServerProcess implements AutoCloseable {
 					SupervisorControlFile control = SupervisorControlFile.read(controlFile);
 					if (!control.matchesSupervisor(process.toHandle())) {
 						throw new IOException("supervisor control identity did not match its process");
+					}
+					if (ProcessHandle.of(control.serverPid()).filter(control::matchesServer).isEmpty()) {
+						throw new IOException("server control identity did not match a live process");
 					}
 					return control;
 				} catch (IOException exception) {

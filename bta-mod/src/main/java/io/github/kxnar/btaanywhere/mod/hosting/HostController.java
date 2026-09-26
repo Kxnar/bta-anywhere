@@ -50,14 +50,18 @@ public final class HostController implements AutoCloseable {
 
 	private final Path gameDirectory;
 	private final Path managedDirectory;
-	private final WorldBackupService backups = new WorldBackupService();
+	private final WorldBackupService backups;
+	private final HostingFaults faults;
 	private final ServerDistributionManager distributions;
 	private final ModMirrorService modMirror = new ModMirrorService();
 	private final RecoveryJournal journal;
 	private final RecoveryService recoveryService;
 	private final ExecutorService executor;
+	private final GameDirectoryLease ownedLease;
 	private final AtomicReference<HostStatus> status = new AtomicReference<>(HostStatus.idle());
 	private final AtomicBoolean cancelRequested = new AtomicBoolean();
+	private final AtomicBoolean closed = new AtomicBoolean();
+	private final Object leaseActionLock = new Object();
 	private final Object resourceLock = new Object();
 	private final Deque<String> logs = new ArrayDeque<>();
 
@@ -73,16 +77,51 @@ public final class HostController implements AutoCloseable {
 	private volatile Path consoleLog;
 	private volatile boolean showcase;
 	private volatile boolean ownsJournal;
+	/** Set before a launch attempt; a failed start may leave an untracked live server. */
+	private volatile boolean supervisorLaunchAttempted;
 	private volatile RecoveryInspection adoptedRecovery;
 	private final AtomicBoolean hostWorldObserved = new AtomicBoolean();
 	private volatile CompletableFuture<Void> pipeline = CompletableFuture.completedFuture(null);
 	private volatile CompletableFuture<Boolean> stopFuture = CompletableFuture.completedFuture(true);
 
-	public HostController(Path gameDirectory) {
+	HostController(Path gameDirectory) {
+		this(gameDirectory, HostingFaults.NONE);
+	}
+
+	/** Opens a production controller that owns the client-lifetime game-directory lease. */
+	public static HostController open(Path gameDirectory) throws IOException {
+		return open(gameDirectory, HostingFaults.NONE);
+	}
+
+	static HostController open(Path gameDirectory, HostingFaults faults) throws IOException {
+		GameDirectoryLease lease = GameDirectoryLease.acquire(gameDirectory);
+		try {
+			return new HostController(gameDirectory, faults, lease);
+		} catch (RuntimeException | Error failure) {
+			try {
+				lease.close();
+			} catch (IOException closeFailure) {
+				failure.addSuppressed(closeFailure);
+			}
+			throw failure;
+		}
+	}
+
+	HostController(Path gameDirectory, HostingFaults faults) {
+		this(gameDirectory, faults, null);
+	}
+
+	private HostController(Path gameDirectory, HostingFaults faults, GameDirectoryLease lease) {
 		this.gameDirectory = Objects.requireNonNull(gameDirectory, "gameDirectory").toAbsolutePath().normalize();
+		this.faults = Objects.requireNonNull(faults, "faults");
+		if (lease != null && !lease.covers(this.gameDirectory)) {
+			throw new IllegalArgumentException("the BTA Anywhere game directory lease does not cover this profile");
+		}
+		ownedLease = lease;
+		backups = new WorldBackupService(java.time.Clock.systemUTC(), faults);
 		managedDirectory = this.gameDirectory.resolve("bta-anywhere");
 		distributions = new ServerDistributionManager(managedDirectory);
-		journal = new RecoveryJournal(managedDirectory);
+		journal = new RecoveryJournal(managedDirectory, faults);
 		recoveryService = new RecoveryService(this.gameDirectory);
 		executor = Executors.newSingleThreadExecutor(runnable -> {
 			Thread thread = new Thread(runnable, "bta-anywhere-hosting");
@@ -97,6 +136,9 @@ public final class HostController implements AutoCloseable {
 		BtaAnywhereConfig config,
 		boolean downloadConfirmed
 	) {
+		if (closed.get()) {
+			return CompletableFuture.failedFuture(new IllegalStateException("the hosting controller is closed"));
+		}
 		Objects.requireNonNull(world, "world");
 		Objects.requireNonNull(options, "options");
 		Objects.requireNonNull(config, "config");
@@ -109,16 +151,20 @@ public final class HostController implements AutoCloseable {
 		}
 		cancelRequested.set(false);
 		ownsJournal = false;
+		supervisorLaunchAttempted = false;
 		hostWorldObserved.set(false);
 		clearLog();
-		setState(HostState.VALIDATING, "Validating world, disk space, port, and server files", "");
 		PendingStart requested = new PendingStart(world, options, config, downloadConfirmed, null);
 		pending = requested;
+		setState(HostState.VALIDATING, "Validating world, disk space, port, and server files", "");
 		pipeline = CompletableFuture.runAsync(() -> validate(requested), executor);
 		return pipeline;
 	}
 
 	public synchronized CompletionStage<Void> continueAfterWorldClosed() {
+		if (closed.get()) {
+			return CompletableFuture.failedFuture(new IllegalStateException("the hosting controller is closed"));
+		}
 		PendingStart requested = pending;
 		if (requested == null || status.get().state() != HostState.SAVING) {
 			return CompletableFuture.failedFuture(new IllegalStateException("hosting is not waiting for a world save"));
@@ -127,6 +173,16 @@ public final class HostController implements AutoCloseable {
 			pipeline = CompletableFuture.runAsync(() -> startAfterSave(requested), executor);
 		}
 		return pipeline;
+	}
+
+	public void beforeWorldSave() {
+		faults.hit(HostingFaults.Point.BEFORE_WORLD_SAVE);
+	}
+
+	public boolean hasRecoveryArtifacts() {
+		return Files.exists(journal.file(), java.nio.file.LinkOption.NOFOLLOW_LINKS)
+			|| Files.exists(journal.file().resolveSibling("recovery.json.tmp"),
+				java.nio.file.LinkOption.NOFOLLOW_LINKS);
 	}
 
 	public void markHostConnectionStarted() {
@@ -152,6 +208,22 @@ public final class HostController implements AutoCloseable {
 	public HostStatus status() {
 		HostStatus current = status.get();
 		return new HostStatus(current.state(), current.message(), current.connectionAddress(), snapshotLogs());
+	}
+
+	/** True only while a production controller still holds its client game-directory lock. */
+	public boolean hasActiveGameDirectoryLease() {
+		return !closed.get() && ownedLease != null && ownedLease.covers(gameDirectory);
+	}
+
+	/** Serializes recovery actions with close so they cannot outlive this controller's lease. */
+	public <T> T withActiveGameDirectoryLease(java.util.concurrent.Callable<T> action) throws Exception {
+		Objects.requireNonNull(action, "action");
+		synchronized (leaseActionLock) {
+			if (!hasActiveGameDirectoryLease()) {
+				throw new IllegalStateException("the hosting controller no longer owns this game directory");
+			}
+			return action.call();
+		}
 	}
 
 	public Optional<RecoveryJournal.Entry> recovery() {
@@ -180,24 +252,46 @@ public final class HostController implements AutoCloseable {
 		return recovered == null ? Optional.empty() : Optional.of(recovered.entry().worldDirectoryName());
 	}
 
-	public boolean canReopenOriginalWorld() {
+	/** The original Live save that must not be opened during an in-process handoff. */
+	public Optional<Path> liveOriginalNeedingGuard() {
 		RecoveryInspection recovered = adoptedRecovery;
-		if (recovered != null) {
-			return !recovered.supervisorAlive() && !recovered.serverAlive();
+		if (recovered != null && recovered.entry().worldMode() == WorldMode.LIVE) {
+			return Optional.of(Path.of(recovered.entry().originalSavePath()));
 		}
-		if (ownsJournal) {
-			try {
-				return recoveryService.inspect().map(RecoveryInspection::canOpenOriginal).orElse(false);
-			} catch (IOException exception) {
-				appendLog("Could not verify whether the managed server still owns the save: " + exception.getMessage());
+		PendingStart requested = pending;
+		if (requested == null || requested.options().worldMode() != WorldMode.LIVE) {
+			return Optional.empty();
+		}
+		if (status.get().state() == HostState.FAILED && !ownsJournal) {
+			ManagedServerProcess running = server;
+			if (running == null || !running.process().isAlive()) {
+				return Optional.empty();
+			}
+		}
+		return Optional.of(requested.world().worldDirectory());
+	}
+
+	public boolean canReopenOriginalWorld() {
+		try {
+			Optional<RecoveryInspection> inspection = recoveryService.inspect();
+			if (inspection.isPresent()) {
+				return inspection.get().canOpenOriginal();
+			}
+			if (ownsJournal || adoptedRecovery != null) {
 				return false;
 			}
+		} catch (IOException | RuntimeException exception) {
+			appendLog("Could not verify whether the managed server still owns the save: " + exception.getMessage());
+			return false;
 		}
 		ManagedServerProcess running = server;
 		return pending != null && (running == null || !running.process().isAlive());
 	}
 
 	public synchronized void adoptRecoveredSession(RecoveryInspection inspection) {
+		if (closed.get()) {
+			throw new IllegalStateException("the hosting controller is closed");
+		}
 		Objects.requireNonNull(inspection, "inspection");
 		if (!inspection.canReconnect() || status.get().state() != HostState.IDLE) {
 			throw new IllegalStateException("recovered server is not ready to reconnect");
@@ -278,6 +372,7 @@ public final class HostController implements AutoCloseable {
 			return;
 		}
 		try {
+			faults.hit(HostingFaults.Point.AFTER_WORLD_CLOSE);
 			checkNotCancelled();
 			if (requested.options().worldMode() == WorldMode.LIVE) {
 				setState(HostState.BACKING_UP, "Creating an atomic safety backup", "");
@@ -302,7 +397,7 @@ public final class HostController implements AutoCloseable {
 				requested.world().worldDirectory(), activeWorld,
 				requested.world().worldDirectoryName(), backupFile,
 				requested.options().port(), requested.runtime(), consoleLog
-			);
+			).withLaunchIntent();
 			journal.write(journalEntry);
 			ownsJournal = true;
 
@@ -311,21 +406,28 @@ public final class HostController implements AutoCloseable {
 			appendLog("Mirrored server-compatible mods: " + String.join(", ", mirror.copiedModIds()));
 			ServerConfigurationWriter.write(requested.runtime(), requested.options());
 			checkNotCancelled();
+			faults.hit(HostingFaults.Point.BEFORE_SUPERVISOR_LAUNCH);
+			supervisorLaunchAttempted = true;
 			ManagedServerProcess launched = ManagedServerProcess.start(
-				requested.runtime(), activeWorld, requested.options(), consoleLog, this::appendLog
+				requested.runtime(), activeWorld, requested.options(), consoleLog, this::appendLog, faults
 			);
 			synchronized (resourceLock) {
 				server = launched;
 			}
+			faults.hit(HostingFaults.Point.AFTER_SUPERVISOR_LAUNCH);
 			journal.write(journalEntry.withProcess(launched));
+			faults.hit(HostingFaults.Point.AFTER_SUPERVISOR_IDENTITY_RECORDED);
 			launched.process().onExit().thenRunAsync(() -> serverExited(launched), executor);
 			checkNotCancelled();
 
 			setState(HostState.WAITING_READY, "Waiting for BTA readiness and a localhost TCP probe", "");
+			faults.hit(HostingFaults.Point.BEFORE_READINESS);
 			launched.awaitReady(requested.options().port(), Duration.ofSeconds(180), cancelRequested::get);
 			checkNotCancelled();
 			setState(HostState.EXPOSING, "Exposing the local BTA server", "");
+			faults.hit(HostingFaults.Point.BEFORE_NETWORK_EXPOSURE);
 			String address = expose(requested);
+			faults.hit(HostingFaults.Point.AFTER_NETWORK_EXPOSURE);
 			checkNotCancelled();
 			setState(HostState.CONNECTING, "Server ready; reconnecting the host through 127.0.0.1", address);
 		} catch (CancelledStartException ignored) {
@@ -435,10 +537,15 @@ public final class HostController implements AutoCloseable {
 		synchronized (resourceLock) {
 			running = server;
 		}
+		if (running == null && ownsJournal && supervisorLaunchAttempted) {
+			clean = false;
+			appendLog("Supervisor launch may have started without a verified process identity; recovery files were retained for manual inspection");
+		}
 		if (running != null) {
 			try {
+				faults.hit(HostingFaults.Point.DURING_GRACEFUL_STOP);
 				clean = running.stopGracefully(Duration.ofSeconds(30));
-			} catch (IOException exception) {
+			} catch (IOException | RuntimeException exception) {
 				clean = false;
 				appendLog("Server stop failed: " + exception.getMessage());
 			} catch (InterruptedException exception) {
@@ -447,18 +554,21 @@ public final class HostController implements AutoCloseable {
 			}
 		}
 		synchronized (resourceLock) {
-			server = null;
+			if (running == null || !running.process().isAlive()) {
+				server = null;
+			}
 		}
 		if (clean) {
 			try {
 				if (showcase && activeWorld != null) {
+					faults.hit(HostingFaults.Point.BEFORE_SHOWCASE_CLEANUP);
 					backups.deleteCleanShowcase(activeWorld, managedDirectory);
 					appendLog("Deleted clean showcase copy");
 				}
 				if (ownsJournal) {
 					journal.clear();
 				}
-			} catch (IOException exception) {
+			} catch (IOException | RuntimeException exception) {
 				clean = false;
 				appendLog("Clean shutdown bookkeeping failed: " + exception.getMessage());
 			}
@@ -471,10 +581,11 @@ public final class HostController implements AutoCloseable {
 			consoleLog = null;
 			showcase = false;
 			ownsJournal = false;
+			supervisorLaunchAttempted = false;
 			hostWorldObserved.set(false);
 		} else {
 			setState(HostState.FAILED,
-				"Server did not stop cleanly; the recovery journal and any showcase copy were retained", "");
+				"Hosting cleanup did not complete; recovery files and any showcase copy were retained", "");
 		}
 		return clean;
 	}
@@ -538,9 +649,9 @@ public final class HostController implements AutoCloseable {
 				Thread.currentThread().interrupt();
 			}
 		}
-		String guidance = ownsJournal
-			? "; reopen the original world from the recovery controls"
-			: "; no server owns the save, so the original world can be reopened";
+		String guidance = hasRecoveryArtifacts()
+			? "; use recovery controls, and keep the original closed if process identity is incomplete"
+			: "; reopen the original only after the normal process-ownership checks";
 		fail(message + guidance);
 	}
 
@@ -677,12 +788,26 @@ public final class HostController implements AutoCloseable {
 
 	@Override
 	public void close() {
+		synchronized (leaseActionLock) {
+			if (!closed.compareAndSet(false, true)) {
+				return;
+			}
+		}
+		boolean clean = false;
 		try {
-			stop().toCompletableFuture().get(5, TimeUnit.MINUTES);
+			clean = stop().toCompletableFuture().get(5, TimeUnit.MINUTES);
 		} catch (Exception exception) {
 			appendLog("Shutdown cleanup did not complete: " + rootMessage(exception));
+		} finally {
+			executor.shutdownNow();
+			if (clean && ownedLease != null) {
+				try {
+					ownedLease.close();
+				} catch (IOException exception) {
+					appendLog("Could not release BTA Anywhere game directory lease");
+				}
+			}
 		}
-		executor.shutdownNow();
 	}
 
 	private final class TunnelEventSubscriber implements Flow.Subscriber<TunnelEvent> {

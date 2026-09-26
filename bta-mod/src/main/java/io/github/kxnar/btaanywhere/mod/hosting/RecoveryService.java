@@ -33,15 +33,28 @@ public final class RecoveryService {
 	}
 
 	public Optional<RecoveryInspection> inspect() throws IOException {
-		Optional<RecoveryJournal.Entry> optional = journal.read();
+		Optional<RecoveryJournal.Entry> optional = readValidatedJournal();
 		if (optional.isEmpty()) {
 			return Optional.empty();
 		}
 		RecoveryJournal.Entry entry = optional.get();
-		validatePaths(entry);
-		Optional<ProcessHandle> supervisor = ProcessIdentity.matching(entry);
-		Optional<ProcessHandle> server = matchingServer(entry);
-		Optional<SupervisorControlFile> control = trustedControl(entry, supervisor, server);
+		if (!entry.identityRecorded() || entry.launchIntent()) {
+			return Optional.of(new RecoveryInspection(entry, false, false, false, true,
+				"Managed process identity was not fully recorded. The original world must remain closed; inspect the supervisor, server, and recovery files manually."));
+		}
+		Optional<ProcessHandle> supervisor;
+		Optional<ProcessHandle> server;
+		Optional<SupervisorControlFile> control;
+		boolean identityAmbiguous;
+		try {
+			supervisor = ProcessIdentity.matching(entry);
+			server = matchingServer(entry);
+			control = trustedControl(entry, supervisor, server);
+			identityAmbiguous = unmatchedLivePid(entry.pid(), supervisor)
+				|| unmatchedLivePid(entry.serverPid(), server);
+		} catch (RuntimeException exception) {
+			throw new IOException("malformed recorded process identity; inspect managed processes and recovery files before opening a world", exception);
+		}
 		boolean supervisorAlive = supervisor.isPresent();
 		boolean serverAlive = server.isPresent();
 		boolean ready = false;
@@ -55,6 +68,8 @@ public final class RecoveryService {
 			} catch (IOException exception) {
 				message = "The recorded processes match, but the supervisor control channel is unavailable.";
 			}
+		} else if (identityAmbiguous) {
+			message = "A recorded PID is alive with a different identity. Do not stop it or open the original world; inspect the processes manually.";
 		} else if (serverAlive) {
 			message = "The BTA server is still running without its recoverable supervisor; do not open the save.";
 		} else if (supervisorAlive) {
@@ -62,7 +77,27 @@ public final class RecoveryService {
 		} else {
 			message = "No matching managed process is running. Recovery files were retained.";
 		}
-		return Optional.of(new RecoveryInspection(entry, supervisorAlive, serverAlive, ready, message));
+		return Optional.of(new RecoveryInspection(entry, supervisorAlive, serverAlive, ready,
+			identityAmbiguous, message));
+	}
+
+	Optional<RecoveryJournal.Entry> readValidatedJournal() throws IOException {
+		Optional<RecoveryJournal.Entry> optional = journal.read();
+		if (optional.isEmpty()) {
+			return Optional.empty();
+		}
+		RecoveryJournal.Entry entry = optional.get();
+		try {
+			validatePaths(entry);
+		} catch (RuntimeException exception) {
+			throw new IOException("malformed recovery paths; inspect managed processes and recovery files before opening a world", exception);
+		}
+		return optional;
+	}
+
+	private static boolean unmatchedLivePid(long pid, Optional<ProcessHandle> matching) {
+		return pid > 0 && matching.isEmpty()
+			&& ProcessHandle.of(pid).filter(ProcessHandle::isAlive).isPresent();
 	}
 
 	public boolean gracefulStop(RecoveryInspection inspection) throws IOException, InterruptedException {
@@ -94,10 +129,10 @@ public final class RecoveryService {
 		Objects.requireNonNull(inspection, "inspection");
 		RecoveryInspection refreshed = inspect().orElseThrow(() -> new IOException("recovery journal is missing"));
 		if (!refreshed.canOpenOriginal()) {
-			throw new IOException("a matching managed process is still alive; the original save must stay closed");
+			throw new IOException("the original save must stay closed: " + refreshed.message());
 		}
 		journal.clear();
-		return inspection.entry().worldDirectoryName();
+		return refreshed.entry().worldDirectoryName();
 	}
 
 	public String restoreBackup(RecoveryInspection inspection, boolean explicitlyConfirmed) throws IOException {
@@ -107,7 +142,7 @@ public final class RecoveryService {
 		}
 		RecoveryInspection refreshed = inspect().orElseThrow(() -> new IOException("recovery journal is missing"));
 		if (!refreshed.canRestore()) {
-			throw new IOException("backup cannot be restored while a matching managed process is alive");
+			throw new IOException("backup cannot be restored: " + refreshed.message());
 		}
 		RecoveryJournal.Entry entry = refreshed.entry();
 		Path original = Path.of(entry.originalSavePath()).toAbsolutePath().normalize();
@@ -174,6 +209,7 @@ public final class RecoveryService {
 		Path backup = entry.backupPath().isBlank() ? null
 			: Path.of(entry.backupPath()).toAbsolutePath().normalize();
 		if (!original.startsWith(savesRoot) || original.equals(savesRoot)
+			|| !original.getFileName().toString().equals(entry.worldDirectoryName())
 			|| !runtime.startsWith(managedDirectory) || !log.startsWith(managedDirectory.resolve("logs"))
 			|| (control != null && !control.startsWith(managedDirectory.resolve("logs")))
 			|| (backup != null && !backup.startsWith(managedDirectory.resolve("backups")))
