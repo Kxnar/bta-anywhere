@@ -198,6 +198,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "bta-anywhere-coordinator-protocol"
+version = "0.1.0"
+dependencies = [
+ "base64",
+ "ring",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "bta-anywhere-relay"
 version = "0.1.0"
 dependencies = [

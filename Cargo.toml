@@ -1,5 +1,5 @@
 [workspace]
-members = ["relay"]
+members = ["relay", "coordinator-protocol"]
 resolver = "3"
 
 [workspace.package]

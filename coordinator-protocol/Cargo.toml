@@ -1,0 +1,18 @@
+[package]
+name = "bta-anywhere-coordinator-protocol"
+description = "Signed allocation ticket schema for operator-owned relay coordination"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+base64 = "=0.22.1"
+ring = "=0.17.14"
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.151"
+
+[dev-dependencies]
+serde_json = "=1.0.151"
