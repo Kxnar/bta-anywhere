@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": 2,
+  "hostAlpn": "bta-anywhere/2",
+  "relayAlpn": "bta-anywhere-relay/1",
+  "guestAlpn": "bta-anywhere-guest/1",
+  "connectionHeaders": [
+    { "name": "valid-v2-connection-open", "accepted": true, "json": "{\"version\":2,\"sessionId\":\"session-token\",\"connectionId\":\"connection-token\",\"remoteAddress\":\"127.0.0.1:1234\"}" },
+    { "name": "legacy-version-downgrade", "accepted": false, "json": "{\"version\":1,\"sessionId\":\"session-token\",\"connectionId\":\"connection-token\",\"remoteAddress\":\"127.0.0.1:1234\"}" },
+    { "name": "wrong-v2-session-identity", "accepted": false, "json": "{\"version\":2,\"sessionId\":\"other-session\",\"connectionId\":\"connection-token\",\"remoteAddress\":\"127.0.0.1:1234\"}" },
+    { "name": "malformed-v2-header-missing-connection-id", "accepted": false, "json": "{\"version\":2,\"sessionId\":\"session-token\",\"remoteAddress\":\"127.0.0.1:1234\"}" },
+    { "name": "malformed-v2-header-invalid-address", "accepted": false, "json": "{\"version\":2,\"sessionId\":\"session-token\",\"connectionId\":\"connection-token\",\"remoteAddress\":\"not-an-address\"}" },
+    { "name": "malformed-v2-header-json", "accepted": false, "json": "{\"version\":2," },
+    { "name": "malformed-v2-header-duplicate-version", "accepted": false, "json": "{\"version\":2,\"version\":2,\"sessionId\":\"session-token\",\"connectionId\":\"connection-token\",\"remoteAddress\":\"127.0.0.1:1234\"}" }
+  ],
+  "invitations": [
+    {
+      "name": "canonical-v2-invitation",
+      "accepted": true,
+      "wire": "BTAE1:eyJ2ZXJzaW9uIjoxLCJpbnZpdGF0aW9uSWQiOiJBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnIiwiaG9zdFNlc3Npb25JZCI6IkF3TURBd01EQXdNREF3TURBd01EQXdNREF3TURBd01EQXdNREF3TURBd00iLCJob3N0U3BraVNoYTI1NiI6IjAxMjM0NTY3ODlhYmNkZWYwMTIzNDU2Nzg5YWJjZGVmMDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWYiLCJyZWxheUhvc3QiOiJyZWxheS5leGFtcGxlIiwicmVsYXlQb3J0IjozMDAwMCwicmVsYXlTcGtpU2hhMjU2IjoiMDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWYwMTIzNDU2Nzg5YWJjZGVmMDEyMzQ1Njc4OWFiY2RlZiIsImV4cGlyZXNBdEVwb2NoTWlsbGlzIjoxODAwMDAwMDAwMDAwLCJqb2luQ2FwYWJpbGl0eSI6IkFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUEiLCJzdGF0dXNDYXBhYmlsaXR5IjoiQVFFQkFRRUJBUUVCQVFFQkFRRUJBUUVCQVFFQkFRRUJBUUVCQVFFQkFRRSJ9"
+    },
+    { "name": "tampered-invitation", "accepted": false, "mutation": "change-payload-character" }
+  ],
+  "auth": [
+    { "name": "join-auth", "accepted": true, "json": "{\"version\":1,\"invitationId\":\"AgICAgICAgICAgICAgICAg\",\"hostSessionId\":\"AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM\",\"intent\":\"join\",\"capability\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"}" },
+    { "name": "status-auth-icon", "accepted": true, "json": "{\"version\":1,\"invitationId\":\"AgICAgICAgICAgICAgICAg\",\"hostSessionId\":\"AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM\",\"intent\":\"status\",\"capability\":\"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE\",\"statusVariant\":\"icon\"}" },
+    { "name": "duplicate-version", "accepted": false, "json": "{\"version\":1,\"version\":1,\"invitationId\":\"AgICAgICAgICAgICAgICAg\",\"hostSessionId\":\"AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM\",\"intent\":\"join\",\"capability\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"}" },
+    { "name": "downgrade-to-v1-auth", "accepted": false, "json": "{\"version\":2,\"invitationId\":\"AgICAgICAgICAgICAgICAg\",\"hostSessionId\":\"AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM\",\"intent\":\"join\",\"capability\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"}" },
+    { "name": "join-cannot-carry-status-variant", "accepted": false, "json": "{\"version\":1,\"invitationId\":\"AgICAgICAgICAgICAgICAg\",\"hostSessionId\":\"AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM\",\"intent\":\"join\",\"capability\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"statusVariant\":\"icon\"}" },
+    { "name": "status-requires-known-variant", "accepted": false, "json": "{\"version\":1,\"invitationId\":\"AgICAgICAgICAgICAgICAg\",\"hostSessionId\":\"AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM\",\"intent\":\"status\",\"capability\":\"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE\",\"statusVariant\":\"unknown\"}" }
+  ],
+  "frames": [
+    { "name": "auth-frame-header", "accepted": true, "hex": "0100027b7d" },
+    { "name": "empty-auth-ok", "accepted": true, "hex": "020000" },
+    { "name": "empty-fin", "accepted": true, "hex": "040000" },
+    { "name": "unknown-frame-type", "accepted": false, "hex": "060000" },
+    { "name": "nonempty-fin", "accepted": false, "hex": "04000100" },
+    { "name": "truncated-data-payload", "accepted": false, "hex": "03000201" }
+  ],
+  "admission": [
+    { "name": "expired-before-admission", "operation": "join", "advanceMillis": 2000, "lifetimeMillis": 2000, "accepted": false },
+    { "name": "revoked-status-capability", "operation": "revoke-status", "accepted": false },
+    { "name": "replayed-join-capability", "operation": "replay-join", "accepted": false },
+    { "name": "wrong-host-session", "operation": "wrong-session", "accepted": false },
+    { "name": "wrong-scope", "operation": "join-with-status-capability", "accepted": false },
+    { "name": "tampered-capability", "operation": "tamper-capability", "accepted": false }
+  ]
+}

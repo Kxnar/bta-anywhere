@@ -293,6 +293,23 @@ mod tests {
         payload_utf8: String,
     }
 
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct EncryptedV2Document {
+        protocol_version: u16,
+        host_alpn: String,
+        relay_alpn: String,
+        guest_alpn: String,
+        connection_headers: Vec<EncryptedV2ConnectionHeaderVector>,
+    }
+
+    #[derive(Deserialize)]
+    struct EncryptedV2ConnectionHeaderVector {
+        name: String,
+        accepted: bool,
+        json: String,
+    }
+
     #[tokio::test]
     async fn round_trips_connection_header() {
         let expected = ConnectionOpen {
@@ -305,6 +322,34 @@ mod tests {
         write_json(&mut writer, &expected).await.unwrap();
         let actual: ConnectionOpen = read_json(&mut reader).await.unwrap();
         assert_eq!(actual, expected);
+    }
+
+    #[tokio::test]
+    async fn shared_encrypted_v2_connection_headers_reject_downgrade_and_wrong_session() {
+        let document: EncryptedV2Document = serde_json::from_str(include_str!(
+            "../../protocol/test-vectors/encrypted-v2.json"
+        ))
+        .unwrap();
+        assert_eq!(document.protocol_version, ENCRYPTED_VERSION);
+        assert_eq!(document.host_alpn.as_bytes(), ENCRYPTED_ALPN);
+        assert_eq!(document.relay_alpn.as_bytes(), GUEST_ALPN);
+        assert_eq!(document.guest_alpn, "bta-anywhere-guest/1");
+        for vector in document.connection_headers {
+            let payload = vector.json.as_bytes();
+            let mut frame = (payload.len() as u32).to_be_bytes().to_vec();
+            frame.extend_from_slice(payload);
+            let mut reader = frame.as_slice();
+            let actual = read_json::<_, ConnectionOpen>(&mut reader).await;
+            let accepted = actual.is_ok_and(|header| {
+                header.version == ENCRYPTED_VERSION
+                    && header.session_id == "session-token"
+                    && !header.connection_id.is_empty()
+                    && header.connection_id.len() <= 128
+                    && header.remote_address.len() <= 128
+                    && header.remote_address.parse::<std::net::SocketAddr>().is_ok()
+            });
+            assert_eq!(accepted, vector.accepted, "{}", vector.name);
+        }
     }
 
     #[tokio::test]

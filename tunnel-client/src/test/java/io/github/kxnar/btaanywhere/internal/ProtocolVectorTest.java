@@ -60,6 +60,28 @@ final class ProtocolVectorTest {
 	}
 
 	@Test
+	void sharedEncryptedV2ConnectionOpenVectorsRejectDowngradeAndWrongSession() throws Exception {
+		Path vectors = Path.of(System.getProperty("btaAnywhereProtocolVectors"));
+		JsonObject document = JsonParser.parseString(
+			Files.readString(vectors.resolve("encrypted-v2.json"), StandardCharsets.UTF_8)
+		).getAsJsonObject();
+		assertEquals(2, document.get("protocolVersion").getAsInt());
+		for (var item : document.getAsJsonArray("connectionHeaders")) {
+			JsonObject vector = item.getAsJsonObject();
+			boolean accepted = false;
+			try {
+				JsonObject header = IncomingTunnelHandler.decodeConnectionHeader(
+					vector.get("json").getAsString().getBytes(StandardCharsets.UTF_8));
+				IncomingTunnelHandler.validateConnectionHeader(header, "session-token", 2);
+				accepted = true;
+			} catch (IllegalArgumentException expected) {
+				// Downgrade, wrong identity, and malformed headers must fail closed.
+			}
+			assertEquals(vector.get("accepted").getAsBoolean(), accepted, vector.get("name").getAsString());
+		}
+	}
+
+	@Test
 	void sharedStructuralVectorsMatchV1Boundaries() throws Exception {
 		Path vectors = Path.of(System.getProperty("btaAnywhereProtocolVectors"));
 		JsonObject document = JsonParser.parseString(
