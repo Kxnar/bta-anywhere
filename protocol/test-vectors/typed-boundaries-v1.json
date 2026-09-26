@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "name": "register-version-string",
+      "typedAccepted": false,
+      "target": "control",
+      "phase": "pre",
+      "expectedSession": "session-test",
+      "payloadUtf8": "{\"type\":\"register\",\"version\":\"1\",\"accessToken\":\"synthetic-test-token\",\"clientInstanceId\":\"test-client\"}"
+    },
+    {
+      "name": "register-version-decimal",
+      "typedAccepted": false,
+      "target": "control",
+      "phase": "pre",
+      "expectedSession": "session-test",
+      "payloadUtf8": "{\"type\":\"register\",\"version\":1.0,\"accessToken\":\"synthetic-test-token\",\"clientInstanceId\":\"test-client\"}"
+    },
+    {
+      "name": "register-version-u16-max",
+      "typedAccepted": true,
+      "target": "control",
+      "phase": "pre",
+      "expectedSession": "session-test",
+      "payloadUtf8": "{\"type\":\"register\",\"version\":65535,\"accessToken\":\"synthetic-test-token\",\"clientInstanceId\":\"test-client\"}"
+    },
+    {
+      "name": "register-version-u16-overflow",
+      "typedAccepted": false,
+      "target": "control",
+      "phase": "pre",
+      "expectedSession": "session-test",
+      "payloadUtf8": "{\"type\":\"register\",\"version\":65536,\"accessToken\":\"synthetic-test-token\",\"clientInstanceId\":\"test-client\"}"
+    },
+    {
+      "name": "register-token-number",
+      "typedAccepted": false,
+      "target": "control",
+      "phase": "pre",
+      "expectedSession": "session-test",
+      "payloadUtf8": "{\"type\":\"register\",\"version\":1,\"accessToken\":7,\"clientInstanceId\":\"test-client\"}"
+    },
+    {
+      "name": "register-id-number",
+      "typedAccepted": false,
+      "target": "control",
+      "phase": "pre",
+      "expectedSession": "session-test",
+      "payloadUtf8": "{\"type\":\"register\",\"version\":1,\"accessToken\":\"synthetic-test-token\",\"clientInstanceId\":7}"
+    },
+    {
+      "name": "register-resume-number",
+      "typedAccepted": false,
+      "target": "control",
+      "phase": "pre",
+      "expectedSession": "session-test",
+      "payloadUtf8": "{\"type\":\"register\",\"version\":1,\"accessToken\":\"synthetic-test-token\",\"clientInstanceId\":\"test-client\",\"resumeToken\":7}"
+    },
+    {
+      "name": "register-resume-null",
+      "typedAccepted": true,
+      "target": "control",
+      "phase": "pre",
+      "expectedSession": "session-test",
+      "payloadUtf8": "{\"type\":\"register\",\"version\":1,\"accessToken\":\"synthetic-test-token\",\"clientInstanceId\":\"test-client\",\"resumeToken\":null}"
+    },
+    {
+      "name": "close-reason-number",
+      "typedAccepted": false,
+      "target": "control",
+      "phase": "active",
+      "expectedSession": "session-test",
+      "payloadUtf8": "{\"type\":\"close\",\"reason\":7}"
+    },
+    {
+      "name": "connection-version-string",
+      "typedAccepted": false,
+      "target": "connection",
+      "phase": "active",
+      "expectedSession": "session-test",
+      "payloadUtf8": "{\"version\":\"1\",\"sessionId\":\"session-test\",\"connectionId\":\"test-connection\",\"remoteAddress\":\"127.0.0.1:25565\"}"
+    },
+    {
+      "name": "connection-version-decimal",
+      "typedAccepted": false,
+      "target": "connection",
+      "phase": "active",
+      "expectedSession": "session-test",
+      "payloadUtf8": "{\"version\":1.0,\"sessionId\":\"session-test\",\"connectionId\":\"test-connection\",\"remoteAddress\":\"127.0.0.1:25565\"}"
+    },
+    {
+      "name": "connection-id-number",
+      "typedAccepted": false,
+      "target": "connection",
+      "phase": "active",
+      "expectedSession": "session-test",
+      "payloadUtf8": "{\"version\":1,\"sessionId\":\"session-test\",\"connectionId\":7,\"remoteAddress\":\"127.0.0.1:25565\"}"
+    },
+    {
+      "name": "connection-session-number",
+      "typedAccepted": false,
+      "target": "connection",
+      "phase": "active",
+      "expectedSession": "session-test",
+      "payloadUtf8": "{\"version\":1,\"sessionId\":7,\"connectionId\":\"test-connection\",\"remoteAddress\":\"127.0.0.1:25565\"}"
+    },
+    {
+      "name": "connection-remote-number",
+      "typedAccepted": false,
+      "target": "connection",
+      "phase": "active",
+      "expectedSession": "session-test",
+      "payloadUtf8": "{\"version\":1,\"sessionId\":\"session-test\",\"connectionId\":\"test-connection\",\"remoteAddress\":7}"
+    },
+    {
+      "name": "ping-sequence-u64-max",
+      "typedAccepted": true,
+      "target": "control",
+      "phase": "active",
+      "expectedSession": "session-test",
+      "payloadUtf8": "{\"type\":\"ping\",\"sequence\":18446744073709551615}"
+    },
+    {
+      "name": "ping-sequence-u64-overflow",
+      "typedAccepted": false,
+      "target": "control",
+      "phase": "active",
+      "expectedSession": "session-test",
+      "payloadUtf8": "{\"type\":\"ping\",\"sequence\":18446744073709551616}"
+    },
+    {
+      "name": "ping-sequence-negative-zero",
+      "typedAccepted": false,
+      "target": "control",
+      "phase": "active",
+      "expectedSession": "session-test",
+      "payloadUtf8": "{\"type\":\"ping\",\"sequence\":-0}"
+    },
+    {
+      "name": "ping-sequence-exponent",
+      "typedAccepted": false,
+      "target": "control",
+      "phase": "active",
+      "expectedSession": "session-test",
+      "payloadUtf8": "{\"type\":\"ping\",\"sequence\":1e0}"
+    },
+    {
+      "name": "ping-sequence-string",
+      "typedAccepted": false,
+      "target": "control",
+      "phase": "active",
+      "expectedSession": "session-test",
+      "payloadUtf8": "{\"type\":\"ping\",\"sequence\":\"7\"}"
+    },
+    {"name":"register-features-valid","typedAccepted":true,"target":"control","phase":"pre","expectedSession":"session-test","payloadUtf8":"{\"type\":\"register\",\"version\":1,\"accessToken\":\"synthetic-test-token\",\"clientInstanceId\":\"test-client\",\"features\":[\"streamEofBytes\"]}"},
+    {"name":"register-features-null","typedAccepted":false,"target":"control","phase":"pre","expectedSession":"session-test","payloadUtf8":"{\"type\":\"register\",\"version\":1,\"accessToken\":\"synthetic-test-token\",\"clientInstanceId\":\"test-client\",\"features\":null}"},
+    {"name":"register-features-string","typedAccepted":false,"target":"control","phase":"pre","expectedSession":"session-test","payloadUtf8":"{\"type\":\"register\",\"version\":1,\"accessToken\":\"synthetic-test-token\",\"clientInstanceId\":\"test-client\",\"features\":\"streamEofBytes\"}"},
+    {"name":"register-features-duplicate","typedAccepted":false,"target":"control","phase":"pre","expectedSession":"session-test","payloadUtf8":"{\"type\":\"register\",\"version\":1,\"accessToken\":\"synthetic-test-token\",\"clientInstanceId\":\"test-client\",\"features\":[\"streamEofBytes\",\"streamEofBytes\"]}"},
+    {"name":"register-features-too-many","typedAccepted":false,"target":"control","phase":"pre","expectedSession":"session-test","payloadUtf8":"{\"type\":\"register\",\"version\":1,\"accessToken\":\"synthetic-test-token\",\"clientInstanceId\":\"test-client\",\"features\":[\"feature0\",\"feature1\",\"feature2\",\"feature3\",\"feature4\",\"feature5\",\"feature6\",\"feature7\",\"feature8\",\"feature9\",\"feature10\",\"feature11\",\"feature12\",\"feature13\",\"feature14\",\"feature15\",\"feature16\"]}"},
+    {"name":"stream-eof-valid","typedAccepted":true,"target":"control","phase":"active","expectedSession":"session-test","payloadUtf8":"{\"type\":\"streamEof\",\"connectionId\":\"connection-test\",\"bytes\":5}"},
+    {"name":"stream-eof-zero","typedAccepted":true,"target":"control","phase":"active","expectedSession":"session-test","payloadUtf8":"{\"type\":\"streamEof\",\"connectionId\":\"connection-test\",\"bytes\":0}"},
+    {"name":"stream-eof-negative","typedAccepted":false,"target":"control","phase":"active","expectedSession":"session-test","payloadUtf8":"{\"type\":\"streamEof\",\"connectionId\":\"connection-test\",\"bytes\":-1}"},
+    {"name":"stream-eof-decimal","typedAccepted":false,"target":"control","phase":"active","expectedSession":"session-test","payloadUtf8":"{\"type\":\"streamEof\",\"connectionId\":\"connection-test\",\"bytes\":1.5}"},
+    {"name":"stream-eof-string","typedAccepted":false,"target":"control","phase":"active","expectedSession":"session-test","payloadUtf8":"{\"type\":\"streamEof\",\"connectionId\":\"connection-test\",\"bytes\":\"5\"}"},
+    {"name":"stream-eof-id-number","typedAccepted":false,"target":"control","phase":"active","expectedSession":"session-test","payloadUtf8":"{\"type\":\"streamEof\",\"connectionId\":7,\"bytes\":5}"},
+    {"name":"stream-eof-missing-bytes","typedAccepted":false,"target":"control","phase":"active","expectedSession":"session-test","payloadUtf8":"{\"type\":\"streamEof\",\"connectionId\":\"connection-test\"}"},
+    {"name":"stream-eof-max","typedAccepted":true,"target":"control","phase":"active","expectedSession":"session-test","payloadUtf8":"{\"type\":\"streamEof\",\"connectionId\":\"connection-test\",\"bytes\":9223372036854775807}"},
+    {"name":"stream-eof-overflow","typedAccepted":false,"target":"control","phase":"active","expectedSession":"session-test","payloadUtf8":"{\"type\":\"streamEof\",\"connectionId\":\"connection-test\",\"bytes\":9223372036854775808}"},
+    {"name":"register-features-reordered","typedAccepted":true,"target":"control","phase":"pre","expectedSession":"session-test","payloadUtf8":"{\"type\":\"register\",\"version\":1,\"accessToken\":\"synthetic-test-token\",\"clientInstanceId\":\"test-client\",\"features\":[\"unknownFuture\",\"streamEofBytes\"]}"}
+  ]
+}

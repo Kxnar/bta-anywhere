@@ -12,6 +12,8 @@ The relay access token controls who may allocate relay ports. It is not a guest 
 - SHA-256-only relay token storage, constant-time comparisons, 256-bit session/resume/control secrets, and redacted Java secret rendering.
 - Framed-message size limits before allocation and raw bounded-buffer streaming with backpressure.
 - Negotiated, authenticated per-stream completion notices with completed-write byte counts; the relay does not certify EOF from an unacknowledged count or an unrelated session. Notices and active tracking are bounded.
+- Shared malformed-frame vectors and seeded Windows differential tests for invalid UTF-8, non-object JSON, typed fields, and boundary lengths. These tests do not constitute a security proof; current validation status is recorded in [Protocol](protocol.md).
+- Structural regression vectors for repeated defined top-level fields, invalid UTF-8 in ignored fields, and 127/128-container nesting boundaries. Earlier fixed-seed and manual campaigns found zero cross-language mismatches at their recorded commits; the stacked candidate requires a fresh run. The state target is a test model, not the production relay state machine.
 - Per-token, per-host-address, per-session, and per-guest-address quotas.
 - Loopback-only admin endpoint by default and sensitive-data-free metric labels.
 - Official server archive pinning, a 256 MiB download cap, traversal/absolute-path/symbolic-link rejection, and staged extraction.
