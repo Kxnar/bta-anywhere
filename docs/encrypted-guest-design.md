@@ -97,5 +97,11 @@ was archived by its maintainers in May 2026 and says QUIC support moved to
 Netty 4.2. Before adding another TLS layer, review support and Windows/JDK
 compatibility for the pinned transport versus a migration. This is an open
 dependency decision; this design does not silently change the transport.
+The [Netty 4.2 BOM](https://github.com/netty/netty/blob/4.2/bom/pom.xml)
+lists a Windows x86-64 native QUIC artifact, while the
+[4.2 API](https://netty.io/4.2/api/io/netty/handler/codec/quic/QuicStreamChannel.html)
+uses a different QUIC package. Artifact availability alone does not establish
+compatibility with this project's Java runtime, shaded JAR, EOF behavior, or
+performance gates.
 
 **Explicit non-goals:** public relay hosting; account service; permanent host identity; guest identity beyond BTA online mode/whitelist; zero-downtime TCP migration; hiding metadata from the relay; Linux/ARM64 support; changing default limits; weakening existing TLS, archive, path, recovery, or process controls.
