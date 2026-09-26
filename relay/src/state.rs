@@ -19,13 +19,14 @@ use tokio::{
     sync::{Mutex as AsyncMutex, RwLock, watch},
     time,
 };
+use tokio_rustls::TlsAcceptor;
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, info, warn};
 
 use crate::{
     config::RelayConfig,
     metrics::RelayMetrics,
-    protocol::{ConnectionOpen, PROTOCOL_VERSION, write_json},
+    protocol::{ConnectionOpen, ENCRYPTED_VERSION, GUEST_ALPN, PROTOCOL_VERSION, write_json},
     token,
 };
 
@@ -73,6 +74,7 @@ pub struct RelayState {
 
 struct RelayStateInner {
     pub config: RelayConfig,
+    guest_tls: TlsAcceptor,
     pub token_hashes: Vec<[u8; 32]>,
     pub sessions: RwLock<HashMap<String, Arc<Session>>>,
     pub metrics: RelayMetrics,
@@ -93,6 +95,7 @@ pub struct Session {
     pub source_ip: IpAddr,
     pub client_instance_id: String,
     pub access_token_hash: [u8; 32],
+    pub mode: SessionMode,
     resume_token_hash: RwLock<[u8; 32]>,
     connection: RwLock<Option<Connection>>,
     generation: AtomicU64,
@@ -100,6 +103,21 @@ pub struct Session {
     completions: Mutex<HashMap<String, Arc<StreamCompletion>>>,
     overall_accept_limiter: DefaultDirectRateLimiter,
     cancel: CancellationToken,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SessionMode {
+    Legacy,
+    Encrypted,
+}
+
+impl SessionMode {
+    pub fn version(self) -> u16 {
+        match self {
+            Self::Legacy => PROTOCOL_VERSION,
+            Self::Encrypted => ENCRYPTED_VERSION,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -245,7 +263,7 @@ pub struct Registration {
 }
 
 impl RelayState {
-    pub fn new(config: RelayConfig) -> Result<Self> {
+    pub fn new(config: RelayConfig, guest_tls: TlsAcceptor) -> Result<Self> {
         let token_hashes = config
             .access_token_hashes
             .iter()
@@ -260,6 +278,7 @@ impl RelayState {
         Ok(Self {
             inner: Arc::new(RelayStateInner {
                 config,
+                guest_tls,
                 token_hashes,
                 sessions: RwLock::new(HashMap::new()),
                 metrics: RelayMetrics::new(),
@@ -312,6 +331,7 @@ impl RelayState {
         client_instance_id: String,
         resume_token: Option<String>,
         connection: Connection,
+        mode: SessionMode,
     ) -> Result<Registration> {
         if client_instance_id.is_empty() || client_instance_id.len() > 128 {
             bail!("client instance ID must contain between 1 and 128 characters");
@@ -324,6 +344,7 @@ impl RelayState {
                     client_instance_id,
                     &resume_token,
                     connection,
+                    mode,
                 )
                 .await;
         }
@@ -357,6 +378,7 @@ impl RelayState {
             source_ip,
             client_instance_id,
             access_token_hash,
+            mode,
             resume_token_hash: RwLock::new(token::hash(&resume_token)),
             connection: RwLock::new(Some(connection)),
             generation: AtomicU64::new(1),
@@ -398,6 +420,7 @@ impl RelayState {
         client_instance_id: String,
         resume_token: &str,
         connection: Connection,
+        mode: SessionMode,
     ) -> Result<Registration> {
         let candidate = token::hash(resume_token);
         let sessions = self.inner.sessions.read().await;
@@ -410,6 +433,9 @@ impl RelayState {
             }
         }
         let session = matched.context("resume token is invalid or expired")?;
+        if session.mode != mode {
+            bail!("resume token belongs to another guest transport mode");
+        }
         if !bool::from(session.access_token_hash.ct_eq(&access_token_hash)) {
             bail!("resume token does not belong to this access token");
         }
@@ -504,10 +530,29 @@ impl RelayState {
         self.inner.metrics.active_connections.inc();
         let state = self.clone();
         tokio::spawn(async move {
-            if let Err(error) = state
-                .forward_guest(session.clone(), connection, stream, remote)
-                .await
-            {
+            let result = match session.mode {
+                SessionMode::Legacy => {
+                    state
+                        .forward_guest(session.clone(), connection, stream, remote)
+                        .await
+                }
+                SessionMode::Encrypted => {
+                    match time::timeout(
+                        Duration::from_secs(10),
+                        state.inner.guest_tls.accept(stream),
+                    )
+                    .await
+                    {
+                        Ok(Ok(tls)) if tls.get_ref().1.alpn_protocol() == Some(GUEST_ALPN) => {
+                            state
+                                .forward_guest(session.clone(), connection, tls, remote)
+                                .await
+                        }
+                        _ => Err(anyhow!("encrypted guest TLS handshake or ALPN failed")),
+                    }
+                }
+            };
+            if let Err(error) = result {
                 debug!(port = session.public_port, %remote, %error, "guest tunnel closed with an error");
             }
             session.active_connections.fetch_sub(1, Ordering::SeqCst);
@@ -539,27 +584,34 @@ impl RelayState {
         limiter.limiter.check().is_ok()
     }
 
-    async fn forward_guest(
+    async fn forward_guest<S>(
         &self,
         session: Arc<Session>,
         connection: Connection,
-        stream: TcpStream,
+        stream: S,
         remote: SocketAddr,
-    ) -> Result<()> {
+    ) -> Result<()>
+    where
+        S: AsyncRead + AsyncWrite + Unpin + Send + 'static,
+    {
         let (mut quic_send, mut quic_recv) =
             time::timeout(Duration::from_secs(10), connection.open_bi())
                 .await
                 .context("timed out opening QUIC stream")??;
         let header = ConnectionOpen {
-            version: PROTOCOL_VERSION,
+            version: session.mode.version(),
             session_id: session.id.clone(),
             connection_id: token::generate(),
             remote_address: remote.to_string(),
         };
-        let (completion, _completion_guard) = session.track_stream(
-            header.connection_id.clone(),
-            self.inner.config.max_connections_per_session,
-        )?;
+        let tracked = if session.mode == SessionMode::Legacy {
+            Some(session.track_stream(
+                header.connection_id.clone(),
+                self.inner.config.max_connections_per_session,
+            )?)
+        } else {
+            None
+        };
         write_json(&mut quic_send, &header).await?;
         let trace_id = header.connection_id;
         trace_eof(
@@ -569,7 +621,7 @@ impl RelayState {
             Some((remote.port(), quic_send.id().into())),
         );
 
-        let (mut tcp_read, mut tcp_write) = stream.into_split();
+        let (mut tcp_read, mut tcp_write) = tokio::io::split(stream);
         let guest_to_host = async {
             let bytes = copy(&mut tcp_read, &mut quic_send).await?;
             trace_eof(&trace_id, "relay_guest_tcp_eof", Some(bytes), None);
@@ -577,8 +629,16 @@ impl RelayState {
             trace_eof(&trace_id, "relay_quic_send_finish", None, None);
             Ok::<u64, anyhow::Error>(bytes)
         };
-        let host_to_guest =
-            copy_response_with_completion(&mut quic_recv, &mut tcp_write, &completion, &trace_id);
+        let host_to_guest = async {
+            if let Some((completion, _)) = &tracked {
+                copy_response_with_completion(&mut quic_recv, &mut tcp_write, completion, &trace_id)
+                    .await
+            } else {
+                let bytes = copy(&mut quic_recv, &mut tcp_write).await?;
+                tcp_write.shutdown().await?;
+                Ok(bytes)
+            }
+        };
         let result = tokio::try_join!(guest_to_host, host_to_guest);
         if result.is_err() {
             trace_eof(&trace_id, "relay_forward_error", None, None);
@@ -728,6 +788,7 @@ mod completion_tests {
 
     fn session() -> Arc<Session> {
         Arc::new(Session {
+            mode: SessionMode::Legacy,
             id: "test-session".into(),
             public_port: 30_000,
             source_ip: IpAddr::V4(Ipv4Addr::LOCALHOST),

@@ -20,15 +20,19 @@ use axum::{
     routing::get,
 };
 use clap::{Parser, Subcommand};
-use protocol::{ALPN, ClientControl, PROTOCOL_VERSION, ServerControl, read_json, write_json};
+use protocol::{
+    ALPN, ClientControl, ENCRYPTED_ALPN, ENCRYPTED_VERSION, GUEST_ALPN, PROTOCOL_VERSION,
+    ServerControl, read_json, write_json,
+};
 use quinn::{Endpoint, VarInt, crypto::rustls::QuicServerConfig};
 use rcgen::{
     BasicConstraints, CertificateParams, DnType, ExtendedKeyUsagePurpose, IsCa, Issuer, KeyPair,
     KeyUsagePurpose,
 };
 use rustls::pki_types::{CertificateDer, PrivateKeyDer};
-use state::{NoticeResult, Registration, RelayState};
+use state::{NoticeResult, Registration, RelayState, SessionMode};
 use tokio::{io::AsyncWriteExt, net::TcpListener, time};
+use tokio_rustls::TlsAcceptor;
 use tracing::{error, info, warn};
 use tracing_subscriber::EnvFilter;
 
@@ -131,10 +135,10 @@ fn read_token(path: Option<&Path>) -> Result<String> {
 
 async fn run(config_path: PathBuf) -> Result<()> {
     let config = RelayConfig::load(&config_path).await?;
-    let server_config = load_server_config(&config).await?;
+    let (server_config, guest_tls) = load_server_config(&config).await?;
     let endpoint = Endpoint::server(server_config, config.quic_listen)
         .with_context(|| format!("failed to bind QUIC endpoint at {}", config.quic_listen))?;
-    let state = RelayState::new(config.clone())?;
+    let state = RelayState::new(config.clone(), guest_tls)?;
     let admin_listener = TcpListener::bind(config.admin_listen)
         .await
         .with_context(|| format!("failed to bind admin endpoint at {}", config.admin_listen))?;
@@ -190,6 +194,11 @@ async fn run(config_path: PathBuf) -> Result<()> {
 
 async fn handle_connection(state: RelayState, connection: quinn::Connection) -> Result<()> {
     let remote = connection.remote_address();
+    let negotiated_alpn = connection
+        .handshake_data()
+        .and_then(|data| data.downcast::<quinn::crypto::rustls::HandshakeData>().ok())
+        .and_then(|data| data.protocol.clone())
+        .ok_or_else(|| anyhow!("host QUIC connection has no supported ALPN"))?;
     let (mut send, mut receive) = time::timeout(Duration::from_secs(10), connection.accept_bi())
         .await
         .context("timed out waiting for registration stream")??;
@@ -206,15 +215,28 @@ async fn handle_connection(state: RelayState, connection: quinn::Connection) -> 
             client_instance_id,
             resume_token,
         })) => {
-            if version != PROTOCOL_VERSION {
+            let mode = match negotiated_mode(version, &negotiated_alpn) {
+                Some(mode) => mode,
+                None => {
+                    send_error(
+                        &mut send,
+                        "unsupported_version",
+                        "unsupported protocol version",
+                        false,
+                    )
+                    .await?;
+                    bail!("unsupported or mismatched protocol version {version}");
+                }
+            };
+            if mode == SessionMode::Encrypted && !features.is_empty() {
                 send_error(
                     &mut send,
-                    "unsupported_version",
-                    "unsupported protocol version",
+                    "unsupported_feature",
+                    "encrypted sessions do not use legacy features",
                     false,
                 )
                 .await?;
-                bail!("unsupported protocol version {version}");
+                bail!("encrypted session requested legacy features");
             }
             let Some(access_hash) = state.authenticate(&access_token) else {
                 state.metrics().rejected_total.inc();
@@ -236,6 +258,7 @@ async fn handle_connection(state: RelayState, connection: quinn::Connection) -> 
                     client_instance_id,
                     resume_token,
                     connection.clone(),
+                    mode,
                 )
                 .await
             {
@@ -363,6 +386,35 @@ async fn handle_connection(state: RelayState, connection: quinn::Connection) -> 
     control_result
 }
 
+fn negotiated_mode(version: u16, alpn: &[u8]) -> Option<SessionMode> {
+    match (version, alpn) {
+        (PROTOCOL_VERSION, ALPN) => Some(SessionMode::Legacy),
+        (ENCRYPTED_VERSION, ENCRYPTED_ALPN) => Some(SessionMode::Encrypted),
+        _ => None,
+    }
+}
+
+#[cfg(test)]
+mod encrypted_mode_tests {
+    use super::*;
+
+    #[test]
+    fn encrypted_registration_never_uses_legacy_alpn_or_version() {
+        assert_eq!(
+            negotiated_mode(PROTOCOL_VERSION, ALPN),
+            Some(SessionMode::Legacy)
+        );
+        assert_eq!(
+            negotiated_mode(ENCRYPTED_VERSION, ENCRYPTED_ALPN),
+            Some(SessionMode::Encrypted)
+        );
+        assert_eq!(negotiated_mode(ENCRYPTED_VERSION, ALPN), None);
+        assert_eq!(negotiated_mode(PROTOCOL_VERSION, ENCRYPTED_ALPN), None);
+        assert_eq!(negotiated_mode(3, ENCRYPTED_ALPN), None);
+        assert_eq!(negotiated_mode(ENCRYPTED_VERSION, b""), None);
+    }
+}
+
 async fn write_registration(
     state: &RelayState,
     send: &mut quinn::SendStream,
@@ -469,7 +521,7 @@ async fn metrics(State(state): State<RelayState>) -> Response {
     }
 }
 
-async fn load_server_config(config: &RelayConfig) -> Result<quinn::ServerConfig> {
+async fn load_server_config(config: &RelayConfig) -> Result<(quinn::ServerConfig, TlsAcceptor)> {
     let certificate_bytes = tokio::fs::read(&config.certificate_path)
         .await
         .with_context(|| format!("failed to read {}", config.certificate_path.display()))?;
@@ -481,17 +533,20 @@ async fn load_server_config(config: &RelayConfig) -> Result<quinn::ServerConfig>
     let private_key: PrivateKeyDer<'static> =
         rustls_pemfile::private_key(&mut key_bytes.as_slice())?
             .ok_or_else(|| anyhow!("private key file contains no supported key"))?;
-    let mut tls = rustls::ServerConfig::builder()
+    let mut tls = rustls::ServerConfig::builder_with_protocol_versions(&[&rustls::version::TLS13])
         .with_no_client_auth()
         .with_single_cert(certificates, private_key)?;
-    tls.alpn_protocols = vec![ALPN.to_vec()];
+    let mut guest_tls_config = tls.clone();
+    guest_tls_config.alpn_protocols = vec![GUEST_ALPN.to_vec()];
+    let guest_tls = TlsAcceptor::from(Arc::new(guest_tls_config));
+    tls.alpn_protocols = vec![ALPN.to_vec(), ENCRYPTED_ALPN.to_vec()];
     let crypto = QuicServerConfig::try_from(tls)?;
     let mut server = quinn::ServerConfig::with_crypto(Arc::new(crypto));
     let mut transport = quinn::TransportConfig::default();
     transport.max_concurrent_bidi_streams(VarInt::from_u32(64));
     transport.keep_alive_interval(Some(Duration::from_secs(config.heartbeat_seconds)));
     server.transport_config(Arc::new(transport));
-    Ok(server)
+    Ok((server, guest_tls))
 }
 
 async fn init_dev(output: &Path) -> Result<()> {

@@ -9,6 +9,9 @@ use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
 pub const PROTOCOL_VERSION: u16 = 1;
 pub const ALPN: &[u8] = b"bta-anywhere/1";
+pub const ENCRYPTED_VERSION: u16 = 2;
+pub const ENCRYPTED_ALPN: &[u8] = b"bta-anywhere/2";
+pub const GUEST_ALPN: &[u8] = b"bta-anywhere-relay/1";
 pub const MAX_FRAME_SIZE: usize = 64 * 1024;
 
 #[derive(Debug, Deserialize)]
