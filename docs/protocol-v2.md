@@ -1,6 +1,6 @@
 # Experimental encrypted relay protocol v2
 
-This is the current Workstream 3 CLI/relay interface. It is implemented in the candidate branch and has passed a local synthetic join smoke. The full v2 cross-language corpus, real BTA client test, and remaining failure gates are open. [Protocol v1](protocol.md) remains the released legacy mode.
+This is the current Workstream 3 CLI/relay interface. It is implemented in the candidate branch and has passed a local synthetic join smoke plus live BTA 8.0.1 server status and first-handshake checks. The full v2 cross-language corpus, real BTA client login test, and remaining failure gates are open. [Protocol v1](protocol.md) remains the released legacy mode.
 
 ## Mode and transport
 

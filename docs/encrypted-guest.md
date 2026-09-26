@@ -49,4 +49,15 @@ python scripts\encrypted_join_smoke.py `
 
 It starts disposable local processes and checks basic and icon status probes, status rate limiting, malformed prefaces, byte-exact join and half-close, replay, wrong host and relay pins, revocation, plaintext rejection, active shutdown, and absence of unauthorized local-server connections. It does **not** measure performance or substitute for a real BTA client and server test. Run the existing serial and concurrent integration harnesses sequentially because they share relay ports.
 
+With a disposable BTA 8.0.1 server already running on loopback, compare its direct and encrypted server-list responses and first join-handshake response:
+
+```powershell
+python scripts\encrypted_bta_status_smoke.py `
+  --relay-binary target\debug\bta-anywhere-relay.exe `
+  --tunnel-jar tunnel-client\build\libs\bta-anywhere-tunnel-0.1.0-all.jar `
+  --local-port 25585
+```
+
+This check reached an official, hash-verified BTA 8.0.1 server on a disposable world for both status variants and the first handshake response. It does not log in a player or prove a complete game join. Keep the server bound to loopback and stop it cleanly after testing.
+
 The relay still sees addresses, timing, volume, and inner TLS record sizes, and can disconnect guests. A stolen invitation can be used first. Host and guest machines, the BTA server, and their mods still need to be trusted. See [Security](security.md), [Privacy](privacy.md), and the [accepted design and full gate list](encrypted-guest-design.md).
