@@ -91,4 +91,11 @@ questions before relay or UI integration.
 - The maintainer accepted outer guest TLS on encrypted ports of the self-hosted relay. This does not authorize a public service or higher default quotas.
 - The certificate-generation dependency and exact JSSE/Netty composition still require a Windows prototype before implementation. As of 25 September 2026, the current repository pins `rustls 0.23.43` and Netty `4.1.122.Final`; official documentation shows active [rustls 0.23 maintenance](https://github.com/rustls/rustls/security), [Tokio Rustls](https://docs.rs/tokio-rustls/latest/tokio_rustls/server/struct.TlsAcceptor.html), [Netty 4.1 `SslHandler`](https://netty.io/4.1/api/io/netty/handler/ssl/SslHandler.html), and [Bouncy Castle Java 1.86](https://www.bouncycastle.org/download/bouncy-castle-java/). These are candidates, not dependencies added by this design.
 
+The repository still pins `netty-incubator-codec-native-quic 0.0.73.Final`.
+The [Netty QUIC codec repository](https://github.com/netty/netty-incubator-codec-quic)
+was archived by its maintainers in May 2026 and says QUIC support moved to
+Netty 4.2. Before adding another TLS layer, review support and Windows/JDK
+compatibility for the pinned transport versus a migration. This is an open
+dependency decision; this design does not silently change the transport.
+
 **Explicit non-goals:** public relay hosting; account service; permanent host identity; guest identity beyond BTA online mode/whitelist; zero-downtime TCP migration; hiding metadata from the relay; Linux/ARM64 support; changing default limits; weakening existing TLS, archive, path, recovery, or process controls.
