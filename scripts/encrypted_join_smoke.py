@@ -133,10 +133,10 @@ def status_probe(icon: bool, port: int) -> bytes:
             + (len(host) // 2).to_bytes(2, "big") + host + port.to_bytes(4, "big"))
 
 
-def wrong_host_pin(encoded: str) -> str:
+def wrong_pin(encoded: str, field: str) -> str:
     payload = encoded.split(":", 1)[1]
     document = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))
-    document["hostSpkiSha256"] = "0" * 64
+    document[field] = "0" * 64
     canonical = json.dumps(document, separators=(",", ":")).encode("utf-8")
     return "BTAE1:" + base64.urlsafe_b64encode(canonical).decode("ascii").rstrip("=")
 
@@ -253,12 +253,24 @@ def main() -> int:
                                      stderr=subprocess.PIPE, text=True, bufsize=1)
             read_lines(guest, "wrong-pin-guest", events, diagnostics)
             assert guest.stdin is not None
-            guest.stdin.write(wrong_host_pin(encoded) + "\n")
+            guest.stdin.write(wrong_pin(encoded, "hostSpkiSha256") + "\n")
             guest.stdin.flush()
             wrong_pin_port = int(wait_event(events, "guest-address").rsplit(":", 1)[1])
             denied(wrong_pin_port)
             if local.count() != admitted:
                 raise AssertionError("wrong-pin guest opened a local server socket")
+            stop(guest)
+            guest = subprocess.Popen([args.java, "-jar", str(args.tunnel_jar), "join-encrypted"],
+                                     stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE, text=True, bufsize=1)
+            read_lines(guest, "wrong-relay-pin-guest", events, diagnostics)
+            assert guest.stdin is not None
+            guest.stdin.write(wrong_pin(encoded, "relaySpkiSha256") + "\n")
+            guest.stdin.flush()
+            wrong_relay_port = int(wait_event(events, "guest-address").rsplit(":", 1)[1])
+            denied(wrong_relay_port)
+            if local.count() != admitted:
+                raise AssertionError("wrong-relay-pin guest opened a local server socket")
             stop(guest)
 
             assert host.stdin is not None
@@ -304,7 +316,7 @@ def main() -> int:
                 guest.stdin.write("stop\n")
                 guest.stdin.flush()
                 guest.wait(timeout=4)
-            print("Encrypted join smoke passed: basic/icon and rate-limited status, malformed prefaces, 45,076-byte half-close, replay/wrong-pin/revoked/plaintext rejection, active shutdown, no unauthorised local sockets.")
+            print("Encrypted join smoke passed: basic/icon and rate-limited status, malformed prefaces, 45,076-byte half-close, replay/wrong-host-pin/wrong-relay-pin/revoked/plaintext rejection, active shutdown, no unauthorised local sockets.")
             return 0
         except BaseException:
             print("\n".join(diagnostics[-80:]))

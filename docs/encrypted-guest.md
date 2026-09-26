@@ -47,6 +47,6 @@ python scripts\encrypted_join_smoke.py `
   --tunnel-jar tunnel-client\build\libs\bta-anywhere-tunnel-0.1.0-all.jar
 ```
 
-It starts disposable local processes and checks basic and icon status probes, status rate limiting, malformed prefaces, byte-exact join and half-close, replay, wrong host pin, revocation, plaintext rejection, active shutdown, and absence of unauthorized local-server connections. It does **not** measure performance or substitute for a real BTA client and server test. Run the existing serial and concurrent integration harnesses sequentially because they share relay ports.
+It starts disposable local processes and checks basic and icon status probes, status rate limiting, malformed prefaces, byte-exact join and half-close, replay, wrong host and relay pins, revocation, plaintext rejection, active shutdown, and absence of unauthorized local-server connections. It does **not** measure performance or substitute for a real BTA client and server test. Run the existing serial and concurrent integration harnesses sequentially because they share relay ports.
 
 The relay still sees addresses, timing, volume, and inner TLS record sizes, and can disconnect guests. A stolen invitation can be used first. Host and guest machines, the BTA server, and their mods still need to be trusted. See [Security](security.md), [Privacy](privacy.md), and the [accepted design and full gate list](encrypted-guest-design.md).
