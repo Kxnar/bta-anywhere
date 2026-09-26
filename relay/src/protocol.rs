@@ -346,7 +346,10 @@ mod tests {
                     && !header.connection_id.is_empty()
                     && header.connection_id.len() <= 128
                     && header.remote_address.len() <= 128
-                    && header.remote_address.parse::<std::net::SocketAddr>().is_ok()
+                    && header
+                        .remote_address
+                        .parse::<std::net::SocketAddr>()
+                        .is_ok()
             });
             assert_eq!(accepted, vector.accepted, "{}", vector.name);
         }
