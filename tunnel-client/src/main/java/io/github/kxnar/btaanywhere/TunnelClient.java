@@ -1,6 +1,7 @@
 package io.github.kxnar.btaanywhere;
 
 import io.github.kxnar.btaanywhere.internal.NettyTunnelSession;
+import io.github.kxnar.btaanywhere.encrypted.EncryptedHostContext;
 import io.netty.incubator.codec.quic.Quic;
 import io.netty.channel.nio.NioEventLoopGroup;
 import java.net.InetSocketAddress;
@@ -58,7 +59,31 @@ public final class TunnelClient implements AutoCloseable {
 		if (localTarget.getPort() < 1 || localTarget.getPort() > 65_535) {
 			return CompletableFuture.failedFuture(new IllegalArgumentException("invalid local target port"));
 		}
-		NettyTunnelSession session = new NettyTunnelSession(eventLoopGroup, config, localTarget, eventObserver);
+		return openInternal(config, localTarget, eventObserver, null);
+	}
+
+	/** Opens a v2 session that admits only authenticated encrypted guest streams. */
+	public CompletionStage<TunnelSession> openEncrypted(
+		TunnelConfig config, InetSocketAddress localTarget, EncryptedHostContext encrypted
+	) {
+		Objects.requireNonNull(encrypted, "encrypted");
+		return openInternal(config, localTarget, ignored -> { }, encrypted);
+	}
+
+	private CompletionStage<TunnelSession> openInternal(
+		TunnelConfig config, InetSocketAddress localTarget, Consumer<TunnelEvent> eventObserver,
+		EncryptedHostContext encrypted
+	) {
+		Objects.requireNonNull(config, "config");
+		Objects.requireNonNull(localTarget, "localTarget");
+		Objects.requireNonNull(eventObserver, "eventObserver");
+		if (closed.get()) {
+			return CompletableFuture.failedFuture(new IllegalStateException("tunnel client is closed"));
+		}
+		if (localTarget.getPort() < 1 || localTarget.getPort() > 65_535) {
+			return CompletableFuture.failedFuture(new IllegalArgumentException("invalid local target port"));
+		}
+		NettyTunnelSession session = new NettyTunnelSession(eventLoopGroup, config, localTarget, eventObserver, encrypted);
 		sessions.add(session);
 		session.closed().whenComplete((ignored, failure) -> sessions.remove(session));
 		return session.start();

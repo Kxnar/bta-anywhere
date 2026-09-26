@@ -14,7 +14,7 @@ import java.util.Locale;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLPeerUnverifiedException;
 
-final class TlsHostnameVerifier {
+public final class TlsHostnameVerifier {
 	private static final int DNS_NAME = 2;
 	private static final int IP_ADDRESS = 7;
 
@@ -44,7 +44,7 @@ final class TlsHostnameVerifier {
 		}
 	}
 
-	static boolean matches(String host, Collection<List<?>> subjectAlternativeNames) {
+	public static boolean matches(String host, Collection<List<?>> subjectAlternativeNames) {
 		if (host == null || host.isBlank() || subjectAlternativeNames == null) {
 			return false;
 		}

@@ -21,6 +21,7 @@ dependencies {
 	implementation(libs.netty.handler)
 	implementation(libs.netty.transport)
 	implementation(libs.slf4j.legacy.nop)
+	implementation("org.bouncycastle:bcpkix-jdk18on:1.86")
 	implementation("com.offbynull.portmapper:portmapper:2.0.6") {
 		exclude(group = "org.slf4j", module = "slf4j-simple")
 	}

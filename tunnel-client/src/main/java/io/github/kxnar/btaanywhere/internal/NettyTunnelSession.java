@@ -9,6 +9,7 @@ import io.github.kxnar.btaanywhere.TunnelConfig;
 import io.github.kxnar.btaanywhere.TunnelEvent;
 import io.github.kxnar.btaanywhere.TunnelSession;
 import io.github.kxnar.btaanywhere.TunnelState;
+import io.github.kxnar.btaanywhere.encrypted.EncryptedHostContext;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -50,6 +51,7 @@ public final class NettyTunnelSession implements TunnelSession {
 	private final TunnelConfig config;
 	private final InetSocketAddress localTarget;
 	private final Consumer<TunnelEvent> eventObserver;
+	private final EncryptedHostContext encrypted;
 	private final SubmissionPublisher<TunnelEvent> publisher = new SubmissionPublisher<>();
 	private final CompletableFuture<TunnelSession> opened = new CompletableFuture<>();
 	private final CompletableFuture<Void> closed = new CompletableFuture<>();
@@ -77,10 +79,21 @@ public final class NettyTunnelSession implements TunnelSession {
 		InetSocketAddress localTarget,
 		Consumer<TunnelEvent> eventObserver
 	) {
+		this(group, config, localTarget, eventObserver, null);
+	}
+
+	public NettyTunnelSession(
+		NioEventLoopGroup group,
+		TunnelConfig config,
+		InetSocketAddress localTarget,
+		Consumer<TunnelEvent> eventObserver,
+		EncryptedHostContext encrypted
+	) {
 		this.group = Objects.requireNonNull(group, "group");
 		this.config = Objects.requireNonNull(config, "config");
 		this.localTarget = Objects.requireNonNull(localTarget, "localTarget");
 		this.eventObserver = Objects.requireNonNull(eventObserver, "eventObserver");
+		this.encrypted = encrypted;
 	}
 
 	public CompletionStage<TunnelSession> start() {
@@ -111,7 +124,7 @@ public final class NettyTunnelSession implements TunnelSession {
 		try {
 			QuicSslContext sslContext = QuicSslContextBuilder.forClient()
 				.trustManager(descriptor.trustedCertificate().toFile())
-				.applicationProtocols(ProtocolFrames.ALPN)
+				.applicationProtocols(encrypted == null ? ProtocolFrames.ALPN : "bta-anywhere/2")
 				.build();
 			ChannelHandler codec = new QuicClientCodecBuilder()
 				.sslContext(sslContext)
@@ -160,7 +173,11 @@ public final class NettyTunnelSession implements TunnelSession {
 			.streamHandler(new ChannelInitializer<QuicStreamChannel>() {
 				@Override
 				protected void initChannel(QuicStreamChannel channel) {
-					channel.pipeline().addLast(new IncomingTunnelHandler(NettyTunnelSession.this, currentGeneration));
+					if (encrypted == null) {
+						channel.pipeline().addLast(new IncomingTunnelHandler(NettyTunnelSession.this, currentGeneration));
+					} else {
+						channel.pipeline().addLast(new EncryptedIncomingHandler(encrypted, localTarget, NettyTunnelSession.this::sessionId));
+					}
 				}
 			})
 			.handler(new ChannelInboundHandlerAdapter() {
@@ -231,10 +248,12 @@ public final class NettyTunnelSession implements TunnelSession {
 	private void writeRegistration(Channel channel) {
 		JsonObject register = new JsonObject();
 		register.addProperty("type", "register");
-		register.addProperty("version", ProtocolFrames.VERSION);
+		register.addProperty("version", encrypted == null ? ProtocolFrames.VERSION : 2);
 		register.addProperty("clientInstanceId", config.clientInstanceId());
 		JsonArray features = new JsonArray();
-		features.add(ProtocolFrames.STREAM_EOF_BYTES);
+		if (encrypted == null) {
+			features.add(ProtocolFrames.STREAM_EOF_BYTES);
+		}
 		register.add("features", features);
 		if (resumeToken != null) {
 			register.addProperty("resumeToken", resumeToken);
@@ -282,13 +301,20 @@ public final class NettyTunnelSession implements TunnelSession {
 	}
 
 	private void handleRegistered(JsonObject message) {
-		ProtocolFrames.requireStreamEofFeature(message);
+		if (encrypted == null) {
+			ProtocolFrames.requireStreamEofFeature(message);
+		} else if (message.has("features") && message.getAsJsonArray("features").size() != 0) {
+			throw new IllegalArgumentException("encrypted registration requested unsupported features");
+		}
 		sessionId = ProtocolFrames.requiredString(message, "sessionId");
 		resumeToken = ProtocolFrames.requiredString(message, "resumeToken");
 		endpoint = new PublicEndpoint(
 			ProtocolFrames.requiredString(message, "publicHost"),
 			ProtocolFrames.requiredInt(message, "publicPort")
 		);
+		if (encrypted != null) {
+			encrypted.onRegistered(sessionId, endpoint, relay, quicChannel);
+		}
 		reconnectAttempt.set(0);
 		lastPong = Instant.now();
 		emit(TunnelState.ACTIVE, "Tunnel active at " + endpoint);
@@ -362,6 +388,9 @@ public final class NettyTunnelSession implements TunnelSession {
 		generation.incrementAndGet();
 		cancelReconnect();
 		closeChannels();
+		if (encrypted != null) {
+			encrypted.revokeAll();
+		}
 		emit(TunnelState.FAILED, "Tunnel failed", failure);
 		opened.completeExceptionally(failure);
 		closed.completeExceptionally(failure);
@@ -518,6 +547,9 @@ public final class NettyTunnelSession implements TunnelSession {
 		generation.incrementAndGet();
 		cancelReconnect();
 		closeChannels();
+		if (encrypted != null) {
+			encrypted.revokeAll();
+		}
 		emit(TunnelState.CLOSED, "Tunnel closed");
 		opened.completeExceptionally(new IllegalStateException("tunnel closed before registration"));
 		closed.complete(null);

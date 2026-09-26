@@ -394,27 +394,6 @@ fn negotiated_mode(version: u16, alpn: &[u8]) -> Option<SessionMode> {
     }
 }
 
-#[cfg(test)]
-mod encrypted_mode_tests {
-    use super::*;
-
-    #[test]
-    fn encrypted_registration_never_uses_legacy_alpn_or_version() {
-        assert_eq!(
-            negotiated_mode(PROTOCOL_VERSION, ALPN),
-            Some(SessionMode::Legacy)
-        );
-        assert_eq!(
-            negotiated_mode(ENCRYPTED_VERSION, ENCRYPTED_ALPN),
-            Some(SessionMode::Encrypted)
-        );
-        assert_eq!(negotiated_mode(ENCRYPTED_VERSION, ALPN), None);
-        assert_eq!(negotiated_mode(PROTOCOL_VERSION, ENCRYPTED_ALPN), None);
-        assert_eq!(negotiated_mode(3, ENCRYPTED_ALPN), None);
-        assert_eq!(negotiated_mode(ENCRYPTED_VERSION, b""), None);
-    }
-}
-
 async fn write_registration(
     state: &RelayState,
     send: &mut quinn::SendStream,
@@ -641,4 +620,25 @@ async fn write_private(path: &Path, contents: &[u8]) -> Result<()> {
     file.write_all(contents).await?;
     file.flush().await?;
     Ok(())
+}
+
+#[cfg(test)]
+mod encrypted_mode_tests {
+    use super::*;
+
+    #[test]
+    fn encrypted_registration_never_uses_legacy_alpn_or_version() {
+        assert_eq!(
+            negotiated_mode(PROTOCOL_VERSION, ALPN),
+            Some(SessionMode::Legacy)
+        );
+        assert_eq!(
+            negotiated_mode(ENCRYPTED_VERSION, ENCRYPTED_ALPN),
+            Some(SessionMode::Encrypted)
+        );
+        assert_eq!(negotiated_mode(ENCRYPTED_VERSION, ALPN), None);
+        assert_eq!(negotiated_mode(PROTOCOL_VERSION, ENCRYPTED_ALPN), None);
+        assert_eq!(negotiated_mode(3, ENCRYPTED_ALPN), None);
+        assert_eq!(negotiated_mode(ENCRYPTED_VERSION, b""), None);
+    }
 }

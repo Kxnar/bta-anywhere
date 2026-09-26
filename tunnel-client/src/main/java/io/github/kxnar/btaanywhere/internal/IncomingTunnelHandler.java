@@ -111,6 +111,10 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 	}
 
 	static void validateConnectionHeader(JsonObject header, String expectedSession) {
+		validateConnectionHeader(header, expectedSession, ProtocolFrames.VERSION);
+	}
+
+	static void validateConnectionHeader(JsonObject header, String expectedSession, int expectedVersion) {
 		if (header == null) {
 			throw new IllegalArgumentException("connection header must be a JSON object");
 		}
@@ -118,7 +122,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 		String headerSession = ProtocolFrames.requiredString(header, "sessionId");
 		String connectionId = ProtocolFrames.requiredString(header, "connectionId");
 		String remoteAddress = ProtocolFrames.requiredString(header, "remoteAddress");
-		if (version != ProtocolFrames.VERSION || !headerSession.equals(expectedSession)) {
+		if (version != expectedVersion || !headerSession.equals(expectedSession)) {
 			throw new IllegalArgumentException("connection stream belongs to an invalid protocol or session");
 		}
 		if (headerSession.isBlank() || headerSession.length() > 128
