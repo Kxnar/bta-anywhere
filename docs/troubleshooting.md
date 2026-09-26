@@ -52,6 +52,32 @@ Do not bypass the guard while a matching managed server or supervisor is alive. 
 
 The release JAR contains the Windows x86-64 native. Use an x86-64 Java runtime. Netty QUIC 0.0.73.Final does not publish Windows ARM64; use an x86-64 Java/BTA runtime under Windows ARM64 emulation.
 
+## Guest receives every byte but waits for TCP EOF
+
+A complete byte count does not prove that the half-close completed. On an
+eight-stream Windows reproduction, the host's QUIC shutdown callback succeeded
+but the relay did not observe a stream FIN. The exact transport cause remains
+unknown. Current matching host and relay builds negotiate `streamEofBytes` and
+also send an authenticated response-byte count so the relay can close guest TCP
+output after the exact response has been copied. An old relay that lacks this
+capability causes an actionable registration failure; upgrade the self-hosted
+relay and host together. Do not bypass certificate checks or increase timeouts
+to hide a missing EOF.
+
+For a disposable synthetic reproduction, set `BTA_EOF_TRACE=1` for the relay
+and `-Dbta.anywhere.traceEof=true` for the Java tunnel, then run the serial and
+concurrent commands in [Building and testing](building.md) sequentially. Both
+traces use the same shortened SHA-256 digest of the per-stream connection ID.
+They record half-close events and byte counts without payloads or tokens, are
+off by default, and stop after 4,096 lines per process. The concurrent harness
+retains at most 10,000 subprocess lines when tracing is enabled. A successful
+Java `quic_shutdown_complete` means the FIN was accepted locally; it does not
+prove that the relay received it. A `relay_control_eof` trace records completion
+through the negotiated notice after the announced byte count was copied. If
+the guest still waits, retain the bounded trace privately and compare its
+sanitized byte counts and connection-ID digests on both sides. Keep raw traces
+private and remove network metadata before sharing a minimal excerpt.
+
 ## Information for a bug report
 
 Include the Windows version and architecture, BTA/Babric/HalpLibe versions, network/world mode, exact failure state, sanitized server/mod logs, and steps using a disposable world. Remove tokens, private keys, public/private player data, IP addresses, and saves unless a maintainer asks for a minimal private reproduction.

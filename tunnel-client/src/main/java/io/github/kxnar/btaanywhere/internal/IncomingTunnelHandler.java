@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 	private static final Gson GSON = new Gson();
 	private final NettyTunnelSession session;
+	private final long connectionGeneration;
 	private ByteBuf headerBuffer;
 	private int expectedLength = -1;
 	private volatile Channel localChannel;
@@ -28,9 +29,12 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 	private volatile boolean quicInputShutdown;
 	private volatile ChannelFuture lastLocalWrite;
 	private boolean localOutputShutdownScheduled;
+	private String traceId;
+	private String connectionId;
 
-	IncomingTunnelHandler(NettyTunnelSession session) {
+	IncomingTunnelHandler(NettyTunnelSession session, long connectionGeneration) {
 		this.session = session;
+		this.connectionGeneration = connectionGeneration;
 	}
 
 	@Override
@@ -108,6 +112,8 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 			throw new IllegalArgumentException("connection stream identifiers are invalid");
 		}
 		validateRemoteAddress(remoteAddress);
+		traceId = EofTrace.id(connectionId);
+		this.connectionId = connectionId;
 		if (headerBuffer.isReadable()) {
 			pendingPayload = headerBuffer.readRetainedSlice(headerBuffer.readableBytes());
 		}
@@ -151,7 +157,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 		ChannelFuture future = new Bootstrap()
 			.group(session.eventLoopGroup())
 			.channel(NioSocketChannel.class)
-			.handler(new LocalToQuicHandler(quicContext.channel()))
+			.handler(new LocalToQuicHandler(session, connectionGeneration, quicContext.channel(), connectionId, traceId))
 			.option(ChannelOption.AUTO_READ, false)
 			.option(ChannelOption.ALLOW_HALF_CLOSURE, true)
 			.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10_000)
@@ -204,6 +210,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 
 	@Override
 	public void channelInactive(ChannelHandlerContext context) {
+		EofTrace.emit(traceId, "quic_channel_inactive", 0, "observed");
 		releasePending();
 		if (headerBuffer != null) {
 			headerBuffer.release();
@@ -217,6 +224,9 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 	@Override
 	public void userEventTriggered(ChannelHandlerContext context, Object event) throws Exception {
 		if (event == ChannelInputShutdownEvent.INSTANCE || event == ChannelInputShutdownReadComplete.INSTANCE) {
+			if (!quicInputShutdown) {
+				EofTrace.emit(traceId, "quic_input_shutdown", 0, "observed");
+			}
 			quicInputShutdown = true;
 			scheduleLocalOutputShutdown();
 			return;
@@ -276,16 +286,26 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 	}
 
 	private static final class LocalToQuicHandler extends ChannelInboundHandlerAdapter {
+		private final NettyTunnelSession session;
+		private final long connectionGeneration;
 		private final QuicStreamChannel quicChannel;
+		private final String connectionId;
+		private final String traceId;
 		private volatile boolean localInputShutdown;
 		private volatile ChannelFuture lastQuicWrite;
+		private volatile long localReadBytes;
 		private boolean quicOutputShutdownScheduled;
 
-		LocalToQuicHandler(Channel quicChannel) {
+		LocalToQuicHandler(NettyTunnelSession session, long connectionGeneration, Channel quicChannel,
+			String connectionId, String traceId) {
 			if (!(quicChannel instanceof QuicStreamChannel stream)) {
 				throw new IllegalArgumentException("tunnel bridge requires a QUIC stream channel");
 			}
+			this.session = session;
+			this.connectionGeneration = connectionGeneration;
 			this.quicChannel = stream;
+			this.connectionId = connectionId;
+			this.traceId = traceId;
 		}
 
 		@Override
@@ -295,6 +315,15 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 
 		@Override
 		public void channelRead(ChannelHandlerContext context, Object message) {
+			if (message instanceof ByteBuf input) {
+				int readable = input.readableBytes();
+				if (Long.MAX_VALUE - localReadBytes < readable) {
+					ReferenceCountUtil.release(message);
+					closePair(context.channel(), quicChannel);
+					return;
+				}
+				localReadBytes += readable;
+			}
 			ChannelFuture write = quicChannel.writeAndFlush(message);
 			lastQuicWrite = write;
 			write.addListener(result -> {
@@ -312,6 +341,14 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 
 		@Override
 		public void channelInactive(ChannelHandlerContext context) {
+			EofTrace.emit(traceId, "local_channel_inactive", localReadBytes,
+				localInputShutdown ? "after-input-event" : "without-input-event");
+			if (!localInputShutdown) {
+				// A full local-channel close without an input EOF can follow a reset or
+				// failed bridge write. It must not certify a complete response.
+				quicChannel.close();
+				return;
+			}
 			localInputShutdown = true;
 			scheduleQuicOutputShutdown();
 		}
@@ -319,6 +356,9 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 		@Override
 		public void userEventTriggered(ChannelHandlerContext context, Object event) throws Exception {
 			if (event == ChannelInputShutdownEvent.INSTANCE || event == ChannelInputShutdownReadComplete.INSTANCE) {
+				if (!localInputShutdown) {
+					EofTrace.emit(traceId, "local_input_shutdown", localReadBytes, "observed");
+				}
 				localInputShutdown = true;
 				scheduleQuicOutputShutdown();
 				return;
@@ -340,9 +380,12 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 				tail = lastQuicWrite;
 			}
 			if (tail == null) {
+				EofTrace.emit(traceId, "quic_last_write", localReadBytes, "none");
 				quicChannel.eventLoop().execute(this::shutdownQuicOutput);
 			} else {
 				tail.addListener(result -> {
+					EofTrace.emit(traceId, "quic_last_write", localReadBytes,
+						result.isSuccess() ? "success" : "failed");
 					if (result.isSuccess()) {
 						shutdownQuicOutput();
 					} else {
@@ -353,11 +396,20 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 		}
 
 		private void shutdownQuicOutput() {
+			if (traceId != null) {
+				EofTrace.emit(traceId, "quic_shutdown_attempt", localReadBytes,
+					!quicChannel.isActive() ? "inactive"
+						: quicChannel.isOutputShutdown() ? "already-shutdown" : "active");
+			}
 			if (!quicChannel.isActive() || quicChannel.isOutputShutdown()) {
 				return;
 			}
 			quicChannel.shutdownOutput().addListener(result -> {
-				if (!result.isSuccess()) {
+				EofTrace.emit(traceId, "quic_shutdown_complete", localReadBytes,
+					result.isSuccess() ? "success" : "failed");
+				if (result.isSuccess()) {
+					session.sendStreamEof(connectionGeneration, connectionId, localReadBytes, quicChannel, traceId);
+				} else {
 					quicChannel.close();
 				}
 			});

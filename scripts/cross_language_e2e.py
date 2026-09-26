@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import collections
 import concurrent.futures
 import contextlib
 import http.client
@@ -98,7 +99,7 @@ def parse_arguments() -> argparse.Namespace:
 def start_reader(
     stream: object,
     label: str,
-    lines: list[str],
+    lines: list[str] | collections.deque[str],
     events: queue.Queue[tuple[str, str]],
 ) -> threading.Thread:
     def read() -> None:
@@ -106,7 +107,11 @@ def start_reader(
         for raw in iter(stream.readline, ""):
             line = raw.rstrip("\r\n")
             lines.append(f"{label}: {line}")
-            events.put((label, line))
+            if label == "tunnel-out" and line.startswith("Public endpoint:"):
+                try:
+                    events.put_nowait((label, line))
+                except queue.Full:
+                    pass
 
     thread = threading.Thread(target=read, name=f"e2e-{label}", daemon=True)
     thread.start()
@@ -154,6 +159,7 @@ def stop_process(process: subprocess.Popen[str] | None, graceful_stdin: bool = F
 def echo_round_trip(public_port: int, payload: bytes, timeout: float = 15.0) -> None:
     with socket.create_connection(("127.0.0.1", public_port), timeout=timeout) as guest:
         guest.settimeout(timeout)
+        guest_port = guest.getsockname()[1]
         guest.sendall(payload)
         guest.shutdown(socket.SHUT_WR)
         received = bytearray()
@@ -162,7 +168,8 @@ def echo_round_trip(public_port: int, payload: bytes, timeout: float = 15.0) -> 
                 chunk = guest.recv(64 * 1024)
             except TimeoutError as failure:
                 raise TimeoutError(
-                    f"received {len(received)} of {len(payload)} bytes before the stream stalled"
+                    f"guest_port={guest_port} received {len(received)} of {len(payload)} "
+                    "bytes before the stream stalled"
                 ) from failure
             if not chunk:
                 break
@@ -218,8 +225,9 @@ def main() -> int:
 
     relay: subprocess.Popen[str] | None = None
     tunnel: subprocess.Popen[str] | None = None
-    output_lines: list[str] = []
-    events: queue.Queue[tuple[str, str]] = queue.Queue()
+    trace_enabled = os.environ.get("BTA_EOF_TRACE") == "1"
+    output_lines: collections.deque[str] = collections.deque(maxlen=10_000 if trace_enabled else 200)
+    events: queue.Queue[tuple[str, str]] = queue.Queue(maxsize=16)
 
     with tempfile.TemporaryDirectory(prefix="bta-anywhere-e2e-") as temporary:
         working = Path(temporary)
@@ -455,10 +463,12 @@ def main() -> int:
                 f"{arguments.concurrency_waves} wave(s) of 8 byte-exact streams, clean shutdown, "
                 "and relay restart recovery."
             )
+            if trace_enabled:
+                print("\n".join(output_lines))
             return 0
         except BaseException:
             if output_lines:
-                print("\n".join(output_lines[-200:]))
+                print("\n".join(output_lines))
             raise
         finally:
             stop_process(tunnel, graceful_stdin=True)

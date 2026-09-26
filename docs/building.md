@@ -60,6 +60,11 @@ python scripts\cross_language_e2e.py `
 ```
 
 `--concurrency-waves` accepts 1-100 waves of eight simultaneous byte-exact streams. CI uses the maximum 100-wave stress gate.
+For an EOF or compatibility candidate, run the serial half-close harness below
+and this concurrent harness **sequentially**: they use the same relay ports.
+The matching host and relay now negotiate `streamEofBytes`; a new host stops
+with a relay-upgrade message if the relay does not acknowledge it. Do not
+compare a new host with an older relay as a valid performance baseline.
 
 ## Windows half-close smoke test
 
@@ -80,6 +85,13 @@ python scripts\windows_half_close_smoke.py `
 `--payload-bytes` is the complete labelled transfer length and defaults to the
 45,076-byte regression size. Failure output includes the iteration label, guest
 source port, relay metrics, and bounded process logs.
+
+To evaluate a changed data path before review, use release builds and retain
+the commands, commit, Windows/CPU/RAM/JDK/Rust details, raw JSON, and summary
+for an alternating same-machine baseline/candidate run. The full benchmark
+profile and two-hour eight-stream soak in the technical roadmap are separate
+from the short integration gates. Five clean full integration
+runs are required; an isolated ten- or twenty-wave pass is diagnostic only.
 
 ## Manual tunnel test
 

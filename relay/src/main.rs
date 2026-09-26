@@ -27,7 +27,7 @@ use rcgen::{
     KeyUsagePurpose,
 };
 use rustls::pki_types::{CertificateDer, PrivateKeyDer};
-use state::{Registration, RelayState};
+use state::{NoticeResult, Registration, RelayState};
 use tokio::{io::AsyncWriteExt, net::TcpListener, time};
 use tracing::{error, info, warn};
 use tracing_subscriber::EnvFilter;
@@ -193,7 +193,7 @@ async fn handle_connection(state: RelayState, connection: quinn::Connection) -> 
     let (mut send, mut receive) = time::timeout(Duration::from_secs(10), connection.accept_bi())
         .await
         .context("timed out waiting for registration stream")??;
-    let registration = match time::timeout(
+    let (registration, stream_eof_bytes) = match time::timeout(
         Duration::from_secs(10),
         read_json::<_, ClientControl>(&mut receive),
     )
@@ -201,6 +201,7 @@ async fn handle_connection(state: RelayState, connection: quinn::Connection) -> 
     {
         Ok(Ok(ClientControl::Register {
             version,
+            features,
             access_token,
             client_instance_id,
             resume_token,
@@ -227,6 +228,7 @@ async fn handle_connection(state: RelayState, connection: quinn::Connection) -> 
                 bail!("authentication failed for {remote}");
             };
             let attempted_resume = resume_token.is_some();
+            let stream_eof_bytes = features.iter().any(|feature| feature == "streamEofBytes");
             match state
                 .register(
                     access_hash,
@@ -237,7 +239,7 @@ async fn handle_connection(state: RelayState, connection: quinn::Connection) -> 
                 )
                 .await
             {
-                Ok(registration) => registration,
+                Ok(registration) => (registration, stream_eof_bytes),
                 Err(error) => {
                     state.metrics().rejected_total.inc();
                     let code = if attempted_resume {
@@ -264,7 +266,8 @@ async fn handle_connection(state: RelayState, connection: quinn::Connection) -> 
         Err(_) => bail!("timed out reading registration"),
     };
 
-    if let Err(error) = write_registration(&state, &mut send, &registration).await {
+    if let Err(error) = write_registration(&state, &mut send, &registration, stream_eof_bytes).await
+    {
         state
             .detach(registration.session.clone(), registration.generation, true)
             .await;
@@ -294,6 +297,35 @@ async fn handle_connection(state: RelayState, connection: quinn::Connection) -> 
                 );
                 immediate = true;
                 break Ok(());
+            }
+            Ok(Ok(ClientControl::StreamEof {
+                connection_id,
+                bytes,
+            })) => {
+                if !stream_eof_bytes {
+                    immediate = true;
+                    let result = send_error(
+                        &mut send,
+                        "feature_not_negotiated",
+                        "stream completion notices require streamEofBytes negotiation",
+                        false,
+                    )
+                    .await;
+                    break result;
+                }
+                match registration
+                    .session
+                    .announce_stream_eof(&connection_id, bytes)
+                {
+                    NoticeResult::Accepted | NoticeResult::Late => {}
+                    NoticeResult::Rejected => {
+                        state.metrics().rejected_total.inc();
+                        warn!(
+                            port = registration.session.public_port,
+                            "invalid active stream completion notice"
+                        );
+                    }
+                }
             }
             Ok(Ok(ClientControl::Register { .. })) => {
                 immediate = true;
@@ -335,10 +367,17 @@ async fn write_registration(
     state: &RelayState,
     send: &mut quinn::SendStream,
     registration: &Registration,
+    stream_eof_bytes: bool,
 ) -> Result<()> {
+    let features: Option<&[&str]> = if stream_eof_bytes {
+        Some(&["streamEofBytes"])
+    } else {
+        None
+    };
     write_json(
         send,
         &ServerControl::Registered {
+            features,
             session_id: &registration.session.id,
             public_host: &state.config().public_host,
             public_port: registration.session.public_port,
