@@ -1,10 +1,12 @@
 # Privacy
 
-## Relay traffic is not end-to-end encrypted
+## v0.1 legacy Relay traffic is not end-to-end encrypted
 
 The guest-to-relay connection is BTA's ordinary TCP connection and has no general transport encryption. QUIC/TLS 1.3 encrypts only the relay-to-host hop. The relay terminates both transports and forwards the bytes, so a relay operator can observe or modify most game traffic as well as connection metadata.
 
 Do not describe Relay mode as end-to-end encrypted. A trustworthy certificate prevents an unrelated network observer from impersonating the configured relay-to-host endpoint; it does not hide guest traffic from the relay itself.
+
+The [experimental encrypted guest CLI](encrypted-guest.md) uses a separate TLS guest listener and an inner TLS connection between the guest companion and host tunnel. The relay can observe connection metadata and inner TLS record sizes, but should not see game payloads if both pinned endpoints remain secure. This candidate has not completed real-client or security acceptance testing; it does not change v0.1 legacy Relay mode.
 
 ## Data visible by mode
 

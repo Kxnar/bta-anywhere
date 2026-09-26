@@ -1,5 +1,9 @@
 # Troubleshooting
 
+## Experimental encrypted guest join fails
+
+Use [Encrypted guest join](encrypted-guest.md) for the CLI commands. An invitation expires within ten minutes and its join capability works once. Request a new invitation after a failed login or disconnect. A server-list ping uses the separate status capability. Confirm that the guest connects to the companion's displayed `127.0.0.1:<port>`, while the companion reaches the relay's public TCP port. A direct stock-client connection to the encrypted public port is rejected. Check that the relay and host use the matching v2 build and that the relay hostname, pins, clocks, and ALPN values are correct. Do not bypass a pin or downgrade to legacy mode to make an encrypted invitation work. Restarting the host process or changing the relay endpoint invalidates old invitations.
+
 ## Loopback benchmark fails
 
 Run the short profile from [Benchmarking](benchmarking.md) after building the

@@ -50,12 +50,15 @@ Install the pinned, checksum-verified portable Temurin build with `scripts/boots
 
 Relay mode is not end-to-end encrypted. The guest connects to the relay using BTA's ordinary TCP protocol; QUIC/TLS 1.3 protects only the relay-to-host hop. A relay operator can observe guest addresses, timing and volume metadata, and most game traffic. Read [Privacy](docs/privacy.md) and [Security](docs/security.md) before operating or trusting a relay.
 
+An [experimental Workstream 3 encrypted guest CLI](docs/encrypted-guest.md) is under development on its own branch. Its companion adds a separate encrypted relay mode; it is not part of v0.1 or the mod hosting UI.
+
 ## Documentation
 
 - [Quick-start](docs/quick-start.md)
 - [Building and testing](docs/building.md)
 - [Architecture](docs/architecture.md)
 - [Protocol v1](docs/protocol.md)
+- [Experimental protocol v2](docs/protocol-v2.md)
 - [Self-hosting a relay](docs/self-hosting.md)
 - [Recovery](docs/recovery.md)
 - [Troubleshooting](docs/troubleshooting.md)

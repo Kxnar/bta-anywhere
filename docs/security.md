@@ -2,7 +2,7 @@
 
 ## Trust model
 
-The host trusts the selected relay with availability, traffic metadata, and plaintext access to guest game packets. Guests trust the host and, in Relay mode, the relay. BTA Anywhere does not make an untrusted relay safe.
+In v0.1 legacy Relay mode, the host trusts the selected relay with availability, traffic metadata, and plaintext access to guest game packets. Guests trust the host and relay. The experimental encrypted guest CLI gives the relay only opaque inner-TLS records while leaving availability and metadata under relay control. It has not completed its acceptance gates.
 
 The relay access token controls who may allocate relay ports. It is not a guest password. Guest authentication remains BTA online mode plus the server whitelist, both enabled by default.
 
@@ -25,6 +25,7 @@ The relay access token controls who may allocate relay ports. It is not a guest 
 - One BTA Anywhere client at a time may use a game directory. A client-lifetime OS lock on a stable, symlink-checked file blocks a second mod instance before world-open or hosting actions; the lock contains no PID authority or secrets. The production controller owns the lease, releases it only after clean cleanup, and otherwise leaves Windows to release it on process exit. Recovery checks still apply after a crash.
 - Ordinary BTA single-player opens are guarded against reopening the original Live save during in-process handoff and while its recovery journal remains; an unidentifiable journal blocks all single-player opens.
 - Online mode, whitelist, maximum-player limit, automatic host operator entry, and warning confirmation before whitelist disablement.
+- The experimental encrypted CLI requires a pinned relay TLS certificate and a session-specific pinned host TLS certificate, separate ALPN/mode negotiation, one-use join capabilities, scoped and rate-limited status probes, a loopback-only guest listener, and admission before any local server socket. Its local synthetic security smoke is described in [Encrypted guest join](encrypted-guest.md).
 
 ## Operator responsibilities
 
@@ -43,7 +44,7 @@ The relay access token controls who may allocate relay ports. It is not a guest 
   and private process output are ignored by Git.
 
 - v0.1 builds, tests, and releases only for Windows x86-64.
-- Guest game traffic is not end-to-end encrypted and can be inspected or changed by the relay.
+- v0.1 legacy Relay guest traffic is not end-to-end encrypted and can be inspected or changed by the relay. The experimental encrypted mode is a separate CLI path and has not had a security audit or real-client acceptance test.
 - v0.1 has no guest companion authentication layer, broker, multi-region routing, DDoS absorption, hole punching, or public relay service.
 - Source-IP quotas are in-memory and per relay process. Restarting the process clears them.
 - Session resume is in-memory. A network interruption can retain the same port during the grace window; a relay process restart creates a fresh registration, often but not contractually on the same port.

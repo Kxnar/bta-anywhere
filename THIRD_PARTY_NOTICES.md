@@ -12,6 +12,7 @@ BTA Anywhere is licensed under Apache License 2.0. Its release artifacts contain
 | offbynull portmapper | 2.0.6 | Apache-2.0 |
 | Apache Commons Lang / IO / Collections | 3.4 / 2.5 / 4.1 | Apache-2.0 |
 | SLF4J API and no-op binding | 1.7.21 | MIT |
+| Bouncy Castle PKIX, provider, and utility JARs (experimental encrypted CLI) | 1.86 | MIT |
 
 The Netty QUIC native archives include notices for their bundled native components, including BoringSSL/OpenSSL-derived material and Cloudflare quiche. Shadowing preserves the upstream `META-INF/license/` material and relocates native resource names; it does not remove the native licence notices.
 

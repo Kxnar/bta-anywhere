@@ -47,6 +47,8 @@ java -jar tunnel-client/build/libs/bta-anywhere-tunnel-0.1.0-all.jar doctor
 
 ## Local full-stack test
 
+The experimental Workstream 3 CLI setup and its short encrypted join/security smoke are in [Encrypted guest join](encrypted-guest.md). They are separate from the v0.1 release gates and from performance benchmarking.
+
 Build the release relay and tunnel CLI, then let the standard-library integration harness create a private development CA/token, start an echo service, open eight concurrent streams, verify byte-exact half-closes and metrics, restart the relay, and verify recovery:
 
 ```powershell

@@ -1,6 +1,6 @@
 # Proposed design: encrypted guest companion (Workstream 3)
 
-**Status:** Design accepted by the maintainer on 25 September 2026 for implementation after Workstreams 0 and 1 pass; no feature code exists and release is not approved
+**Status:** Design accepted by the maintainer on 25 September 2026. A separate Workstream 3 CLI/relay candidate now implements a synthetic end-to-end join; its real-client and remaining acceptance gates are open, and release is not approved.
 **Original design base:** `main` at `05d0c2d4c54a0525316aa2bdd2621d73f0c20456`
 **Current review base:** `origin/main` at `fdc7ef45fdf99637a5f710d7d8931b63ca4e7485`; the accepted design is carried forward without feature implementation
 **Target:** Windows x86-64, Java 17 bytecode/JDK 21 runtime, self-hosted relay

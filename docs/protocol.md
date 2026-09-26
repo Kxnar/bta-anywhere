@@ -2,6 +2,8 @@
 
 This document defines the host-to-relay protocol. Guest-to-relay traffic is unmodified BTA TCP.
 
+The separate experimental [encrypted relay protocol v2](protocol-v2.md) is under development and does not change this legacy v1 wire format.
+
 ## Transport
 
 - QUIC over UDP with TLS 1.3.
