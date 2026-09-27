@@ -229,7 +229,7 @@ async fn handle_connection(state: RelayState, connection: quinn::Connection) -> 
     let (mut send, mut receive) = time::timeout(Duration::from_secs(10), connection.accept_bi())
         .await
         .context("timed out waiting for registration stream")??;
-    let (registration, stream_eof_bytes) = match time::timeout(
+    let (registration, stream_eof_bytes, allocation_ticket_negotiated) = match time::timeout(
         Duration::from_secs(10),
         read_json::<_, ClientControl>(&mut receive),
     )
@@ -291,6 +291,7 @@ async fn handle_connection(state: RelayState, connection: quinn::Connection) -> 
             };
             let attempted_resume = resume_token.is_some();
             let stream_eof_bytes = features.iter().any(|feature| feature == "streamEofBytes");
+            let allocation_ticket_negotiated = allocation_ticket.is_some();
             match state
                 .register(
                     access_hash,
@@ -305,7 +306,7 @@ async fn handle_connection(state: RelayState, connection: quinn::Connection) -> 
                 )
                 .await
             {
-                Ok(registration) => (registration, stream_eof_bytes),
+                Ok(registration) => (registration, stream_eof_bytes, allocation_ticket_negotiated),
                 Err(error) => {
                     state.metrics().rejected_total.inc();
                     let code = if attempted_resume {
@@ -332,7 +333,14 @@ async fn handle_connection(state: RelayState, connection: quinn::Connection) -> 
         Err(_) => bail!("timed out reading registration"),
     };
 
-    if let Err(error) = write_registration(&state, &mut send, &registration, stream_eof_bytes).await
+    if let Err(error) = write_registration(
+        &state,
+        &mut send,
+        &registration,
+        stream_eof_bytes,
+        allocation_ticket_negotiated,
+    )
+    .await
     {
         state
             .detach(registration.session.clone(), registration.generation, true)
@@ -460,12 +468,16 @@ async fn write_registration(
     send: &mut quinn::SendStream,
     registration: &Registration,
     stream_eof_bytes: bool,
+    allocation_ticket_negotiated: bool,
 ) -> Result<()> {
-    let features: Option<&[&str]> = if stream_eof_bytes {
-        Some(&["streamEofBytes"])
-    } else {
-        None
-    };
+    let mut negotiated = Vec::new();
+    if stream_eof_bytes {
+        negotiated.push("streamEofBytes");
+    }
+    if allocation_ticket_negotiated {
+        negotiated.push("allocationTicket");
+    }
+    let features = (!negotiated.is_empty()).then_some(negotiated.as_slice());
     write_json(
         send,
         &ServerControl::Registered {
