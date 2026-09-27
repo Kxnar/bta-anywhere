@@ -28,6 +28,8 @@ pub enum ClientControl {
         client_instance_id: String,
         #[serde(rename = "resumeToken")]
         resume_token: Option<String>,
+        #[serde(rename = "allocationTicket")]
+        allocation_ticket: Option<String>,
     },
     #[serde(rename = "ping")]
     Ping { sequence: u64 },
@@ -482,12 +484,14 @@ mod tests {
                 access_token,
                 client_instance_id,
                 resume_token,
+                allocation_ticket,
             } => {
                 assert_eq!(version, PROTOCOL_VERSION);
                 assert!(features.is_empty());
                 assert_eq!(access_token, "test-access-token");
                 assert_eq!(client_instance_id, "11111111-2222-3333-4444-555555555555");
                 assert!(resume_token.is_none());
+                assert!(allocation_ticket.is_none());
             }
             _ => panic!("shared register vector decoded to another control message"),
         }

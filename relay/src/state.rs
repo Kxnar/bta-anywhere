@@ -4,14 +4,17 @@ use std::{
     num::NonZeroU32,
     sync::{
         Arc, Mutex, OnceLock,
-        atomic::{AtomicU64, AtomicUsize, Ordering},
+        atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering},
     },
-    time::{Duration, Instant},
+    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
 use anyhow::{Context, Result, anyhow, bail};
+use base64::Engine as _;
+use bta_anywhere_coordinator_protocol::{Expected, Mode, TicketClaims};
 use governor::{DefaultDirectRateLimiter, Quota, RateLimiter};
 use quinn::Connection;
+use serde::{Deserialize, Serialize};
 use subtle::ConstantTimeEq;
 use tokio::{
     io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, copy},
@@ -82,6 +85,74 @@ struct RelayStateInner {
     pub shutdown: CancellationToken,
     registration_lock: AsyncMutex<()>,
     source_limiters: Mutex<HashMap<IpAddr, SourceLimiter>>,
+    coordinator: Option<CoordinatorClient>,
+}
+
+struct CoordinatorClient {
+    relay_id: String,
+    url: reqwest::Url,
+    credential: String,
+    keys: HashMap<String, Vec<u8>>,
+    managed_port_start: u16,
+    managed_port_end: u16,
+    http: reqwest::Client,
+    healthy: AtomicBool,
+}
+
+#[derive(Clone)]
+struct ManagedLease {
+    lease_id: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct BoundPort<'a> {
+    lease_id: &'a str,
+    port: u16,
+    generation: u64,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct Heartbeat<'a> {
+    bound_ports: Vec<BoundPort<'a>>,
+    capacity: usize,
+}
+
+#[derive(Deserialize)]
+struct HeartbeatReply {
+    healthy: bool,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct Redeem<'a> {
+    ticket: &'a str,
+    relay_id: &'a str,
+    client_instance_id: &'a str,
+    mode: Mode,
+    public_port: u16,
+    generation: u64,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct RedeemReply {
+    lease_id: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct Release<'a> {
+    lease_id: &'a str,
+    relay_id: &'a str,
+    public_port: u16,
+    generation: u64,
+}
+
+#[derive(Deserialize)]
+struct ReleaseReply {
+    released: bool,
 }
 
 struct SourceLimiter {
@@ -96,6 +167,7 @@ pub struct Session {
     pub client_instance_id: String,
     pub access_token_hash: [u8; 32],
     pub mode: SessionMode,
+    managed: Option<ManagedLease>,
     resume_token_hash: RwLock<[u8; 32]>,
     connection: RwLock<Option<Connection>>,
     generation: AtomicU64,
@@ -103,6 +175,7 @@ pub struct Session {
     completions: Mutex<HashMap<String, Arc<StreamCompletion>>>,
     overall_accept_limiter: DefaultDirectRateLimiter,
     cancel: CancellationToken,
+    listener_stopped: watch::Sender<bool>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -117,6 +190,167 @@ impl SessionMode {
             Self::Legacy => PROTOCOL_VERSION,
             Self::Encrypted => ENCRYPTED_VERSION,
         }
+    }
+
+    fn ticket_mode(self) -> Mode {
+        match self {
+            Self::Legacy => Mode::Legacy,
+            Self::Encrypted => Mode::Encrypted,
+        }
+    }
+}
+
+impl CoordinatorClient {
+    fn new(config: &crate::config::CoordinatorConfig) -> Result<Self> {
+        let credential = std::fs::read_to_string(&config.credential_path)
+            .with_context(|| {
+                format!(
+                    "cannot read coordinator credential file {}",
+                    config.credential_path.display()
+                )
+            })?
+            .trim_end_matches(['\r', '\n'])
+            .to_owned();
+        if credential.len() < 32
+            || credential.len() > 256
+            || !credential.bytes().all(|b| b.is_ascii_graphic())
+        {
+            bail!("coordinator credential must contain 32-256 printable ASCII bytes");
+        }
+        let mut builder = reqwest::Client::builder()
+            .timeout(Duration::from_secs(5))
+            .redirect(reqwest::redirect::Policy::none());
+        if let Some(path) = &config.ca_certificate_path {
+            let pem = std::fs::read(path)
+                .with_context(|| format!("cannot read coordinator CA file {}", path.display()))?;
+            builder = builder.add_root_certificate(
+                reqwest::Certificate::from_pem(&pem)
+                    .context("invalid coordinator CA certificate")?,
+            );
+        }
+        let keys = config
+            .signing_keys
+            .iter()
+            .map(|(id, encoded)| {
+                let bytes = base64::engine::general_purpose::STANDARD
+                    .decode(encoded)
+                    .context("invalid coordinator signing key")?;
+                Ok((id.clone(), bytes))
+            })
+            .collect::<Result<HashMap<_, _>>>()?;
+        Ok(Self {
+            relay_id: config.relay_id.clone(),
+            url: reqwest::Url::parse(&config.url).context("invalid coordinator URL")?,
+            credential,
+            keys,
+            managed_port_start: config.managed_port_start,
+            managed_port_end: config.managed_port_end,
+            http: builder
+                .build()
+                .context("cannot create coordinator HTTPS client")?,
+            healthy: AtomicBool::new(false),
+        })
+    }
+
+    fn endpoint(&self, path: &str) -> Result<reqwest::Url> {
+        self.url.join(path).context("invalid coordinator endpoint")
+    }
+
+    async fn post<T: Serialize, R: for<'de> Deserialize<'de>>(
+        &self,
+        path: &str,
+        body: &T,
+    ) -> Result<R> {
+        let response = self
+            .http
+            .post(self.endpoint(path)?)
+            .bearer_auth(&self.credential)
+            .json(body)
+            .send()
+            .await
+            .context("coordinator request failed")?;
+        if !response.status().is_success() {
+            bail!(
+                "coordinator rejected request with HTTP {}",
+                response.status()
+            );
+        }
+        response
+            .json()
+            .await
+            .context("invalid coordinator response")
+    }
+
+    fn verify_ticket(
+        &self,
+        ticket: &str,
+        client_instance_id: &str,
+        mode: SessionMode,
+    ) -> Result<TicketClaims> {
+        // A bounded, unsigned parse supplies only the candidate port. No claim is trusted until
+        // the canonical signature and all exact bindings are checked by the protocol crate.
+        let claims = bta_anywhere_coordinator_protocol::inspect_unverified(ticket)
+            .context("invalid allocation ticket")?;
+        if claims.public_port < self.managed_port_start
+            || claims.public_port > self.managed_port_end
+        {
+            bail!("allocation ticket is outside the managed port range");
+        }
+        let now_ms = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .context("system clock predates UNIX epoch")?
+            .as_millis();
+        let now_ms = i64::try_from(now_ms).context("system clock cannot be represented")?;
+        bta_anywhere_coordinator_protocol::verify(
+            ticket,
+            &self.keys,
+            Expected {
+                relay_id: &self.relay_id,
+                public_port: claims.public_port,
+                client_instance_id,
+                mode: mode.ticket_mode(),
+            },
+            now_ms,
+        )
+        .context("allocation ticket signature or binding rejected")
+    }
+
+    async fn redeem(&self, ticket: &str, claims: &TicketClaims) -> Result<String> {
+        let result: RedeemReply = self
+            .post(
+                "/v1/leases/redeem",
+                &Redeem {
+                    ticket,
+                    relay_id: &self.relay_id,
+                    client_instance_id: &claims.client_instance_id,
+                    mode: claims.mode,
+                    public_port: claims.public_port,
+                    generation: 1,
+                },
+            )
+            .await?;
+        if result.lease_id != claims.lease_id {
+            bail!("coordinator redeemed a different lease");
+        }
+        Ok(result.lease_id)
+    }
+
+    async fn release(&self, lease: &ManagedLease, port: u16, generation: u64) -> Result<()> {
+        let reply: ReleaseReply = self
+            .post(
+                "/v1/leases/release",
+                &Release {
+                    lease_id: &lease.lease_id,
+                    relay_id: &self.relay_id,
+                    public_port: port,
+                    generation,
+                },
+            )
+            .await?;
+        if !reply.released {
+            bail!("coordinator did not confirm release");
+        }
+        Ok(())
     }
 }
 
@@ -262,8 +496,19 @@ pub struct Registration {
     pub resumed: bool,
 }
 
+pub struct RegistrationInput {
+    pub client_instance_id: String,
+    pub resume_token: Option<String>,
+    pub allocation_ticket: Option<String>,
+}
+
 impl RelayState {
     pub fn new(config: RelayConfig, guest_tls: TlsAcceptor) -> Result<Self> {
+        let coordinator = config
+            .coordinator
+            .as_ref()
+            .map(CoordinatorClient::new)
+            .transpose()?;
         let token_hashes = config
             .access_token_hashes
             .iter()
@@ -286,6 +531,7 @@ impl RelayState {
                 shutdown: CancellationToken::new(),
                 registration_lock: AsyncMutex::new(()),
                 source_limiters: Mutex::new(HashMap::new()),
+                coordinator,
             }),
         })
     }
@@ -315,6 +561,44 @@ impl RelayState {
         self.inner.shutdown.cancel();
     }
 
+    pub async fn coordinator_heartbeat(&self) -> Result<()> {
+        let Some(coordinator) = &self.inner.coordinator else {
+            return Ok(());
+        };
+        let _registration_guard = self.inner.registration_lock.lock().await;
+        let sessions = self.inner.sessions.read().await;
+        let bound_ports = sessions
+            .values()
+            .filter_map(|session| {
+                session.managed.as_ref().map(|lease| BoundPort {
+                    lease_id: &lease.lease_id,
+                    port: session.public_port,
+                    generation: session.generation.load(Ordering::SeqCst),
+                })
+            })
+            .collect::<Vec<_>>();
+        let reply: Result<HeartbeatReply> = coordinator
+            .post(
+                &format!("/v1/relays/{}/heartbeat", coordinator.relay_id),
+                &Heartbeat {
+                    bound_ports,
+                    capacity: usize::from(
+                        coordinator.managed_port_end - coordinator.managed_port_start,
+                    ) + 1,
+                },
+            )
+            .await;
+        coordinator.healthy.store(
+            matches!(&reply, Ok(value) if value.healthy),
+            Ordering::SeqCst,
+        );
+        match reply {
+            Ok(value) if value.healthy => Ok(()),
+            Ok(_) => bail!("coordinator did not confirm relay reconciliation"),
+            Err(error) => Err(error),
+        }
+    }
+
     pub fn authenticate(&self, access_token: &str) -> Option<[u8; 32]> {
         let candidate = token::hash(access_token);
         self.inner
@@ -328,15 +612,22 @@ impl RelayState {
         &self,
         access_token_hash: [u8; 32],
         source_ip: IpAddr,
-        client_instance_id: String,
-        resume_token: Option<String>,
+        input: RegistrationInput,
         connection: Connection,
         mode: SessionMode,
     ) -> Result<Registration> {
+        let RegistrationInput {
+            client_instance_id,
+            resume_token,
+            allocation_ticket,
+        } = input;
         if client_instance_id.is_empty() || client_instance_id.len() > 128 {
             bail!("client instance ID must contain between 1 and 128 characters");
         }
         if let Some(resume_token) = resume_token {
+            if allocation_ticket.is_some() {
+                bail!("resume cannot redeem a new allocation ticket");
+            }
             return self
                 .resume(
                     access_token_hash,
@@ -368,10 +659,37 @@ impl RelayState {
         }
         drop(sessions);
 
-        let (listener, public_port) = self.bind_available_port().await?;
+        let (listener, public_port, managed) = if let Some(ticket) = allocation_ticket {
+            let coordinator = self
+                .inner
+                .coordinator
+                .as_ref()
+                .context("managed registration is not enabled")?;
+            if !coordinator.healthy.load(Ordering::SeqCst) {
+                bail!("coordinator has not confirmed relay reconciliation");
+            }
+            let claims = coordinator.verify_ticket(&ticket, &client_instance_id, mode)?;
+            let lease_id = coordinator.redeem(&ticket, &claims).await?;
+            let lease = ManagedLease { lease_id };
+            match self.bind_managed_port(claims.public_port).await {
+                Ok(listener) => (listener, claims.public_port, Some(lease)),
+                Err(error) => {
+                    if let Err(release_error) =
+                        coordinator.release(&lease, claims.public_port, 1).await
+                    {
+                        warn!(port = claims.public_port, %release_error, "failed to release redeemed lease after bind failure");
+                    }
+                    return Err(error);
+                }
+            }
+        } else {
+            let (listener, port) = self.bind_available_port().await?;
+            (listener, port, None)
+        };
         let id = token::generate();
         let resume_token = token::generate();
         let max_accepts = self.inner.config.max_accepts_per_minute;
+        let (listener_stopped, _) = watch::channel(false);
         let session = Arc::new(Session {
             id: id.clone(),
             public_port,
@@ -379,6 +697,7 @@ impl RelayState {
             client_instance_id,
             access_token_hash,
             mode,
+            managed,
             resume_token_hash: RwLock::new(token::hash(&resume_token)),
             connection: RwLock::new(Some(connection)),
             generation: AtomicU64::new(1),
@@ -388,6 +707,7 @@ impl RelayState {
                 NonZeroU32::new(max_accepts.saturating_mul(8)).expect("validated non-zero"),
             )),
             cancel: self.inner.shutdown.child_token(),
+            listener_stopped,
         });
 
         self.inner
@@ -488,6 +808,31 @@ impl RelayState {
         bail!("no TCP ports are available in the configured pool")
     }
 
+    async fn bind_managed_port(&self, port: u16) -> Result<TcpListener> {
+        let coordinator = self
+            .inner
+            .coordinator
+            .as_ref()
+            .context("managed registration is not enabled")?;
+        if port < coordinator.managed_port_start || port > coordinator.managed_port_end {
+            bail!("managed port is outside configured range");
+        }
+        if self
+            .inner
+            .sessions
+            .read()
+            .await
+            .values()
+            .any(|session| session.public_port == port)
+        {
+            bail!("managed port already has a relay session");
+        }
+        let address = SocketAddr::new(self.inner.config.tcp_bind_ip, port);
+        TcpListener::bind(address)
+            .await
+            .with_context(|| format!("could not bind redeemed managed port {port}"))
+    }
+
     async fn serve_public_port(&self, session: Arc<Session>, listener: TcpListener) {
         loop {
             tokio::select! {
@@ -503,6 +848,20 @@ impl RelayState {
                 }
             }
         }
+        drop(listener);
+        if let (Some(coordinator), Some(lease)) = (&self.inner.coordinator, &session.managed) {
+            if let Err(error) = coordinator
+                .release(
+                    lease,
+                    session.public_port,
+                    session.generation.load(Ordering::SeqCst),
+                )
+                .await
+            {
+                warn!(port = session.public_port, %error, "managed lease release not confirmed; coordinator will quarantine until reconciliation");
+            }
+        }
+        session.listener_stopped.send_replace(true);
         debug!(port = session.public_port, "public TCP listener stopped");
     }
 
@@ -682,10 +1041,20 @@ impl RelayState {
             .get(id)
             .is_some_and(|current| Arc::ptr_eq(current, &candidate));
         if still_same {
-            if let Some(session) = sessions.remove(id) {
-                session.cancel.cancel();
+            candidate.cancel.cancel();
+            let mut stopped = candidate.listener_stopped.subscribe();
+            while !*stopped.borrow() {
+                if stopped.changed().await.is_err() {
+                    return;
+                }
+            }
+            if sessions
+                .get(id)
+                .is_some_and(|current| Arc::ptr_eq(current, &candidate))
+            {
+                sessions.remove(id);
                 self.inner.metrics.active_sessions.dec();
-                info!(port = session.public_port, "released relay session");
+                info!(port = candidate.public_port, "released relay session");
             }
         }
     }
@@ -699,12 +1068,23 @@ impl RelayState {
             .drain()
             .map(|(_, session)| session)
             .collect::<Vec<_>>();
-        for session in sessions {
+        for session in &sessions {
             if let Some(connection) = session.connection.write().await.take() {
                 connection.close(0_u32.into(), b"relay shutdown");
             }
             session.cancel.cancel();
             self.inner.metrics.active_sessions.dec();
+        }
+        for session in sessions {
+            let mut stopped = session.listener_stopped.subscribe();
+            let _ = time::timeout(Duration::from_secs(7), async {
+                while !*stopped.borrow() {
+                    if stopped.changed().await.is_err() {
+                        break;
+                    }
+                }
+            })
+            .await;
         }
     }
 }
@@ -789,6 +1169,7 @@ mod completion_tests {
     fn session() -> Arc<Session> {
         Arc::new(Session {
             mode: SessionMode::Legacy,
+            managed: None,
             id: "test-session".into(),
             public_port: 30_000,
             source_ip: IpAddr::V4(Ipv4Addr::LOCALHOST),
@@ -803,6 +1184,7 @@ mod completion_tests {
                 NonZeroU32::new(1).unwrap(),
             )),
             cancel: CancellationToken::new(),
+            listener_stopped: watch::channel(true).0,
         })
     }
 
@@ -956,6 +1338,121 @@ mod completion_tests {
         assert!(
             copy_response_with_completion(&mut source_read, &mut guest_write, &excess, "test")
                 .await
+                .is_err()
+        );
+    }
+}
+
+#[cfg(test)]
+mod managed_ticket_tests {
+    use super::*;
+    use bta_anywhere_coordinator_protocol::{TicketClaims, public_key_bytes, sign};
+    use ring::{rand::SystemRandom, signature::Ed25519KeyPair};
+
+    #[test]
+    fn relay_requires_signed_exact_ticket_bindings_before_redemption() {
+        let key_bytes = Ed25519KeyPair::generate_pkcs8(&SystemRandom::new()).unwrap();
+        let key = Ed25519KeyPair::from_pkcs8(key_bytes.as_ref()).unwrap();
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_millis() as i64;
+        let mut claims = TicketClaims {
+            version: 1,
+            lease_id: base64::engine::general_purpose::URL_SAFE_NO_PAD.encode([7_u8; 16]),
+            key_id: "key-1".into(),
+            relay_id: "eu-west-1".into(),
+            public_port: 30_500,
+            client_instance_id: "host-1".into(),
+            mode: Mode::Encrypted,
+            issued_at_epoch_millis: now - 1000,
+            expires_at_epoch_millis: now + 20_000,
+        };
+        let dir = tempfile::tempdir().unwrap();
+        let credential = dir.path().join("relay.credential");
+        std::fs::write(&credential, "test-relay-credential-long-enough\n").unwrap();
+        let mut config = crate::config::CoordinatorConfig {
+            relay_id: "eu-west-1".into(),
+            url: "https://localhost:9443".into(),
+            credential_path: credential,
+            ca_certificate_path: None,
+            signing_keys: HashMap::from([(
+                "key-1".into(),
+                base64::engine::general_purpose::STANDARD.encode(public_key_bytes(&key)),
+            )]),
+            managed_port_start: 30_500,
+            managed_port_end: 30_599,
+            heartbeat_seconds: 5,
+        };
+        let ticket = sign(&claims, &key).unwrap();
+        let verifier = CoordinatorClient::new(&config).unwrap();
+        assert_eq!(
+            verifier
+                .verify_ticket(&ticket, "host-1", SessionMode::Encrypted)
+                .unwrap(),
+            claims
+        );
+        assert!(
+            verifier
+                .verify_ticket(&ticket, "wrong-host", SessionMode::Encrypted)
+                .is_err()
+        );
+        assert!(
+            verifier
+                .verify_ticket(&ticket, "host-1", SessionMode::Legacy)
+                .is_err()
+        );
+        assert!(
+            verifier
+                .verify_ticket("BTACT1:malformed", "host-1", SessionMode::Encrypted)
+                .is_err()
+        );
+        let mut altered = ticket.into_bytes();
+        let last = altered.len() - 1;
+        altered[last] = if altered[last] == b'A' { b'B' } else { b'A' };
+        assert!(
+            verifier
+                .verify_ticket(
+                    &String::from_utf8(altered).unwrap(),
+                    "host-1",
+                    SessionMode::Encrypted
+                )
+                .is_err()
+        );
+        config.relay_id = "different-relay".into();
+        assert!(
+            CoordinatorClient::new(&config)
+                .unwrap()
+                .verify_ticket(
+                    &sign(&claims, &key).unwrap(),
+                    "host-1",
+                    SessionMode::Encrypted
+                )
+                .is_err()
+        );
+        config.relay_id = "eu-west-1".into();
+        config.managed_port_start = 30_501;
+        assert!(
+            CoordinatorClient::new(&config)
+                .unwrap()
+                .verify_ticket(
+                    &sign(&claims, &key).unwrap(),
+                    "host-1",
+                    SessionMode::Encrypted
+                )
+                .is_err()
+        );
+        claims.issued_at_epoch_millis = now - 20_000;
+        claims.expires_at_epoch_millis = now - 1;
+        config.managed_port_start = 30_500;
+        assert!(
+            CoordinatorClient::new(&config)
+                .unwrap()
+                .verify_ticket(
+                    &sign(&claims, &key).unwrap(),
+                    "host-1",
+                    SessionMode::Encrypted
+                )
                 .is_err()
         );
     }

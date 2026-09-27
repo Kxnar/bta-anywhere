@@ -66,6 +66,7 @@ fn control_semantic(message: protocol::ClientControl, case: &Case) -> (Value, St
             access_token,
             client_instance_id,
             resume_token,
+            allocation_ticket,
         } => {
             // Features are a set on the wire; normalise their order for comparison.
             features.sort_unstable();
@@ -80,12 +81,13 @@ fn control_semantic(message: protocol::ClientControl, case: &Case) -> (Value, St
             } else {
                 "register"
             };
-            (
-                serde_json::json!({"type":"register","version":version,"accessToken":access_token,
+            let mut semantic = serde_json::json!({"type":"register","version":version,"accessToken":access_token,
                 "clientInstanceId":client_instance_id,"resumeToken":resume_token,
-                "features":features}),
-                outcome.into(),
-            )
+                "features":features});
+            if let Some(ticket) = allocation_ticket {
+                semantic["allocationTicket"] = serde_json::Value::String(ticket);
+            }
+            (semantic, outcome.into())
         }
         protocol::ClientControl::Ping { sequence } => (
             serde_json::json!({"type":"ping","sequence":sequence}),

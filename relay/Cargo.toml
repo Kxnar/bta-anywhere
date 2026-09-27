@@ -12,6 +12,7 @@ repository.workspace = true
 anyhow = "=1.0.104"
 axum = "=0.8.9"
 base64 = "=0.22.1"
+bta-anywhere-coordinator-protocol = { path = "../coordinator-protocol" }
 clap = { version = "=4.6.6", features = ["derive"] }
 governor = "=0.10.4"
 hex = "=0.4.3"
@@ -19,6 +20,7 @@ prometheus-client = "=0.25.0"
 quinn = { version = "=0.11.11", default-features = false, features = ["runtime-tokio", "rustls-ring"] }
 rand = "=0.9.5"
 rcgen = { version = "=0.14.7", features = ["pem"] }
+reqwest = { version = "=0.12.23", default-features = false, features = ["rustls-tls", "json"] }
 rustls = { version = "=0.23.43", default-features = false, features = ["ring", "std"] }
 rustls-pemfile = "=2.2.0"
 serde = { version = "=1.0.229", features = ["derive"] }
@@ -35,4 +37,5 @@ tracing = "=0.1.44"
 tracing-subscriber = { version = "=0.3.23", features = ["env-filter", "fmt"] }
 
 [dev-dependencies]
+ring = "=0.17.14"
 tempfile = "=3.27.0"

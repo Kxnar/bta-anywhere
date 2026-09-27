@@ -30,7 +30,7 @@ use rcgen::{
     KeyUsagePurpose,
 };
 use rustls::pki_types::{CertificateDer, PrivateKeyDer};
-use state::{NoticeResult, Registration, RelayState, SessionMode};
+use state::{NoticeResult, Registration, RegistrationInput, RelayState, SessionMode};
 use tokio::{io::AsyncWriteExt, net::TcpListener, time};
 use tokio_rustls::TlsAcceptor;
 use tracing::{error, info, warn};
@@ -145,6 +145,33 @@ async fn run(config_path: PathBuf) -> Result<()> {
     let admin_state = state.clone();
     let admin_shutdown = state.shutdown_token();
     let internal_shutdown = state.shutdown_token();
+    if config.coordinator.is_some() {
+        if let Err(error) = state.coordinator_heartbeat().await {
+            warn!(%error, "initial coordinator reconciliation failed; managed registration remains unavailable");
+        }
+        let heartbeat_state = state.clone();
+        let heartbeat_shutdown = state.shutdown_token();
+        tokio::spawn(async move {
+            let interval = heartbeat_state
+                .config()
+                .coordinator
+                .as_ref()
+                .expect("coordinator enabled")
+                .heartbeat_seconds;
+            let mut ticker = time::interval(Duration::from_secs(interval));
+            ticker.tick().await;
+            loop {
+                tokio::select! {
+                    _ = heartbeat_shutdown.cancelled() => break,
+                    _ = ticker.tick() => {
+                        if let Err(error) = heartbeat_state.coordinator_heartbeat().await {
+                            warn!(%error, "coordinator heartbeat or reconciliation failed");
+                        }
+                    }
+                }
+            }
+        });
+    }
     let admin = tokio::spawn(async move {
         if let Err(error) = serve_admin(admin_state.clone(), admin_shutdown, admin_listener).await {
             error!(%error, "admin server stopped unexpectedly");
@@ -214,6 +241,7 @@ async fn handle_connection(state: RelayState, connection: quinn::Connection) -> 
             access_token,
             client_instance_id,
             resume_token,
+            allocation_ticket,
         })) => {
             let mode = match negotiated_mode(version, &negotiated_alpn) {
                 Some(mode) => mode,
@@ -228,15 +256,27 @@ async fn handle_connection(state: RelayState, connection: quinn::Connection) -> 
                     bail!("unsupported or mismatched protocol version {version}");
                 }
             };
-            if mode == SessionMode::Encrypted && !features.is_empty() {
-                send_error(
-                    &mut send,
-                    "unsupported_feature",
-                    "encrypted sessions do not use legacy features",
-                    false,
-                )
-                .await?;
-                bail!("encrypted session requested legacy features");
+            if let Err(error) = validate_registration_features(
+                &features,
+                mode,
+                allocation_ticket.is_some(),
+                resume_token.is_some(),
+            ) {
+                let encrypted_legacy_feature = mode == SessionMode::Encrypted
+                    && features.iter().any(|feature| feature != "allocationTicket");
+                let (code, message) = if encrypted_legacy_feature {
+                    (
+                        "unsupported_feature",
+                        "encrypted sessions do not use legacy features",
+                    )
+                } else {
+                    (
+                        "invalid_allocation_ticket",
+                        "allocation ticket and feature must be present together on a new registration",
+                    )
+                };
+                send_error(&mut send, code, message, false).await?;
+                return Err(error);
             }
             let Some(access_hash) = state.authenticate(&access_token) else {
                 state.metrics().rejected_total.inc();
@@ -255,8 +295,11 @@ async fn handle_connection(state: RelayState, connection: quinn::Connection) -> 
                 .register(
                     access_hash,
                     remote.ip(),
-                    client_instance_id,
-                    resume_token,
+                    RegistrationInput {
+                        client_instance_id,
+                        resume_token,
+                        allocation_ticket,
+                    },
                     connection.clone(),
                     mode,
                 )
@@ -392,6 +435,24 @@ fn negotiated_mode(version: u16, alpn: &[u8]) -> Option<SessionMode> {
         (ENCRYPTED_VERSION, ENCRYPTED_ALPN) => Some(SessionMode::Encrypted),
         _ => None,
     }
+}
+
+fn validate_registration_features(
+    features: &[String],
+    mode: SessionMode,
+    has_ticket: bool,
+    resuming: bool,
+) -> Result<()> {
+    let ticket_feature = features.iter().any(|feature| feature == "allocationTicket");
+    if ticket_feature != has_ticket || (resuming && ticket_feature) {
+        bail!("allocation ticket and feature must be present together only on new registration");
+    }
+    if mode == SessionMode::Encrypted
+        && features.iter().any(|feature| feature != "allocationTicket")
+    {
+        bail!("encrypted sessions do not use legacy features");
+    }
+    Ok(())
 }
 
 async fn write_registration(
@@ -640,5 +701,27 @@ mod encrypted_mode_tests {
         assert_eq!(negotiated_mode(PROTOCOL_VERSION, ENCRYPTED_ALPN), None);
         assert_eq!(negotiated_mode(3, ENCRYPTED_ALPN), None);
         assert_eq!(negotiated_mode(ENCRYPTED_VERSION, b""), None);
+    }
+
+    #[test]
+    fn allocation_ticket_requires_exact_feature_pair_on_new_registration() {
+        let ticket = vec!["allocationTicket".to_owned()];
+        let eof = vec!["streamEofBytes".to_owned()];
+        assert!(validate_registration_features(&[], SessionMode::Legacy, false, false).is_ok());
+        assert!(validate_registration_features(&ticket, SessionMode::Legacy, true, false).is_ok());
+        assert!(
+            validate_registration_features(&ticket, SessionMode::Encrypted, true, false).is_ok()
+        );
+        assert!(validate_registration_features(&[], SessionMode::Encrypted, false, true).is_ok());
+        assert!(
+            validate_registration_features(&ticket, SessionMode::Legacy, false, false).is_err()
+        );
+        assert!(validate_registration_features(&[], SessionMode::Legacy, true, false).is_err());
+        assert!(
+            validate_registration_features(&ticket, SessionMode::Encrypted, true, true).is_err()
+        );
+        assert!(
+            validate_registration_features(&eof, SessionMode::Encrypted, false, false).is_err()
+        );
     }
 }

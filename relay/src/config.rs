@@ -25,6 +25,25 @@ pub struct RelayConfig {
     pub heartbeat_seconds: u64,
     pub lease_seconds: u64,
     pub resume_grace_seconds: u64,
+    pub coordinator: Option<CoordinatorConfig>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct CoordinatorConfig {
+    pub relay_id: String,
+    pub url: String,
+    pub credential_path: PathBuf,
+    pub ca_certificate_path: Option<PathBuf>,
+    pub signing_keys: std::collections::HashMap<String, String>,
+    pub managed_port_start: u16,
+    pub managed_port_end: u16,
+    #[serde(default = "default_coordinator_heartbeat_seconds")]
+    pub heartbeat_seconds: u64,
+}
+
+fn default_coordinator_heartbeat_seconds() -> u64 {
+    5
 }
 
 impl Default for RelayConfig {
@@ -46,6 +65,7 @@ impl Default for RelayConfig {
             heartbeat_seconds: 15,
             lease_seconds: 90,
             resume_grace_seconds: 60,
+            coordinator: None,
         }
     }
 }
@@ -60,6 +80,12 @@ impl RelayConfig {
         let base = path.parent().unwrap_or_else(|| Path::new("."));
         config.certificate_path = resolve(base, &config.certificate_path);
         config.private_key_path = resolve(base, &config.private_key_path);
+        if let Some(coordinator) = &mut config.coordinator {
+            coordinator.credential_path = resolve(base, &coordinator.credential_path);
+            if let Some(path) = &mut coordinator.ca_certificate_path {
+                *path = resolve(base, path);
+            }
+        }
         config.validate()?;
         Ok(config)
     }
@@ -108,6 +134,64 @@ impl RelayConfig {
                 bail!("access token hashes must be SHA-256 values");
             }
         }
+        if let Some(coordinator) = &self.coordinator {
+            if coordinator.relay_id.is_empty()
+                || coordinator.relay_id.len() > 64
+                || !coordinator
+                    .relay_id
+                    .bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_'))
+            {
+                bail!("coordinator relay_id is invalid");
+            }
+            let url = reqwest::Url::parse(&coordinator.url).context("invalid coordinator URL")?;
+            if url.scheme() != "https"
+                || url.host_str().is_none()
+                || url.username() != ""
+                || url.password().is_some()
+                || url.query().is_some()
+                || url.fragment().is_some()
+            {
+                bail!(
+                    "coordinator URL must be HTTPS without embedded credentials, query, or fragment"
+                );
+            }
+            if coordinator.managed_port_start == 0
+                || coordinator.managed_port_start > coordinator.managed_port_end
+            {
+                bail!("invalid coordinator managed port range");
+            }
+            if coordinator.heartbeat_seconds == 0 || coordinator.heartbeat_seconds > 60 {
+                bail!("coordinator heartbeat_seconds must be between 1 and 60");
+            }
+            if coordinator.managed_port_start <= self.tcp_port_end
+                && self.tcp_port_start <= coordinator.managed_port_end
+            {
+                bail!("static and coordinator managed TCP port ranges overlap");
+            }
+            if coordinator.signing_keys.is_empty() {
+                bail!("at least one coordinator signing key is required");
+            }
+            for (key_id, encoded) in &coordinator.signing_keys {
+                if key_id.is_empty()
+                    || key_id.len() > 32
+                    || !key_id
+                        .bytes()
+                        .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_'))
+                {
+                    bail!("invalid coordinator signing key ID");
+                }
+                use base64::Engine as _;
+                let key = base64::engine::general_purpose::STANDARD
+                    .decode(encoded)
+                    .context("invalid coordinator signing key encoding")?;
+                if key.len() != 32
+                    || base64::engine::general_purpose::STANDARD.encode(&key) != *encoded
+                {
+                    bail!("coordinator signing key must be canonical base64 Ed25519 public key");
+                }
+            }
+        }
         Ok(())
     }
 }
@@ -134,5 +218,33 @@ mod tests {
         let mut config = RelayConfig::default();
         config.access_token_hashes.push("00".repeat(32));
         assert!(config.validate().is_ok());
+    }
+
+    #[test]
+    fn managed_and_static_ports_must_be_disjoint_and_https() {
+        let mut config = RelayConfig::default();
+        config.access_token_hashes.push("00".repeat(32));
+        let mut coordinator = CoordinatorConfig {
+            relay_id: "eu-west-1".into(),
+            url: "https://localhost:9443".into(),
+            credential_path: "relay.credential".into(),
+            ca_certificate_path: None,
+            signing_keys: std::collections::HashMap::from([(
+                "key-1".into(),
+                base64::Engine::encode(&base64::engine::general_purpose::STANDARD, [1_u8; 32]),
+            )]),
+            managed_port_start: 30_500,
+            managed_port_end: 30_599,
+            heartbeat_seconds: 5,
+        };
+        config.coordinator = Some(coordinator.clone());
+        assert!(config.validate().is_ok());
+        coordinator.managed_port_start = 30_100;
+        config.coordinator = Some(coordinator.clone());
+        assert!(config.validate().is_err());
+        coordinator.managed_port_start = 30_500;
+        coordinator.url = "http://localhost:9443".into();
+        config.coordinator = Some(coordinator);
+        assert!(config.validate().is_err());
     }
 }
