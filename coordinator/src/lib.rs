@@ -17,7 +17,7 @@ use bta_anywhere_coordinator_protocol::{
 use fs2::FileExt;
 use rand::RngCore;
 use ring::signature::Ed25519KeyPair;
-use rusqlite::{Connection, OptionalExtension, params};
+use rusqlite::{Connection, OpenFlags, OptionalExtension, params};
 use serde::{Deserialize, Serialize};
 
 pub const TICKET_LIFETIME_MS: i64 = 30_000;
@@ -185,6 +185,22 @@ fn credential(path: &str) -> Result<[u8; 32], Error> {
 
 impl Coordinator {
     pub fn open(config: Config) -> Result<Self, Error> {
+        Self::open_inner(config, false)
+    }
+
+    /// Explicitly provision a new database. Refuses any existing path.
+    pub fn initialize(config: Config) -> Result<(), Error> {
+        let reserved = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&config.database)
+            .map_err(|_| Error::Conflict)?;
+        drop(reserved);
+        drop(Self::open_inner(config, true)?);
+        Ok(())
+    }
+
+    fn open_inner(config: Config, initialize: bool) -> Result<Self, Error> {
         if config.relays.is_empty()
             || config.heartbeat_interval_millis < 1000
             || config.max_probe_age_millis < 1000
@@ -228,9 +244,29 @@ impl Coordinator {
             .open(lock_path)
             .map_err(|_| Error::Storage)?;
         lock.try_lock_exclusive().map_err(|_| Error::Conflict)?;
-        let db = Connection::open(&config.database).map_err(|_| Error::Storage)?;
+        let flags = if initialize {
+            OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_CREATE
+        } else {
+            OpenFlags::SQLITE_OPEN_READ_WRITE
+        };
+        let db =
+            Connection::open_with_flags(&config.database, flags).map_err(|_| Error::Storage)?;
         db.busy_timeout(std::time::Duration::from_secs(10))
             .map_err(|_| Error::Storage)?;
+        if !initialize {
+            let present: bool = db
+                .query_row(
+                    "SELECT 1 FROM sqlite_master WHERE type='table' AND name='meta'",
+                    [],
+                    |_| Ok(true),
+                )
+                .optional()
+                .map_err(|_| Error::Storage)?
+                .unwrap_or(false);
+            if !present {
+                return Err(Error::Storage);
+            }
+        }
         db.pragma_update(None, "journal_mode", "WAL")
             .map_err(|_| Error::Storage)?;
         db.execute_batch("CREATE TABLE IF NOT EXISTS meta (name TEXT PRIMARY KEY, value INTEGER NOT NULL);

@@ -48,6 +48,7 @@ fn fixture(relays: usize, ports: u16) -> (TempDir, Config) {
         max_probe_age_millis: 10000,
         relays,
     };
+    Coordinator::initialize(config.clone()).unwrap();
     (tmp, config)
 }
 fn heartbeat(
@@ -477,4 +478,27 @@ fn sqlite_backup_is_consistent_and_refuses_overwrite() {
         .unwrap();
     assert_eq!(found, expected);
     assert!(!run().status.success());
+}
+
+#[test]
+fn database_loss_fails_closed_and_explicit_init_refuses_overwrite() {
+    let (tmp, config) = fixture(1, 2);
+    let config_path = tmp.path().join("coordinator.toml");
+    fs::write(&config_path, toml::to_string(&config).unwrap()).unwrap();
+    let init = || {
+        Command::new(env!("CARGO_BIN_EXE_bta-anywhere-coordinator"))
+            .arg("init-db")
+            .arg("--config")
+            .arg(&config_path)
+            .output()
+            .unwrap()
+    };
+    assert!(!init().status.success());
+    fs::remove_file(&config.database).unwrap();
+    assert_eq!(
+        Coordinator::open(config.clone()).err(),
+        Some(Error::Storage)
+    );
+    assert!(init().status.success());
+    assert!(Coordinator::open(config).is_ok());
 }

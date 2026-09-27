@@ -48,6 +48,10 @@ enum Command {
         #[arg(long)]
         dir: PathBuf,
     },
+    InitDb {
+        #[arg(long)]
+        config: PathBuf,
+    },
     PublicKey {
         #[arg(long)]
         config: PathBuf,
@@ -66,6 +70,7 @@ async fn main() -> Result<()> {
     match Cli::parse().command {
         Command::Serve { config } => serve(config).await,
         Command::InitDev { dir } => init_dev(&dir),
+        Command::InitDb { config } => init_db(&config),
         Command::PublicKey { config } => public_key(&config),
         Command::Backup { config, output } => backup(&config, &output),
     }
@@ -260,6 +265,7 @@ fn init_dev(dir: &Path) -> Result<()> {
         &dir.join("coordinator.toml"),
         toml::to_string_pretty(&config)?.as_bytes(),
     )?;
+    Coordinator::initialize(config).map_err(|e| anyhow::anyhow!(e.reason()))?;
     println!("Development coordinator files written to {}", abs.display());
     println!(
         "TLS trust certificate: {}",
@@ -274,6 +280,14 @@ fn init_dev(dir: &Path) -> Result<()> {
                 .as_ref()
         )
     );
+    Ok(())
+}
+
+fn init_db(config_path: &Path) -> Result<()> {
+    let config = load_config(config_path)?;
+    let path = config.database.clone();
+    Coordinator::initialize(config).map_err(|e| anyhow::anyhow!(e.reason()))?;
+    println!("Initialized coordinator database: {path}");
     Ok(())
 }
 
