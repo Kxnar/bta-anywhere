@@ -1,6 +1,6 @@
 # Experimental encrypted relay protocol v2
 
-This is the current Workstream 3 CLI/relay interface. It is implemented in the candidate branch and has passed a local synthetic join/security smoke, live BTA 8.0.1 server status and first-handshake checks, and two disposable offline-mode joins by the actual BTA 8.0.1 client. Shared v2 invitation, AUTH, frame, and connection-header vectors feed Java and Rust where those structures are implemented; the relay treats inner TLS records as opaque. Relay-side confidentiality inspection and deferred performance/soak evidence remain open. [Protocol v1](protocol.md) remains the released legacy mode.
+This is the current Workstream 3 CLI/relay interface. It is implemented in the candidate branch and has passed a local synthetic join/security smoke, live BTA 8.0.1 server status and first-handshake checks, and two disposable offline-mode joins by the actual BTA 8.0.1 client. Shared v2 invitation, AUTH, frame, and connection-header vectors feed Java and Rust where those structures are implemented; the relay treats inner TLS records as opaque. A bounded relay-vantage check found no tested game markers or invitation capabilities in forwarded bytes or relay logs. Deferred performance/soak evidence remains open. [Protocol v1](protocol.md) remains the released legacy mode.
 
 ## Mode and transport
 

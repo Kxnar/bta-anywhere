@@ -62,6 +62,8 @@ This check reached an official, hash-verified BTA 8.0.1 server on a disposable w
 
 The [functional evidence](workstream3-functional-evidence.md) also records two complete local joins using a separate temporary BTA client game directory and offline test identity. The disposable server logged the player in; the client received the server's recipes and remained connected. Prism Launcher's first-run setup would not complete with an offline account, so this verification launched the actual BTA client main class directly from the isolated temporary profile. No client-side in-world screenshot was retained. This verifies the game protocol path, not online account authentication or the mod hosting UI.
 
+`scripts/encrypted_relay_vantage.py` runs a bounded, disposable TLS-terminating proxy using the relay's temporary development certificate. It checks both directions of the bytes visible after outer TLS termination and relay logs for known game markers and invitation capabilities. It does not audit every possible payload or replace an external security review.
+
 The relay still sees addresses, timing, volume, and inner TLS record sizes, and can disconnect guests. A stolen invitation can be used first. Host and guest machines, the BTA server, and their mods still need to be trusted. See [Security](security.md), [Privacy](privacy.md), and the [accepted design and full gate list](encrypted-guest-design.md).
 
 For this review, [performance measurements and long soak runs are explicitly deferred](functional-merge-exception.md). Their gates remain open; they are not evidence of functional or sustained-load success.

@@ -115,9 +115,37 @@ client initially lacked the official Beta 1.7.3 base JAR and sound libraries.
 Only those verified client binaries were copied/downloaded into the temporary
 runtime; no existing account or save data was used.
 
-## Open review items
+## Relay-side confidentiality check
 
-A relay-side packet/log inspection for recoverable game payload or invitation
-material has not yet been recorded. Until that security check is verified,
-the functional verdict is **not ready**. The deferred performance and soak
-gates remain open independently.
+```powershell
+python scripts\encrypted_relay_vantage.py `
+  --relay-binary target\debug\bta-anywhere-relay.exe `
+  --tunnel-jar tunnel-client\build\libs\bta-anywhere-tunnel-0.1.0-all.jar
+```
+
+Three consecutive clean runs passed after the proxy's bidirectional forwarding
+fix (`785ec57`), capturing 2,734, 2,738, and 2,737 bytes across both
+directions. A disposable TLS-terminating proxy used the relay's temporary
+development certificate to observe exactly the application bytes the relay
+receives after outer TLS termination. The known synthetic game marker,
+`Minecraft` encodings, full invitation, and both scoped capabilities were
+absent from that capture and from relay stdout/stderr. The synthetic payload
+echoed byte-exactly. The original one-direction proxy had intermittent
+receive failures; relay tracing showed a host response was sent while the
+proxy's `SSLSocket`/`select()` loop did not consume it. The corrected two-pump
+proxy passed all three reruns. This is bounded loopback evidence with
+disposable credentials, not a security audit or a claim about every possible
+game payload and log value.
+
+## Functional verdict and remaining risk
+
+**Yes, functionally ready for merge review** for the CLI encrypted guest flow:
+the real BTA client joined a disposable world, negative admission and
+disconnect tests passed, relay-side inspection found no tested plaintext or
+invitation secrets, and five clean legacy Relay integration pairs passed.
+LAN and Direct production code was not changed by this branch; mod tests and
+builds passed, but no new live LAN or Direct player session was run.
+The mod hosting UI does not offer encrypted invitations, and offline test
+identity does not verify online account authentication. The [deferred
+performance and soak gates](functional-merge-exception.md) remain open and
+create unmeasured sustained-load, resource-growth, and regression risk.
