@@ -2,6 +2,7 @@
 .idea/
 .vscode/
 .dev/
+.local/
 .tools/
 __pycache__/
 .pytest_cache/

@@ -3,7 +3,7 @@
   "id": "btaanywhere",
   "version": "${version}",
   "name": "BTA Anywhere",
-  "description": "Safely hosts a single-player BTA world through LAN, direct port mapping, or a self-hosted relay.",
+  "description": "Host a BTA world over LAN, a direct connection, or a self-hosted relay.",
   "authors": [
     "Kenar Narayaka"
   ],
