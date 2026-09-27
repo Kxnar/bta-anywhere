@@ -171,6 +171,7 @@ pub struct Session {
     resume_token_hash: RwLock<[u8; 32]>,
     connection: RwLock<Option<Connection>>,
     generation: AtomicU64,
+    coordinator_generation: AtomicU64,
     active_connections: AtomicUsize,
     completions: Mutex<HashMap<String, Arc<StreamCompletion>>>,
     overall_accept_limiter: DefaultDirectRateLimiter,
@@ -567,14 +568,21 @@ impl RelayState {
         };
         let _registration_guard = self.inner.registration_lock.lock().await;
         let sessions = self.inner.sessions.read().await;
-        let bound_ports = sessions
+        let managed_sessions = sessions
             .values()
             .filter_map(|session| {
-                session.managed.as_ref().map(|lease| BoundPort {
-                    lease_id: &lease.lease_id,
-                    port: session.public_port,
-                    generation: session.generation.load(Ordering::SeqCst),
-                })
+                session
+                    .managed
+                    .as_ref()
+                    .map(|_| (session.clone(), session.generation.load(Ordering::SeqCst)))
+            })
+            .collect::<Vec<_>>();
+        let bound_ports = managed_sessions
+            .iter()
+            .map(|(session, generation)| BoundPort {
+                lease_id: &session.managed.as_ref().expect("managed session").lease_id,
+                port: session.public_port,
+                generation: *generation,
             })
             .collect::<Vec<_>>();
         let reply: Result<HeartbeatReply> = coordinator
@@ -593,7 +601,14 @@ impl RelayState {
             Ordering::SeqCst,
         );
         match reply {
-            Ok(value) if value.healthy => Ok(()),
+            Ok(value) if value.healthy => {
+                for (session, generation) in managed_sessions {
+                    session
+                        .coordinator_generation
+                        .store(generation, Ordering::SeqCst);
+                }
+                Ok(())
+            }
             Ok(_) => bail!("coordinator did not confirm relay reconciliation"),
             Err(error) => Err(error),
         }
@@ -701,6 +716,7 @@ impl RelayState {
             resume_token_hash: RwLock::new(token::hash(&resume_token)),
             connection: RwLock::new(Some(connection)),
             generation: AtomicU64::new(1),
+            coordinator_generation: AtomicU64::new(1),
             active_connections: AtomicUsize::new(0),
             completions: Mutex::new(HashMap::new()),
             overall_accept_limiter: RateLimiter::direct(Quota::per_minute(
@@ -854,7 +870,7 @@ impl RelayState {
                 .release(
                     lease,
                     session.public_port,
-                    session.generation.load(Ordering::SeqCst),
+                    session.coordinator_generation.load(Ordering::SeqCst),
                 )
                 .await
             {
@@ -1178,6 +1194,7 @@ mod completion_tests {
             resume_token_hash: RwLock::new([0; 32]),
             connection: RwLock::new(None),
             generation: AtomicU64::new(1),
+            coordinator_generation: AtomicU64::new(1),
             active_connections: AtomicUsize::new(0),
             completions: Mutex::new(HashMap::new()),
             overall_accept_limiter: RateLimiter::direct(Quota::per_minute(
