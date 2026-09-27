@@ -13,8 +13,8 @@ import argparse
 import base64
 import contextlib
 import json
+import os
 import queue
-import select
 import socket
 import socketserver
 import ssl
@@ -32,6 +32,7 @@ MAX_CAPTURE_BYTES = 2 * 1024 * 1024
 class VantageProxy:
     def __init__(self, listen_port: int, upstream_port: int, cert: Path, key: Path, trust: Path):
         self.captured = bytearray()
+        self.direction_bytes = [0, 0]
         self.capture_lock = threading.Lock()
         self.capture_overflow = False
         self.errors: list[str] = []
@@ -57,30 +58,40 @@ class VantageProxy:
                     upstream = upstream_context.wrap_socket(raw_upstream, server_hostname="localhost")
                     if upstream.selected_alpn_protocol() != "bta-anywhere-relay/1":
                         raise AssertionError("upstream TLS selected unexpected ALPN")
-                    client.settimeout(12)
-                    upstream.settimeout(12)
-                    while True:
-                        ready, _, _ = select.select([client, upstream], [], [], 12)
-                        if not ready:
-                            break
-                        for source in ready:
-                            block = source.recv(16384)
-                            if not block:
-                                destination = upstream if source is client else client
-                                with contextlib.suppress(OSError, ssl.SSLError):
-                                    destination.shutdown(socket.SHUT_WR)
-                                return
-                            if source is client:
+                    client.settimeout(20)
+                    upstream.settimeout(20)
+
+                    def pump(source: ssl.SSLSocket, destination: ssl.SSLSocket,
+                             direction: int) -> None:
+                        try:
+                            while True:
+                                block = source.recv(16384)
+                                if not block:
+                                    break
                                 with owner.capture_lock:
+                                    owner.direction_bytes[direction] += len(block)
                                     remaining = MAX_CAPTURE_BYTES - len(owner.captured)
                                     if len(block) > remaining:
                                         owner.capture_overflow = True
                                         owner.captured.extend(block[:remaining])
                                     else:
                                         owner.captured.extend(block)
-                                upstream.sendall(block)
-                            else:
-                                client.sendall(block)
+                                destination.sendall(block)
+                        except (OSError, ssl.SSLError) as error:
+                            with owner.error_lock:
+                                owner.errors.append(type(error).__name__)
+                        finally:
+                            with contextlib.suppress(OSError, ssl.SSLError):
+                                destination.shutdown(socket.SHUT_WR)
+
+                    client_to_relay = threading.Thread(
+                        target=pump, args=(client, upstream, 0), daemon=True)
+                    relay_to_client = threading.Thread(
+                        target=pump, args=(upstream, client, 1), daemon=True)
+                    client_to_relay.start()
+                    relay_to_client.start()
+                    client_to_relay.join(timeout=22)
+                    relay_to_client.join(timeout=22)
                 except (OSError, ssl.SSLError, AssertionError) as error:
                     with owner.error_lock:
                         owner.errors.append(type(error).__name__)
@@ -135,6 +146,7 @@ def main() -> int:
     relay = host = guest = None
     proxy = None
     relay_lines: list[str] = []
+    local_diagnostics: list[str] = []
     local = LocalServer(("127.0.0.1", 0), LocalHandler)
     threading.Thread(target=local.serve_forever, daemon=True).start()
     try:
@@ -154,9 +166,11 @@ def main() -> int:
             config = config.replace('admin_listen = "127.0.0.1:9090"',
                                     f'admin_listen = "127.0.0.1:{admin_port}"')
             config_path.write_text(config, encoding="utf-8")
+            relay_environment = os.environ.copy()
+            relay_environment["RUST_LOG"] = "debug"
             relay = subprocess.Popen([str(args.relay_binary), "run", "--config", str(config_path)],
                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                     stdin=subprocess.DEVNULL, text=True, bufsize=1)
+                                     stdin=subprocess.DEVNULL, text=True, bufsize=1, env=relay_environment)
             collect_output(relay, relay_lines)
             proxy = VantageProxy(guest_port, guest_port, development / "server.pem",
                                  development / "server-key.pem", development / "trust.pem")
@@ -180,14 +194,14 @@ def main() -> int:
                                      f"127.0.0.1:{local.server_address[1]}"],
                                     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                     text=True, bufsize=1)
-            read_lines(host, "vantage-host", events, [])
+            read_lines(host, "vantage-host", events, local_diagnostics)
             encoded = "BTAE1:" + wait_event(events, "invitation", 25)
             wait_event(events, "invitation-id", 25)
             secrets = invitation_secrets(encoded) + (encoded.encode("ascii"),)
             guest = subprocess.Popen([args.java, "-jar", str(args.tunnel_jar), "join-encrypted"],
                                      stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                      text=True, bufsize=1)
-            read_lines(guest, "vantage-guest", events, [])
+            read_lines(guest, "vantage-guest", events, local_diagnostics)
             assert guest.stdin is not None
             guest.stdin.write(encoded + "\n")
             guest.stdin.flush()
@@ -196,8 +210,19 @@ def main() -> int:
 
             marker = b"bta-relay-vantage-known-game-marker"
             game_bytes = b"\x02" + "Minecraft".encode("utf-16-be") + marker
-            if send_local(local_port, game_bytes) != game_bytes:
-                raise AssertionError("synthetic encrypted guest join did not echo exact bytes")
+            returned = send_local(local_port, game_bytes)
+            if returned != game_bytes:
+                relay_events = {term: sum(term in line.lower() for line in relay_lines)
+                                for term in ("registered", "guest", "handshake", "quic", "error", "closed")}
+                safe_relay_tail = relay_lines[-5:]
+                for secret in secrets:
+                    safe_relay_tail = [line.replace(secret.decode("ascii"), "[REDACTED]")
+                                       for line in safe_relay_tail]
+                raise AssertionError("synthetic encrypted guest join did not echo exact bytes: "
+                                     f"sent={len(game_bytes)} received={len(returned)} "
+                                     f"directions={proxy.direction_bytes} proxy_errors={proxy.errors} "
+                                     f"relay_events={relay_events} local_events={local_diagnostics[-8:]} "
+                                     f"relay_tail={safe_relay_tail}")
             stop(guest)
             guest = None
             time.sleep(0.3)
@@ -207,6 +232,8 @@ def main() -> int:
                 raise AssertionError("bounded relay-vantage capture reached its limit")
             if len(observed) < 128:
                 raise AssertionError("relay-vantage proxy did not observe forwarded TLS plaintext")
+            if min(proxy.direction_bytes) == 0:
+                raise AssertionError("relay-vantage proxy did not observe both traffic directions")
             markers = (b"Minecraft", "Minecraft".encode("utf-16-be"), marker, b"BTAPingHost")
             for needle in markers + secrets:
                 if needle and needle in observed:
@@ -216,7 +243,7 @@ def main() -> int:
                 if needle and needle in log_bytes:
                     raise AssertionError("relay logs exposed game data or an invitation secret")
             print("PASS: disposable TLS-terminating relay-vantage proxy forwarded encrypted guest bytes")
-            print(f"PASS: {len(observed)} captured bytes; known game markers and both invite capabilities absent")
+            print(f"PASS: {len(observed)} captured bytes across both directions; known game markers and both invite capabilities absent")
             print("PASS: disposable relay stdout/stderr contained no tested game markers or invite secrets")
             print("LIMIT: loopback dev-certificate synthetic game traffic only; metadata, timing, sizes, and denial remain visible")
         return 0
