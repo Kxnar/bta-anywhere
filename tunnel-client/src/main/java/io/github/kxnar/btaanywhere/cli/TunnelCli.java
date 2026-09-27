@@ -97,6 +97,8 @@ public final class TunnelCli {
 		BtaeInvitation invitation = BtaeInvitation.parse(reader.readLine());
 		EncryptedGuestCompanion companion = new EncryptedGuestCompanion(invitation);
 		try {
+			System.out.println("Host session SPKI SHA-256: " + invitation.hostSpkiSha256());
+			System.out.println("Relay endpoint: " + invitation.relayHost() + ":" + invitation.relayPort());
 			System.out.println("Connect the BTA 8.0.1 client to " + companion.address().getHostString()
 				+ ":" + companion.address().getPort());
 			System.out.println("Invitation expires at " + java.time.Instant.ofEpochMilli(invitation.expiresAtEpochMillis()));
