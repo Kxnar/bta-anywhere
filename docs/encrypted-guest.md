@@ -1,6 +1,6 @@
 # Experimental encrypted guest join (Workstream 3)
 
-This branch adds a Windows x86-64 **CLI prototype** for a stock BTA 8.0.1 guest to join through a loopback companion. It has passed the synthetic local join and security smoke test. A complete disposable-world join with a fresh BTA client is still under verification. The BTA mod hosting UI does not create encrypted invitations or select encrypted mode; use the CLI steps below with a separately started BTA server. This is not part of the v0.1 release.
+This branch adds a Windows x86-64 **CLI prototype** for a stock BTA 8.0.1 guest to join through a loopback companion. It has passed the synthetic local join/security smoke and two joins by an actual BTA 8.0.1 client into a disposable offline-mode world. The BTA mod hosting UI does not create encrypted invitations or select encrypted mode; use the CLI steps below with a separately started BTA server. This is not part of the v0.1 release.
 
 ## Start a self-hosted relay and host tunnel
 
@@ -47,7 +47,7 @@ python scripts\encrypted_join_smoke.py `
   --tunnel-jar tunnel-client\build\libs\bta-anywhere-tunnel-0.1.0-all.jar
 ```
 
-It starts disposable local processes and checks basic and icon status probes, status rate limiting, malformed prefaces, byte-exact join and half-close, replay, wrong host and relay pins, tampered capability, wrong host session, display expiry, revocation, plaintext rejection, active shutdown, host listener cleanup, and absence of unauthorized local-server connections. Pin and capability checks use a fresh invitation and verify that the unmodified invitation still joins afterward. It does **not** measure performance or substitute for a real BTA client and server test. Run the existing serial and concurrent integration harnesses sequentially because they share relay ports.
+It starts disposable local processes and checks basic and icon status probes, status rate limiting, malformed prefaces, byte-exact join and half-close, replay, wrong host and relay pins, tampered capability, wrong host session, display expiry, revocation, plaintext rejection, active guest and host shutdown, listener cleanup, and absence of unauthorized local-server connections. Pin and capability checks use a fresh invitation and verify that the unmodified invitation still joins afterward. It does **not** measure performance or substitute for a real BTA client and server test. Run the existing serial and concurrent integration harnesses sequentially because they share relay ports.
 
 With a disposable BTA 8.0.1 server already running on loopback, compare its direct and encrypted server-list responses and first join-handshake response:
 
@@ -59,6 +59,8 @@ python scripts\encrypted_bta_status_smoke.py `
 ```
 
 This check reached an official, hash-verified BTA 8.0.1 server on a disposable world for both status variants and the first handshake response. It does not log in a player or prove a complete game join. Keep the server bound to loopback and stop it cleanly after testing.
+
+The [functional evidence](workstream3-functional-evidence.md) also records two complete local joins using a separate temporary BTA client game directory and offline test identity. The disposable server logged the player in; the client received the server's recipes and remained connected. Prism Launcher's first-run setup would not complete with an offline account, so this verification launched the actual BTA client main class directly from the isolated temporary profile. No client-side in-world screenshot was retained. This verifies the game protocol path, not online account authentication or the mod hosting UI.
 
 The relay still sees addresses, timing, volume, and inner TLS record sizes, and can disconnect guests. A stolen invitation can be used first. Host and guest machines, the BTA server, and their mods still need to be trusted. See [Security](security.md), [Privacy](privacy.md), and the [accepted design and full gate list](encrypted-guest-design.md).
 

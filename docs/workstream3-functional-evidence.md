@@ -54,7 +54,7 @@ Passed after the final CLI change. It covers basic/icon status, rate limits,
 malformed prefaces, byte-exact half-close, replay, fresh-invitation wrong
 host/relay pins, tampered capability, wrong host session, expired display
 time, revocation, plaintext rejection, admission before local sockets,
-guest shutdown, and host listener cleanup. The original invitation remained
+guest shutdown, active host disconnect, and listener cleanup. The original invitation remained
 usable after all mutated-invitation attempts. An earlier test run failed
 because the test used a 16-byte rather than 32-byte session ID mutation; the
 test vector was fixed, then the complete smoke passed twice.
@@ -86,11 +86,38 @@ python scripts\cross_language_e2e.py `
 These are functional integrity and concurrency checks. They are not the
 deferred throughput, latency, memory, or two-hour soak measurements.
 
+## Disposable real-client join
+
+Two local runs around 01:09 BST on 27 September 2026 used an isolated temporary
+Prism root, a fresh temporary client game directory, the offline test identity
+`W3GuestTmp`, and a fresh disposable BTA 8.0.1 world bound to loopback. The
+actual BTA 8.0.1 client entered the world through the encrypted companion: the
+server logged that the player logged in with an entity ID and spawn position,
+the client logged receipt of all 687 server recipes, and the orchestrator
+observed the client remain connected at least five seconds on each run.
+No client-side in-world screenshot was retained. The server was offline-mode,
+so account authentication was not tested. The host, guest companion, relay,
+server, and client processes were stopped after the attempts.
+
+The one-off entry command was:
+
+```powershell
+python C:\Users\knara\AppData\Local\Temp\bta-w3-real-client-20260927\run_real_client_join.py
+```
+
+That temporary helper passed the invitation to the guest companion through
+stdin and launched the BTA client main class using the isolated profile and
+game directory. The redacted local summary is at
+`C:\Users\knara\AppData\Local\Temp\bta-w3-real-client-20260927\real-client-join-summary.txt`.
+Task setup and test took about 11 minutes (00:59–01:10 BST). Prism Launcher's
+first-run wizard could not finish with an offline account, and the isolated
+client initially lacked the official Beta 1.7.3 base JAR and sound libraries.
+Only those verified client binaries were copied/downloaded into the temporary
+runtime; no existing account or save data was used.
+
 ## Open review items
 
-The disposable real BTA 8.0.1 client must still complete login and enter a
-disposable world through the encrypted companion. Live server-list and first
-handshake response checks alone do not meet that gate. A relay-side packet/log
-inspection for recoverable game payload or invitation material has not yet
-been recorded. Until required real-client and security checks are verified,
-the functional verdict is **not ready**.
+A relay-side packet/log inspection for recoverable game payload or invitation
+material has not yet been recorded. Until that security check is verified,
+the functional verdict is **not ready**. The deferred performance and soak
+gates remain open independently.
