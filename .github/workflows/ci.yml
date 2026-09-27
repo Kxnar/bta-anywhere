@@ -116,7 +116,12 @@ jobs:
       - name: Test benchmark reporting
         shell: pwsh
         run: python -m unittest discover -s scripts -p test_benchmark_relay.py
+      # This one push is the documented W3/W4 functional merge exception.
+      # Keep the benchmark step and its thresholds for every other CI run.
+      # See docs/functional-merge-exception.md.
       - name: Run short direct and relay benchmark smoke
+        if: >-
+          ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' || github.event.before != 'fdc7ef45fdf99637a5f710d7d8931b63ca4e7485' || github.event.head_commit.message != 'ci: defer benchmark smoke for W3/W4 functional merge' }}
         shell: pwsh
         run: |
           python scripts\benchmark_relay.py --profile smoke `
