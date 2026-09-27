@@ -296,10 +296,11 @@ fn public_key(config_path: &Path) -> Result<()> {
     let pkcs8 = fs::read(&config.signing_key_file)?;
     let key =
         Ed25519KeyPair::from_pkcs8(&pkcs8).map_err(|_| anyhow::anyhow!("invalid signing key"))?;
+    use base64::{Engine as _, engine::general_purpose::STANDARD};
     println!(
         "{} {}",
         config.key_id,
-        hex::encode(key.public_key().as_ref())
+        STANDARD.encode(key.public_key().as_ref())
     );
     Ok(())
 }
