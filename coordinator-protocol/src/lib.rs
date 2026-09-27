@@ -275,8 +275,10 @@ mod tests {
     fn malformed_tampered_and_noncanonical_tickets_fail_closed() {
         let key = new_key();
         let ticket = sign(&claims(), &key).unwrap();
+        assert_eq!(inspect_unverified(&ticket).unwrap(), claims());
         let keys = HashMap::from([("operator-key-1".into(), public_key_bytes(&key))]);
         assert!(verify("BTACT1:bad", &keys, expected(), 1_000_001).is_err());
+        assert!(inspect_unverified("BTACT1:bad").is_err());
         assert!(
             verify(
                 &"x".repeat(MAX_TICKET_LENGTH + 1),
@@ -308,6 +310,7 @@ mod tests {
         text = text.replace("\"version\":1", "\"version\":1,\"version\":1");
         let duplicate = format!("{PREFIX}{}.{}", URL_SAFE_NO_PAD.encode(text), sig);
         assert!(verify(&duplicate, &keys, expected(), 1_000_001).is_err());
+        assert!(inspect_unverified(&duplicate).is_err());
     }
 
     #[test]
