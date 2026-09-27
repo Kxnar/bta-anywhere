@@ -352,6 +352,36 @@ def main() -> int:
                 guest.stdin.write("stop\n")
                 guest.stdin.flush()
                 guest.wait(timeout=4)
+
+            host.stdin.write("invite\n")
+            host.stdin.flush()
+            disconnect_invite = "BTAE1:" + wait_event(events, "invitation")
+            wait_event(events, "invitation-id")
+            guest = subprocess.Popen([args.java, "-jar", str(args.tunnel_jar), "join-encrypted"],
+                                     stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE, text=True, bufsize=1)
+            read_lines(guest, "host-disconnect-guest", events, diagnostics)
+            assert guest.stdin is not None
+            guest.stdin.write(disconnect_invite + "\n")
+            guest.stdin.flush()
+            disconnect_port = int(wait_event(events, "guest-address").rsplit(":", 1)[1])
+            before_disconnect = local.count()
+            with socket.create_connection(("127.0.0.1", disconnect_port), timeout=5) as active:
+                active.settimeout(6)
+                active.sendall(b"\x02held-open-host-stop")
+                deadline = time.monotonic() + 5
+                while local.count() == before_disconnect and time.monotonic() < deadline:
+                    time.sleep(0.05)
+                if local.count() == before_disconnect:
+                    raise AssertionError("host disconnect case did not reach the local server")
+                stop(host)
+                try:
+                    after_stop = active.recv(1)
+                except (ConnectionResetError, ConnectionAbortedError):
+                    after_stop = b""
+                if after_stop:
+                    raise AssertionError("guest socket remained usable after host stop")
+            stop(guest)
             stop(host)
             deadline = time.monotonic() + 5
             while time.monotonic() < deadline:
@@ -362,7 +392,7 @@ def main() -> int:
                     break
             else:
                 raise AssertionError("host stop left the encrypted public listener open")
-            print("Encrypted join smoke passed: status, half-close, replay, pin/capability/session/expiry/revocation/plaintext rejection, admission before local sockets, guest shutdown and host listener cleanup.")
+            print("Encrypted join smoke passed: status, half-close, replay, pin/capability/session/expiry/revocation/plaintext rejection, admission before local sockets, guest shutdown, active host disconnect and listener cleanup.")
             return 0
         except BaseException:
             print("\n".join(diagnostics[-80:]))
