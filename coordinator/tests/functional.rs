@@ -502,3 +502,12 @@ fn database_loss_fails_closed_and_explicit_init_refuses_overwrite() {
     assert!(init().status.success());
     assert!(Coordinator::open(config).is_ok());
 }
+
+#[test]
+fn missing_uniqueness_index_fails_closed() {
+    let (_tmp, config) = fixture(1, 2);
+    let db = rusqlite::Connection::open(&config.database).unwrap();
+    db.execute_batch("DROP INDEX one_active_port").unwrap();
+    drop(db);
+    assert_eq!(Coordinator::open(config).err(), Some(Error::Storage));
+}

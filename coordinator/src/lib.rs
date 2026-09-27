@@ -254,16 +254,14 @@ impl Coordinator {
         db.busy_timeout(std::time::Duration::from_secs(10))
             .map_err(|_| Error::Storage)?;
         if !initialize {
-            let present: bool = db
+            let present: i64 = db
                 .query_row(
-                    "SELECT 1 FROM sqlite_master WHERE type='table' AND name='meta'",
+                    "SELECT count(*) FROM sqlite_master WHERE name IN ('meta','relays','leases','one_active_port')",
                     [],
-                    |_| Ok(true),
+                    |row| row.get(0),
                 )
-                .optional()
-                .map_err(|_| Error::Storage)?
-                .unwrap_or(false);
-            if !present {
+                .map_err(|_| Error::Storage)?;
+            if present != 4 {
                 return Err(Error::Storage);
             }
         }
