@@ -1,0 +1,41 @@
+[package]
+name = "bta-anywhere-coordinator"
+description = "Durable allocation coordinator for operator-owned BTA relays"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+anyhow = "=1.0.104"
+axum = "=0.8.9"
+base64 = "=0.22.1"
+bta-anywhere-coordinator-protocol = { path = "../coordinator-protocol" }
+clap = { version = "=4.6.6", features = ["derive"] }
+fs2 = "=0.4.3"
+hex = "=0.4.3"
+hyper = { version = "=1.7.0", features = ["http1", "server"] }
+hyper-util = { version = "=0.1.17", features = ["server", "http1", "tokio"] }
+prometheus-client = "=0.25.0"
+rand = "=0.9.5"
+rcgen = { version = "=0.14.7", features = ["pem"] }
+ring = "=0.17.14"
+rusqlite = { version = "=0.37.0", features = ["bundled", "backup"] }
+rustls = { version = "=0.23.43", default-features = false, features = ["ring", "std"] }
+rustls-pemfile = "=2.2.0"
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.151"
+sha2 = "=0.10.9"
+subtle = "=2.6.1"
+tokio = { version = "=1.53.1", features = ["fs", "io-util", "macros", "net", "rt-multi-thread", "signal", "sync", "time"] }
+tokio-rustls = { version = "=0.26.5", default-features = false, features = ["ring"] }
+toml = "=0.9.12"
+tower = "=0.5.2"
+time-crate = { package = "time", version = "=0.3.45" }
+tracing = "=0.1.44"
+tracing-subscriber = { version = "=0.3.23", features = ["env-filter", "fmt"] }
+
+[dev-dependencies]
+tempfile = "=3.27.0"

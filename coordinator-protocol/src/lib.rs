@@ -142,6 +142,35 @@ pub fn verify(
     Ok(claims)
 }
 
+/// Parse bounded canonical claims for routing only. The caller MUST run `verify`
+/// before using any claim for authorization or opening a listener.
+pub fn inspect_unverified(ticket: &str) -> Result<TicketClaims, TicketError> {
+    if ticket.len() > MAX_TICKET_LENGTH {
+        return Err(TicketError);
+    }
+    let encoded = ticket.strip_prefix(PREFIX).ok_or(TicketError)?;
+    let (payload_text, signature_text) = encoded.split_once('.').ok_or(TicketError)?;
+    let payload = URL_SAFE_NO_PAD
+        .decode(payload_text)
+        .map_err(|_| TicketError)?;
+    let signature = URL_SAFE_NO_PAD
+        .decode(signature_text)
+        .map_err(|_| TicketError)?;
+    if payload.len() > 1024
+        || signature.len() != 64
+        || URL_SAFE_NO_PAD.encode(&payload) != payload_text
+        || URL_SAFE_NO_PAD.encode(&signature) != signature_text
+    {
+        return Err(TicketError);
+    }
+    let claims: TicketClaims = serde_json::from_slice(&payload).map_err(|_| TicketError)?;
+    claims.validate()?;
+    if serde_json::to_vec(&claims).map_err(|_| TicketError)? != payload {
+        return Err(TicketError);
+    }
+    Ok(claims)
+}
+
 pub fn public_key_bytes(key: &Ed25519KeyPair) -> Vec<u8> {
     key.public_key().as_ref().to_vec()
 }
