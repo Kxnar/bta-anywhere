@@ -181,18 +181,21 @@ public final class CoordinatorRelayResolver implements RelayResolver {
 
 	private static boolean fallbackAllowed(Throwable failure) {
 		for (Throwable current = failure; current != null; current = current.getCause()) {
-			if (current instanceof CoordinatorHttpException http) {
-				return http.statusCode() >= 500 && http.statusCode() <= 599;
-			}
 			if (current instanceof javax.net.ssl.SSLException) {
 				return false;
 			}
+		}
+		boolean unavailable = false;
+		for (Throwable current = failure; current != null; current = current.getCause()) {
+			if (current instanceof CoordinatorHttpException http) {
+				return http.statusCode() >= 500 && http.statusCode() <= 599;
+			}
 			if (current instanceof HttpTimeoutException || current instanceof HttpConnectTimeoutException
 				|| current instanceof ConnectException || current instanceof UnknownHostException) {
-				return true;
+				unavailable = true;
 			}
 		}
-		return false;
+		return unavailable;
 	}
 
 	private static Throwable unwrap(Throwable failure) {

@@ -95,6 +95,22 @@ final class CoordinatorRelayResolverTest {
 	}
 
 	@Test
+	void nestedCoordinatorTlsFailureDoesNotUseStaticFallback() throws Exception {
+		RelayDescriptor fallback = descriptor("fallback.example", 25575);
+		java.net.ConnectException outer = new java.net.ConnectException("connection failed");
+		outer.initCause(new javax.net.ssl.SSLHandshakeException("untrusted coordinator"));
+		CoordinatorAllocationClient rejected = (clientId, mode, probes) ->
+			CompletableFuture.failedFuture(outer);
+		CoordinatorRelayResolver resolver = resolver(
+			rejected, (relay, mode) -> CompletableFuture.completedFuture(10L),
+			new RelayAllowlist(relays()), RelayMode.ENCRYPTED, fallback);
+
+		assertThrows(CompletionException.class,
+			() -> resolver.resolveSelection().toCompletableFuture().join());
+		assertEquals("unresolved", resolver.selectionSource());
+	}
+
+	@Test
 	void unknownRelayOrBadLeaseExpiryFailsClosedInsteadOfUsingFallback() throws Exception {
 		RelayDescriptor fallback = descriptor("fallback.example", 25575);
 		CoordinatorAllocationClient unknown = (clientId, mode, probes) -> CompletableFuture.completedFuture(
