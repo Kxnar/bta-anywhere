@@ -60,6 +60,7 @@ An [experimental Workstream 3 encrypted guest CLI](docs/encrypted-guest.md) is u
 - [Protocol v1](docs/protocol.md)
 - [Experimental protocol v2](docs/protocol-v2.md)
 - [Self-hosting a relay](docs/self-hosting.md)
+- [Experimental regional coordinator setup and recovery](docs/regional-coordinator-operations.md)
 - [Recovery](docs/recovery.md)
 - [Troubleshooting](docs/troubleshooting.md)
 - [Release process](docs/releasing.md)

@@ -1,8 +1,18 @@
 # Proposed design: regional relay coordinator (Workstream 4)
 
-**Status:** Initial ticket-schema prototype started in a separate worktree. There is no coordinator service, durable lease redemption, or relay integration. Workstream 0 performance and stability gates remain open for final review.
+**Status:** Functional candidate implemented in an isolated local worktree. The
+TLS coordinator, durable SQLite leases, signed ticket redemption, relay exact
+port binding, Java resolver, explicit static fallback, and Windows integration
+checks are described in [operator setup](regional-coordinator-operations.md)
+and [functional evidence](workstream4-functional-evidence.md). Performance and
+long soak gates remain open under the maintainer's
+[merge-review exception](functional-merge-exception.md).
 
-**Base:** Workstream 3 relay interface commit `c8ebf28` (stacked without merging). The original design branch was based on `origin/main` at `fdc7ef45fdf99637a5f710d7d8931b63ca4e7485`.
+**Base:** The original W4 ticket prototype started from W3 relay interface
+commit `c8ebf28`. This local branch was rebased onto finalized W3 commit
+`08c26ce` before implementation; neither branch was merged or pushed. The
+original design branch was based on `origin/main` at
+`fdc7ef45fdf99637a5f710d7d8931b63ca4e7485`.
 
 **Target:** Windows x86-64, operator-owned relay fleet. No public relay deployment.
 
@@ -153,6 +163,13 @@ the old endpoint is gone and encrypted invitations must be revoked and reissued.
 
 ## Implementation sequence and validation
 
+This section retains the planned gates and thresholds. For the present local
+merge decision, the maintainer explicitly deferred performance and long
+load/soak evidence, including the Workstream 0 baseline prerequisite; the
+functional and 10,000-attempt concurrency-correctness gates remained required.
+See [the exception](functional-merge-exception.md) for the exact scope and
+remaining risk.
+
 1. Close the Workstream 0 baseline/stability gate and record the coordinator
    scope decision. Keep the existing documented benchmark thresholds.
 2. Add versioned ticket, lease-state, and authenticated API schemas with
@@ -193,9 +210,13 @@ existing guest TCP connections cannot migrate.
 - Review the ticket lifetime, heartbeat interval, and clock-skew policy
   against the baseline and actual Windows prototype before implementation.
 
-The `coordinator-protocol` crate now signs and verifies canonical Ed25519
-allocation tickets with exact relay, port, host, mode, and time bindings. Its
-focused tests reject tampering, wrong keys, invalid bindings, and malformed
-claims. This is a schema prototype only: ticket redemption, durable leases,
-heartbeats, selection, fallback, operator setup, and all performance/stability
-gates remain open. No coordinator or CV implementation claim follows from it.
+The `coordinator-protocol` crate signs and verifies canonical Ed25519 tickets
+with exact relay, port, host, mode, and time bindings. The coordinator commits
+reservations in SQLite before returning tickets, and the relay redeems once
+before opening the exact managed port. Authenticated full-inventory heartbeats
+reconcile leases after restart; a missing database or uniqueness index fails
+closed. The host probes allowlisted relay endpoints through verified QUIC,
+and its CLI requires locally configured coordinator trust and an explicit
+static fallback. The deterministic three-relay simulation and the cross-process
+Windows checks are in the [evidence](workstream4-functional-evidence.md).
+The 100 requests/second for ten minutes and two-hour churn/soak remain unrun.

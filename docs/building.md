@@ -49,6 +49,16 @@ java -jar tunnel-client/build/libs/bta-anywhere-tunnel-0.1.0-all.jar doctor
 
 The experimental Workstream 3 CLI setup and its short encrypted join/security smoke are in [Encrypted guest join](encrypted-guest.md). They are separate from the v0.1 release gates and from performance benchmarking.
 
+The experimental Workstream 4 coordinator has a separate
+[Windows operator setup and recovery guide](regional-coordinator-operations.md)
+and [functional evidence](workstream4-functional-evidence.md). Its disposable
+`scripts/regional_coordinator_smoke.py` checks managed legacy/encrypted
+registration, exact-port binding, coordinator restart, and explicit static
+fallback. Run it separately from the serial and concurrent relay harnesses
+because all three use the development relay ports. The
+[maintainer's exception](functional-merge-exception.md) defers performance
+and soak evidence for this functional merge review without changing gates.
+
 Build the release relay and tunnel CLI, then let the standard-library integration harness create a private development CA/token, start an echo service, open eight concurrent streams, verify byte-exact half-closes and metrics, restart the relay, and verify recovery:
 
 ```powershell
