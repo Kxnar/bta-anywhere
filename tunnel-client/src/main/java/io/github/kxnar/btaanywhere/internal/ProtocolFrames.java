@@ -27,13 +27,14 @@ final class ProtocolFrames {
 	static final int VERSION = 1;
 	static final String ALPN = "bta-anywhere/1";
 	static final String STREAM_EOF_BYTES = "streamEofBytes";
+	static final String ALLOCATION_TICKET = "allocationTicket";
 	private static final Gson GSON = new Gson();
 	private static final int MAX_JSON_CONTAINERS = 127;
 	private static final Set<String> KNOWN_TOP_LEVEL_PROPERTIES = Set.of(
 		"type", "version", "accessToken", "clientInstanceId", "resumeToken",
 		"sequence", "reason", "sessionId", "publicHost", "publicPort",
 		"leaseSeconds", "code", "message", "retryable", "connectionId", "remoteAddress",
-		"features", "bytes"
+		"features", "bytes", "allocationTicket"
 	);
 
 	private ProtocolFrames() {
@@ -209,6 +210,16 @@ final class ProtocolFrames {
 			throw new IllegalArgumentException(
 				"self-hosted relay lacks reliable stream completion; update the relay to this BTA Anywhere version"
 			);
+		}
+	}
+
+	static void requireRegisteredFeatures(JsonObject registered, Set<String> expected) {
+		Set<String> actual = new HashSet<>();
+		for (JsonElement feature : registrationFeatures(registered)) {
+			actual.add(feature.getAsString());
+		}
+		if (!actual.equals(expected)) {
+			throw new IllegalArgumentException("relay registration features do not match the request");
 		}
 	}
 

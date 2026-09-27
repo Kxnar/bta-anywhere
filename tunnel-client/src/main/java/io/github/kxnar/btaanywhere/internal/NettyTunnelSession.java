@@ -5,6 +5,8 @@ import com.google.gson.JsonObject;
 import io.github.kxnar.btaanywhere.ProtocolException;
 import io.github.kxnar.btaanywhere.PublicEndpoint;
 import io.github.kxnar.btaanywhere.RelayDescriptor;
+import io.github.kxnar.btaanywhere.RelayMode;
+import io.github.kxnar.btaanywhere.RelaySelection;
 import io.github.kxnar.btaanywhere.TunnelConfig;
 import io.github.kxnar.btaanywhere.TunnelEvent;
 import io.github.kxnar.btaanywhere.TunnelSession;
@@ -39,6 +41,7 @@ import java.util.concurrent.Flow;
 import java.util.concurrent.SubmissionPublisher;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -63,9 +66,11 @@ public final class NettyTunnelSession implements TunnelSession {
 	private final AtomicInteger pendingEofNotices = new AtomicInteger();
 
 	private volatile RelayDescriptor relay;
+	private volatile RelaySelection relaySelection;
 	private volatile PublicEndpoint endpoint;
 	private volatile String sessionId;
 	private volatile String resumeToken;
+	private volatile boolean allocationTicketPendingAck;
 	private volatile Instant lastPong = Instant.now();
 	private volatile Channel datagramChannel;
 	private volatile QuicChannel quicChannel;
@@ -107,20 +112,40 @@ public final class NettyTunnelSession implements TunnelSession {
 			return;
 		}
 		long currentGeneration = generation.incrementAndGet();
-		config.relayResolver().resolve().whenComplete((resolved, failure) -> {
+		RelaySelection pinned = relaySelection;
+		CompletionStage<RelaySelection> resolution = pinned == null
+			? config.relayResolver().resolveSelection()
+			: CompletableFuture.completedFuture(pinned);
+		resolution.whenComplete((resolved, failure) -> {
 			if (failure != null) {
 				scheduleReconnect(failure, currentGeneration);
 				return;
 			}
-			relay = resolved;
+			if (closeRequested.get() || currentGeneration != generation.get()) {
+				if (pinned == null) {
+					resolved.close();
+				}
+				return;
+			}
+			RelayMode requiredMode = encrypted == null ? RelayMode.LEGACY : RelayMode.ENCRYPTED;
+			if (resolved.mode() != null && resolved.mode() != requiredMode) {
+				resolved.close();
+				fail(new IllegalStateException("resolved relay mode does not match the selected tunnel mode"));
+				return;
+			}
+			if (pinned == null) {
+				relaySelection = resolved;
+			}
+			relay = resolved.descriptor();
 			group.next().execute(() -> connect(resolved, currentGeneration));
 		});
 	}
 
-	private void connect(RelayDescriptor descriptor, long currentGeneration) {
+	private void connect(RelaySelection selection, long currentGeneration) {
 		if (closeRequested.get() || currentGeneration != generation.get()) {
 			return;
 		}
+		RelayDescriptor descriptor = selection.descriptor();
 		try {
 			QuicSslContext sslContext = QuicSslContextBuilder.forClient()
 				.trustManager(descriptor.trustedCertificate().toFile())
@@ -246,23 +271,58 @@ public final class NettyTunnelSession implements TunnelSession {
 	}
 
 	private void writeRegistration(Channel channel) {
+		JsonObject register;
+		try {
+			register = registrationMessage(
+				encrypted != null,
+				config.clientInstanceId(),
+				relay,
+				relaySelection,
+				resumeToken,
+				Instant.now().toEpochMilli()
+			);
+		} catch (RuntimeException failure) {
+			fail(failure);
+			return;
+		}
+		allocationTicketPendingAck = register.has("allocationTicket");
+		ProtocolFrames.write(channel, register);
+	}
+
+	static JsonObject registrationMessage(
+		boolean encryptedMode,
+		String clientInstanceId,
+		RelayDescriptor relay,
+		RelaySelection selection,
+		String resumeToken,
+		long nowEpochMillis
+	) {
 		JsonObject register = new JsonObject();
 		register.addProperty("type", "register");
-		register.addProperty("version", encrypted == null ? ProtocolFrames.VERSION : 2);
-		register.addProperty("clientInstanceId", config.clientInstanceId());
+		register.addProperty("version", encryptedMode ? 2 : ProtocolFrames.VERSION);
+		register.addProperty("clientInstanceId", clientInstanceId);
 		JsonArray features = new JsonArray();
-		if (encrypted == null) {
+		if (!encryptedMode) {
 			features.add(ProtocolFrames.STREAM_EOF_BYTES);
 		}
+		boolean resuming = resumeToken != null;
+		if (selection != null && selection.coordinated() && !resuming) {
+			if (selection.expiresAtEpochMillis() <= nowEpochMillis) {
+				throw new IllegalStateException("coordinator allocation expired before relay registration");
+			}
+			features.add(ProtocolFrames.ALLOCATION_TICKET);
+			String allocationTicket = selection.useAllocationTicket(ticket -> new String(ticket));
+			register.addProperty("allocationTicket", allocationTicket);
+		}
 		register.add("features", features);
-		if (resumeToken != null) {
+		if (resuming) {
 			register.addProperty("resumeToken", resumeToken);
 		}
 		relay.accessToken().use(value -> {
 			register.addProperty("accessToken", new String(value));
 			return null;
 		});
-		ProtocolFrames.write(channel, register);
+		return register;
 	}
 
 	void handleControl(JsonObject message, long currentGeneration) {
@@ -283,9 +343,16 @@ public final class NettyTunnelSession implements TunnelSession {
 					boolean retryable = ProtocolFrames.requiredBoolean(message, "retryable");
 					ProtocolException failure = new ProtocolException(code + ": " + detail);
 					if ("resume_rejected".equals(code)) {
+						boolean coordinatedSession = relaySelection != null && relaySelection.coordinated()
+							&& sessionId != null;
 						resumeToken = null;
 						sessionId = null;
 						endpoint = null;
+						if (coordinatedSession) {
+							fail(new ProtocolException(
+								"coordinated relay session could not resume; start a new tunnel session"));
+							return;
+						}
 					}
 					if (retryable) {
 						scheduleReconnect(failure, currentGeneration);
@@ -301,17 +368,26 @@ public final class NettyTunnelSession implements TunnelSession {
 	}
 
 	private void handleRegistered(JsonObject message) {
-		if (encrypted == null) {
-			ProtocolFrames.requireStreamEofFeature(message);
-		} else if (message.has("features") && message.getAsJsonArray("features").size() != 0) {
-			throw new IllegalArgumentException("encrypted registration requested unsupported features");
-		}
+		Set<String> expectedFeatures = encrypted == null
+			? (allocationTicketPendingAck
+				? Set.of(ProtocolFrames.STREAM_EOF_BYTES, ProtocolFrames.ALLOCATION_TICKET)
+				: Set.of(ProtocolFrames.STREAM_EOF_BYTES))
+			: (allocationTicketPendingAck ? Set.of(ProtocolFrames.ALLOCATION_TICKET) : Set.of());
+		ProtocolFrames.requireRegisteredFeatures(message, expectedFeatures);
+		allocationTicketPendingAck = false;
 		sessionId = ProtocolFrames.requiredString(message, "sessionId");
 		resumeToken = ProtocolFrames.requiredString(message, "resumeToken");
 		endpoint = new PublicEndpoint(
 			ProtocolFrames.requiredString(message, "publicHost"),
 			ProtocolFrames.requiredInt(message, "publicPort")
 		);
+		RelaySelection selection = relaySelection;
+		if (selection != null && selection.coordinated() && endpoint.port() != selection.publicPort()) {
+			throw new IllegalStateException("relay endpoint port does not match the reserved allocation");
+		}
+		if (selection != null && selection.coordinated()) {
+			selection.close();
+		}
 		if (encrypted != null) {
 			encrypted.onRegistered(sessionId, endpoint, relay, quicChannel);
 		}
@@ -391,6 +467,7 @@ public final class NettyTunnelSession implements TunnelSession {
 		if (encrypted != null) {
 			encrypted.revokeAll();
 		}
+		closeRelaySelection();
 		emit(TunnelState.FAILED, "Tunnel failed", failure);
 		opened.completeExceptionally(failure);
 		closed.completeExceptionally(failure);
@@ -550,9 +627,18 @@ public final class NettyTunnelSession implements TunnelSession {
 		if (encrypted != null) {
 			encrypted.revokeAll();
 		}
+		closeRelaySelection();
 		emit(TunnelState.CLOSED, "Tunnel closed");
 		opened.completeExceptionally(new IllegalStateException("tunnel closed before registration"));
 		closed.complete(null);
 		publisher.close();
+	}
+
+	private void closeRelaySelection() {
+		RelaySelection selection = relaySelection;
+		relaySelection = null;
+		if (selection != null) {
+			selection.close();
+		}
 	}
 }

@@ -30,8 +30,12 @@ public record TunnelConfig(
 	}
 
 	public static TunnelConfig defaults(RelayDescriptor relay, String clientInstanceId) {
+		return defaults(new StaticRelayResolver(relay), clientInstanceId);
+	}
+
+	public static TunnelConfig defaults(RelayResolver relayResolver, String clientInstanceId) {
 		return new TunnelConfig(
-			new StaticRelayResolver(relay),
+			Objects.requireNonNull(relayResolver, "relayResolver"),
 			clientInstanceId,
 			Duration.ofSeconds(10),
 			Duration.ofSeconds(15),
