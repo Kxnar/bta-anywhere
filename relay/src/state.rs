@@ -90,7 +90,7 @@ struct RelayStateInner {
 
 struct CoordinatorClient {
     relay_id: String,
-    url: reqwest::Url,
+    url: url::Url,
     credential: String,
     keys: HashMap<String, Vec<u8>>,
     managed_port_start: u16,
@@ -241,7 +241,7 @@ impl CoordinatorClient {
             .collect::<Result<HashMap<_, _>>>()?;
         Ok(Self {
             relay_id: config.relay_id.clone(),
-            url: reqwest::Url::parse(&config.url).context("invalid coordinator URL")?,
+            url: url::Url::parse(&config.url).context("invalid coordinator URL")?,
             credential,
             keys,
             managed_port_start: config.managed_port_start,
@@ -253,7 +253,7 @@ impl CoordinatorClient {
         })
     }
 
-    fn endpoint(&self, path: &str) -> Result<reqwest::Url> {
+    fn endpoint(&self, path: &str) -> Result<url::Url> {
         self.url.join(path).context("invalid coordinator endpoint")
     }
 

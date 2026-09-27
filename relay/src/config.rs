@@ -144,7 +144,7 @@ impl RelayConfig {
             {
                 bail!("coordinator relay_id is invalid");
             }
-            let url = reqwest::Url::parse(&coordinator.url).context("invalid coordinator URL")?;
+            let url = url::Url::parse(&coordinator.url).context("invalid coordinator URL")?;
             if url.scheme() != "https"
                 || url.host_str().is_none()
                 || url.username() != ""
