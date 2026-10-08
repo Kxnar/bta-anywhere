@@ -120,6 +120,8 @@ jobs:
           python -m unittest discover -s scripts -p test_analyze_qlog.py
           rustc scripts/reproduce_pacer_timestamp.rs -o .dev/pacer-timestamp.exe
           .dev/pacer-timestamp.exe
+          python scripts/verify_packet_evidence.py docs/benchmarks/2026-10-08-packets
+          python scripts/verify_netem_archive.py docs/benchmarks/2026-10-08-linux
       - name: Run short direct and relay benchmark smoke
         shell: pwsh
         run: |
