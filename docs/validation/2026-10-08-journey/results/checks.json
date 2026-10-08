@@ -1,0 +1,41 @@
+{
+  "baseline_launch_resolution": {
+    "exit_code": 1,
+    "outcome": "expected missing runtime locks"
+  },
+  "fixed_launch_resolution": {
+    "exit_code": 0
+  },
+  "regression_check_original_lock": {
+    "exit_code": 1,
+    "outcome": "expected rejection"
+  },
+  "regression_check_fixed_lock": {
+    "exit_code": 0
+  },
+  "check_build_default_outputs": {
+    "exit_code": 1,
+    "outcome": "test output directory deletion errors"
+  },
+  "check_build_fresh_outputs": {
+    "exit_code": 0,
+    "tests": {
+      "bta-mod": {
+        "tests": 39,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 4
+      },
+      "tunnel-client": {
+        "tests": 87,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    }
+  },
+  "cleanup": {
+    "client_processes_running": 0,
+    "tcp_25565_listeners": 0
+  }
+}

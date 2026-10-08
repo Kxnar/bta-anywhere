@@ -6,6 +6,9 @@ It has LAN, direct, and self-hosted relay modes. Development currently targets W
 
 Use a disposable world while testing.
 
+See the [CV-readiness validation status](docs/validation-status.md) for the
+remaining multiplayer demonstration and external-network validation work.
+
 ## Build
 
 JDK 21 and Rust 1.85+ are needed. See [setup](docs/setup.md) for build commands.

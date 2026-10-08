@@ -1,0 +1,13 @@
+{
+  "wsl": {
+    "command": "wsl --list --quiet",
+    "status": "timeout",
+    "deadline_seconds": 8,
+    "owned_process_killed": true
+  },
+  "packet_tools": {
+    "tshark_on_path": false,
+    "dumpcap_on_path": false
+  },
+  "external_machine": "Awaiting availability information; no remote run attempted"
+}
