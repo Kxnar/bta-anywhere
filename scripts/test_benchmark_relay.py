@@ -48,6 +48,62 @@ class StalledDiagnosticEcho(socketserver.BaseRequestHandler):
 
 
 class BenchmarkTests(unittest.TestCase):
+    def test_rig_allocates_quic_port_from_udp_not_tcp_availability(self):
+        # Model Windows allowing a TCP ephemeral port that is forbidden for UDP.
+        tcp_ephemeral_ports = iter((55291, 55292))
+
+        class ProtocolSocket:
+            def __init__(self, family=socket.AF_INET, socket_type=socket.SOCK_STREAM):
+                self.socket_type = socket_type
+                self.port = None
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_):
+                pass
+
+            def bind(self, endpoint):
+                address, port = endpoint
+                if self.socket_type == socket.SOCK_DGRAM and port == 55291:
+                    raise PermissionError("UDP bind forbidden, os error 10013")
+                self.port = (57541 if self.socket_type == socket.SOCK_DGRAM else next(tcp_ephemeral_ports)) if port == 0 else port
+
+            def getsockname(self):
+                return "127.0.0.1", self.port
+
+        with mock.patch.object(benchmark.socket, "socket", side_effect=ProtocolSocket), \
+                mock.patch.object(benchmark, "free_port_pair", return_value=30000):
+            rig = benchmark.Rig(Path("relay.exe"), Path("tunnel.jar"), "java", [])
+        try:
+            self.assertEqual(rig.quic_port, 57541)
+            self.assertEqual(rig.admin_port, 55291)
+            # The selected port can be used by its intended UDP listener.
+            with ProtocolSocket(socket.AF_INET, socket.SOCK_DGRAM) as listener:
+                listener.bind(("127.0.0.1", rig.quic_port))
+        finally:
+            rig.temporary.cleanup()
+
+    def test_port_exclusion_selection_is_bounded(self):
+        sock = mock.MagicMock()
+        sock.__enter__.return_value = sock
+        sock.getsockname.return_value = ("127.0.0.1", 30000)
+        with mock.patch.object(benchmark.socket, "socket", return_value=sock) as allocate:
+            with self.assertRaisesRegex(RuntimeError, "100 attempts"):
+                benchmark.free_port(socket.SOCK_DGRAM, (30000,))
+        self.assertEqual(allocate.call_count, 100)
+
+    def test_relay_startup_fails_immediately_when_child_already_exited(self):
+        child = SimpleNamespace(poll=lambda: 1)
+        rig = SimpleNamespace(relay_binary=Path("relay.exe"), work=Path("temporary"),
+                              admin_port=9090, launch=mock.Mock(return_value=child))
+        with mock.patch.object(benchmark, "http_get") as http, \
+                mock.patch.object(benchmark.time, "sleep") as sleep:
+            with self.assertRaisesRegex(RuntimeError, "relay exited during startup: 1"):
+                benchmark.Rig.start_relay(rig)
+        http.assert_not_called()
+        sleep.assert_not_called()
+
     def test_stop_process_reports_already_exited_child_as_unclean(self):
         for returncode in (0, 7):
             with self.subTest(returncode=returncode):

@@ -437,10 +437,19 @@ def wait_until(check, timeout: float, description: str) -> None:
     raise TimeoutError(f"timed out waiting for {description}: {last}")
 
 
-def free_port() -> int:
-    with socket.socket() as sock:
-        sock.bind(("127.0.0.1", 0))
-        return sock.getsockname()[1]
+def free_port(socket_type: int = socket.SOCK_STREAM, excluded: tuple[int, ...] = ()) -> int:
+    """Ask the OS for a port in the protocol that will actually bind it.
+
+    A TCP allocation says nothing about UDP bind permissions on Windows. The
+    short-lived probe is not a reservation; launch errors still fail the run.
+    """
+    for _ in range(100):
+        with socket.socket(socket.AF_INET, socket_type) as sock:
+            sock.bind(("127.0.0.1", 0))
+            port = sock.getsockname()[1]
+        if port not in excluded:
+            return port
+    raise RuntimeError("could not allocate a distinct loopback port within 100 attempts")
 
 
 def free_port_pair() -> int:
@@ -652,12 +661,8 @@ class Rig:
         self.echo_thread: threading.Thread | None = None
         self.bridge: UdpBridge | None = None
         self.tcp_port = free_port_pair()
-        ports: set[int] = set()
-        while len(ports) < 2:
-            candidate = free_port()
-            if candidate not in (self.tcp_port, self.tcp_port + 1):
-                ports.add(candidate)
-        self.quic_port, self.admin_port = sorted(ports)
+        self.quic_port = free_port(socket.SOCK_DGRAM, (self.tcp_port, self.tcp_port + 1))
+        self.admin_port = free_port(excluded=(self.tcp_port, self.tcp_port + 1, self.quic_port))
         self.public_port: int | None = None
 
     def reader(self, stream, label: str) -> None:
@@ -704,7 +709,14 @@ class Rig:
         relay_env["RUST_LOG"] = log_level
         self.relay = self.launch([str(self.relay_binary), "run", "--config", str(self.work / "relay" / "relay.toml")],
                                  "relay", subprocess.DEVNULL, relay_env)
-        wait_until(lambda: bool(http_get(self.admin_port, "/readyz")), 20, "relay ready")
+
+        def ready() -> bool:
+            returncode = self.relay.poll()
+            if returncode is not None:
+                raise RuntimeError(f"relay exited during startup: {returncode}")
+            return bool(http_get(self.admin_port, "/readyz"))
+
+        wait_until(ready, 20, "relay ready")
 
     def start_tunnel(self, relay_port: int) -> int:
         assert self.echo
