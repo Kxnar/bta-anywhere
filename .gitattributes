@@ -9,3 +9,6 @@ docs/benchmarks/2026-10-08-jitter/source/** -text -filter -whitespace
 docs/benchmarks/2026-10-08-jitter/results/validation.txt -whitespace
 docs/benchmarks/2026-10-08-scaling/results/*.jfr -text -diff -merge -filter
 docs/benchmarks/2026-10-08-scaling/results/*.pstats -text -diff -merge -filter
+# Journey evidence is hashed after privacy redaction; preserve its exact bytes.
+docs/validation/2026-10-08-journey/results/** -text -filter -whitespace
+docs/validation/2026-10-08-journey/source/** -text -filter -whitespace
