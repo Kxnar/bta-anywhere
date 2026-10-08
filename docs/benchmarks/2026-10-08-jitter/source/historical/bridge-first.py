@@ -15,7 +15,7 @@ import time
 
 class ImpairmentBridge:
     def __init__(self, relay_port, delay_ms=0, jitter_ms=0, loss=0, seed=1701,
-                 max_packets=8192, max_bytes=8 * 1024 * 1024, preserve_order=False):
+                 max_packets=8192, max_bytes=8 * 1024 * 1024):
         if not 0 <= jitter_ms <= delay_ms <= 500 or not 0 <= loss <= 1:
             raise ValueError('invalid impairment')
         if max_packets < 1 or max_bytes < 65535:
@@ -32,9 +32,6 @@ class ImpairmentBridge:
         self.queue = []
         self.queued_bytes = 0
         self.sequence = 0
-        self.preserve_order = preserve_order
-        self.last_due = {}
-        self.last_forwarded = {}
         self.drop_until = 0
         self.outage_generation = 0
         self.counters = collections.Counter()
@@ -55,11 +52,7 @@ class ImpairmentBridge:
         else:
             delay = (self.delay_ms + self.rng.uniform(-self.jitter_ms, self.jitter_ms)) / 1000
             self.sequence += 1
-            due = now + delay
-            if self.preserve_order:
-                due = max(due, self.last_due.get(destination, due))
-            self.last_due[destination] = due
-            heapq.heappush(self.queue, (due, self.sequence, now, data, destination))
+            heapq.heappush(self.queue, (now + delay, self.sequence, now, data, destination))
             self.queued_bytes += len(data)
             self.counters['peak_queue_bytes'] = max(self.counters['peak_queue_bytes'], self.queued_bytes)
             self.counters['peak_queue_packets'] = max(self.counters['peak_queue_packets'], len(self.queue))
@@ -75,16 +68,13 @@ class ImpairmentBridge:
                     self.queued_bytes = 0
                 now = time.monotonic()
                 while self.queue and self.queue[0][0] <= now:
-                    _, sequence, entered, data, destination = heapq.heappop(self.queue)
+                    _, _, entered, data, destination = heapq.heappop(self.queue)
                     self.queued_bytes -= len(data)
                     if now < self.drop_until:
                         self.counters['outage_dropped'] += 1
                         continue
                     try:
                         self.socket.sendto(data, destination)
-                        if sequence < self.last_forwarded.get(destination, 0):
-                            self.counters['reordered_forwarded'] += 1
-                        self.last_forwarded[destination] = max(sequence, self.last_forwarded.get(destination, 0))
                         self.counters['forwarded'] += 1
                         self.delay_samples_ms.append((time.monotonic() - entered) * 1000)
                     except OSError:
@@ -111,8 +101,6 @@ class ImpairmentBridge:
                             self.counters['stale_dropped'] += len(self.queue)
                             self.queue.clear()
                             self.queued_bytes = 0
-                            self.last_due.clear()
-                            self.last_forwarded.clear()
                         self.peer = source
                         destination = self.relay
                     if destination is not None:

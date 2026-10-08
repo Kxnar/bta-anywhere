@@ -16,6 +16,8 @@ for measured results, retained failures and reproduction details.
 The [scaling and recovery follow-up](docs/benchmarks/2026-10-08-scaling/README.md)
 investigates event-loop scheduling, local delay/jitter/loss, and authenticated
 restart detection, including failed experiments and remaining limits.
+The [jitter diagnosis and 25-trial recovery distribution](docs/benchmarks/2026-10-08-jitter/README.md)
+add live transport measurements, pacing/ordering controls and longer drain observations.
 
 ## License
 

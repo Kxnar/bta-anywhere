@@ -1,0 +1,295 @@
+python-tests
+...usage: python.exe -m unittest [-h] --relay-binary RELAY_BINARY
+                              --tunnel-jar TUNNEL_JAR [--java JAVA]
+                              --output OUTPUT [--seed SEED]
+                              [--existing-stream-observation-seconds EXISTING_STREAM_OBSERVATION_SECONDS]
+python.exe -m unittest: error: --existing-stream-observation-seconds must be between 1 and 180
+usage: python.exe -m unittest [-h] --relay-binary RELAY_BINARY
+                              --tunnel-jar TUNNEL_JAR [--java JAVA]
+                              --output OUTPUT [--seed SEED]
+                              [--existing-stream-observation-seconds EXISTING_STREAM_OBSERVATION_SECONDS]
+python.exe -m unittest: error: --existing-stream-observation-seconds must be between 1 and 180
+usage: python.exe -m unittest [-h] --relay-binary RELAY_BINARY
+                              --tunnel-jar TUNNEL_JAR [--java JAVA]
+                              --output OUTPUT [--seed SEED]
+                              [--existing-stream-observation-seconds EXISTING_STREAM_OBSERVATION_SECONDS]
+python.exe -m unittest: error: --existing-stream-observation-seconds must be between 1 and 180
+usage: python.exe -m unittest [-h] --relay-binary RELAY_BINARY
+                              --tunnel-jar TUNNEL_JAR [--java JAVA]
+                              --output OUTPUT [--seed SEED]
+                              [--existing-stream-observation-seconds EXISTING_STREAM_OBSERVATION_SECONDS]
+python.exe -m unittest: error: --existing-stream-observation-seconds must be between 1 and 180
+............................................{'type': 'OSError', 'message': 'missing java'}
+...............................................
+----------------------------------------------------------------------
+Ran 94 tests in 10.639s
+
+OK
+FAILED: <user>\AppData\Local\Temp\tmprefac1xf\result.json
+FAILED: <user>\AppData\Local\Temp\tmp4k_qiofh\failed.json and <user>\AppData\Local\Temp\tmp4k_qiofh\failed.md
+<user>\AppData\Local\Temp\tmpru98dyzc\summary\summary.md
+rust-format
+rust-clippy
+    Checking bta-anywhere-relay v0.1.0 (<user>\OneDrive\Documents\ChatGPT\bta anywhere\relay)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 7.95s
+rust-tests
+   Compiling bta-anywhere-relay v0.1.0 (<user>\OneDrive\Documents\ChatGPT\bta anywhere\relay)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 13.47s
+     Running unittests src\lib.rs (target\debug\deps\bta_anywhere_coordinator-9f0e4a7805fd1bda.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\main.rs (target\debug\deps\bta_anywhere_coordinator-1625eb0d84c70730.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\functional.rs (target\debug\deps\functional-08b142122f8b626e.exe)
+
+running 6 tests
+test missing_uniqueness_index_fails_closed ... ok
+test credentials_clock_rollback_bindings_and_owner_lock ... ok
+test three_relay_selection_capacity_failure_restart_and_reconciliation ... ok
+test database_loss_fails_closed_and_explicit_init_refuses_overwrite ... ok
+test sqlite_backup_is_consistent_and_refuses_overwrite ... ok
+test ten_thousand_contended_attempts_hundred_workers_never_duplicate_active_port ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.83s
+
+     Running unittests src\lib.rs (target\debug\deps\bta_anywhere_coordinator_protocol-bb88410284c5efbf.exe)
+
+running 3 tests
+test tests::invalid_claims_are_not_signed ... ok
+test tests::malformed_tampered_and_noncanonical_tickets_fail_closed ... ok
+test tests::signed_ticket_requires_exact_key_and_bindings ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src\main.rs (target\debug\deps\bta_anywhere_relay-061694020466b689.exe)
+
+running 28 tests
+test config::tests::rejects_missing_token_hash ... ok
+test encrypted_mode_tests::encrypted_registration_never_uses_legacy_alpn_or_version ... ok
+test encrypted_mode_tests::allocation_ticket_requires_exact_feature_pair_on_new_registration ... ok
+test config::tests::accepts_valid_defaults_with_token ... ok
+test reset::tests::new_generator_accepts_a_previous_instances_full_entropy_cid ... ok
+test config::tests::managed_and_static_ports_must_be_disjoint_and_https ... ok
+test reset::tests::identity_rotation_does_not_authenticate_an_old_reset ... ok
+test protocol::tests::registration_features_are_limited_to_sixteen_unique_strings ... ok
+test reset::tests::restarted_identity_authenticates_the_same_reset_token ... ok
+test protocol::tests::stream_completion_rejects_invalid_counts_and_fields ... ok
+test protocol::tests::shared_stream_completion_vectors_have_typed_fields ... ok
+test protocol::tests::rejects_oversized_frame_before_allocating_payload ... ok
+test protocol::tests::round_trips_connection_header ... ok
+test protocol::tests::shared_malformed_object_vectors_are_rejected ... ok
+test state::completion_tests::invalid_notice_interrupts_a_blocked_partial_guest_write ... ok
+test state::completion_tests::exact_notice_closes_output_without_native_fin ... ok
+test protocol::tests::shared_register_vector_decodes_to_control_message ... ok
+test protocol::tests::shared_encrypted_v2_connection_headers_reject_downgrade_and_wrong_session ... ok
+test state::completion_tests::notice_below_copied_bytes_fails_closed ... ok
+test protocol::tests::shared_vectors_have_byte_exact_big_endian_framing ... ok
+test state::completion_tests::native_fin_and_short_or_excess_notice_are_checked ... ok
+test state::completion_tests::notice_before_response_bytes_closes_at_exact_count ... ok
+test token::tests::generated_tokens_are_unique_and_url_safe ... ok
+test token::tests::matches_only_original_token ... ok
+test protocol::tests::shared_typed_boundaries_match_v1_field_types ... ok
+test state::completion_tests::notices_are_session_scoped_bounded_and_removed_on_cancel ... ok
+test protocol::tests::shared_structural_vectors_match_v1_boundaries ... ok
+test state::managed_ticket_tests::relay_requires_signed_exact_ticket_bindings_before_redemption ... ok
+
+test result: ok. 28 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests\protocol_corpus.rs (target\debug\deps\protocol_corpus-0474b9527c2db5e4.exe)
+
+running 12 tests
+test protocol::tests::stream_completion_rejects_invalid_counts_and_fields ... ok
+test protocol::tests::rejects_oversized_frame_before_allocating_payload ... ok
+test protocol::tests::registration_features_are_limited_to_sixteen_unique_strings ... ok
+test shared_corpus ... ok
+test protocol::tests::round_trips_connection_header ... ok
+test protocol::tests::shared_encrypted_v2_connection_headers_reject_downgrade_and_wrong_session ... ok
+test protocol::tests::shared_malformed_object_vectors_are_rejected ... ok
+test protocol::tests::shared_stream_completion_vectors_have_typed_fields ... ok
+test protocol::tests::shared_register_vector_decodes_to_control_message ... ok
+test protocol::tests::shared_vectors_have_byte_exact_big_endian_framing ... ok
+test protocol::tests::shared_typed_boundaries_match_v1_field_types ... ok
+test protocol::tests::shared_structural_vectors_match_v1_boundaries ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests bta_anywhere_coordinator
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests bta_anywhere_coordinator_protocol
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+java-check-build
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.3.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :bta-mod
+Fabric Loom: 1.15.5
+Project directory '<user>\OneDrive\Documents\ChatGPT\bta anywhere\bta-mod' is located in OneDrive. This is known to cause issues and slower performance. Consider moving the project to a different location.
+
+> Task :check UP-TO-DATE
+> Task :assemble UP-TO-DATE
+> Task :build UP-TO-DATE
+> Task :bta-mod:processResources UP-TO-DATE
+> Task :bta-mod:processIncludeJars UP-TO-DATE
+> Task :tunnel-client:compileJava UP-TO-DATE
+> Task :tunnel-client:processResources NO-SOURCE
+> Task :tunnel-client:classes UP-TO-DATE
+> Task :bta-mod:sourcesJar UP-TO-DATE
+> Task :tunnel-client:shadowJar UP-TO-DATE
+> Task :tunnel-client:jar
+> Task :tunnel-client:sourcesJar
+> Task :tunnel-client:compileTestJava UP-TO-DATE
+> Task :tunnel-client:processTestResources NO-SOURCE
+> Task :tunnel-client:testClasses UP-TO-DATE
+> Task :bta-mod:compileJava
+> Task :bta-mod:classes
+> Task :bta-mod:jar UP-TO-DATE
+> Task :bta-mod:shadowJar
+> Task :bta-mod:compileTestJava UP-TO-DATE
+> Task :bta-mod:processTestResources NO-SOURCE
+> Task :bta-mod:testClasses UP-TO-DATE
+> Task :tunnel-client:test
+> Task :tunnel-client:check
+> Task :tunnel-client:startScripts
+> Task :tunnel-client:distTar
+> Task :tunnel-client:distZip
+> Task :tunnel-client:startShadowScripts
+> Task :tunnel-client:shadowDistTar
+> Task :tunnel-client:shadowDistZip
+> Task :tunnel-client:assemble
+> Task :tunnel-client:build
+> Task :bta-mod:test
+> Task :bta-mod:validateAccessWidener NO-SOURCE
+> Task :bta-mod:check
+> Task :bta-mod:assemble
+> Task :bta-mod:build
+
+BUILD SUCCESSFUL in 34s
+20 actionable tasks: 12 executed, 8 up-to-date
+native-doctor
+Native QUIC transport is available.
+cross-language
+Cross-language QUIC test passed: authentication, port exhaustion, slow-client quota, 100 wave(s) of 8 byte-exact streams, clean shutdown, and relay restart recovery.
+half-close
+Development relay files written to <user>\AppData\Local\Temp\bta-anywhere-half-close-7sk1sc93\relay
+Development CA: <user>\AppData\Local\Temp\bta-anywhere-half-close-7sk1sc93\relay\ca.pem
+Client trust bundle: <user>\AppData\Local\Temp\bta-anywhere-half-close-7sk1sc93\relay\trust.pem
+Access token: <user>\AppData\Local\Temp\bta-anywhere-half-close-7sk1sc93\relay\access.token
+Run: bta-anywhere-relay run --config <user>\AppData\Local\Temp\bta-anywhere-half-close-7sk1sc93\relay\relay.toml
+PASS iteration=0 label=wave-0-connection-0 guest_source_port=56972 bytes=45076 EOF=observed
+PASS iteration=1 label=wave-1-connection-0 guest_source_port=56975 bytes=45076 EOF=observed
+PASS iteration=2 label=wave-2-connection-0 guest_source_port=56978 bytes=45076 EOF=observed
+PASS iteration=3 label=wave-3-connection-0 guest_source_port=56981 bytes=45076 EOF=observed
+PASS iteration=4 label=wave-4-connection-0 guest_source_port=56984 bytes=45076 EOF=observed
+PASS iteration=5 label=wave-5-connection-0 guest_source_port=56987 bytes=45076 EOF=observed
+PASS iteration=6 label=wave-6-connection-0 guest_source_port=56990 bytes=45076 EOF=observed
+PASS iteration=7 label=wave-7-connection-0 guest_source_port=56993 bytes=45076 EOF=observed
+PASS iteration=8 label=wave-8-connection-0 guest_source_port=56996 bytes=45076 EOF=observed
+PASS iteration=9 label=wave-9-connection-0 guest_source_port=56999 bytes=45076 EOF=observed
+PASS iteration=10 label=wave-10-connection-0 guest_source_port=57002 bytes=45076 EOF=observed
+PASS iteration=11 label=wave-11-connection-0 guest_source_port=57005 bytes=45076 EOF=observed
+PASS iteration=12 label=wave-12-connection-0 guest_source_port=57008 bytes=45076 EOF=observed
+PASS iteration=13 label=wave-13-connection-0 guest_source_port=57011 bytes=45076 EOF=observed
+PASS iteration=14 label=wave-14-connection-0 guest_source_port=57014 bytes=45076 EOF=observed
+PASS iteration=15 label=wave-15-connection-0 guest_source_port=57017 bytes=45076 EOF=observed
+PASS iteration=16 label=wave-16-connection-0 guest_source_port=57020 bytes=45076 EOF=observed
+PASS iteration=17 label=wave-17-connection-0 guest_source_port=57023 bytes=45076 EOF=observed
+PASS iteration=18 label=wave-18-connection-0 guest_source_port=57026 bytes=45076 EOF=observed
+PASS iteration=19 label=wave-19-connection-0 guest_source_port=57029 bytes=45076 EOF=observed
+PASS iteration=20 label=wave-20-connection-0 guest_source_port=57032 bytes=45076 EOF=observed
+PASS iteration=21 label=wave-21-connection-0 guest_source_port=57035 bytes=45076 EOF=observed
+PASS iteration=22 label=wave-22-connection-0 guest_source_port=57038 bytes=45076 EOF=observed
+PASS iteration=23 label=wave-23-connection-0 guest_source_port=57041 bytes=45076 EOF=observed
+PASS iteration=24 label=wave-24-connection-0 guest_source_port=57044 bytes=45076 EOF=observed
+PASS iteration=25 label=wave-25-connection-0 guest_source_port=57047 bytes=45076 EOF=observed
+PASS iteration=26 label=wave-26-connection-0 guest_source_port=57050 bytes=45076 EOF=observed
+PASS iteration=27 label=wave-27-connection-0 guest_source_port=57053 bytes=45076 EOF=observed
+PASS iteration=28 label=wave-28-connection-0 guest_source_port=57056 bytes=45076 EOF=observed
+PASS iteration=29 label=wave-29-connection-0 guest_source_port=57059 bytes=45076 EOF=observed
+PASS iteration=30 label=wave-30-connection-0 guest_source_port=57062 bytes=45076 EOF=observed
+PASS iteration=31 label=wave-31-connection-0 guest_source_port=57065 bytes=45076 EOF=observed
+PASS iteration=32 label=wave-32-connection-0 guest_source_port=57068 bytes=45076 EOF=observed
+PASS iteration=33 label=wave-33-connection-0 guest_source_port=57071 bytes=45076 EOF=observed
+PASS iteration=34 label=wave-34-connection-0 guest_source_port=57074 bytes=45076 EOF=observed
+PASS iteration=35 label=wave-35-connection-0 guest_source_port=57077 bytes=45076 EOF=observed
+PASS iteration=36 label=wave-36-connection-0 guest_source_port=57080 bytes=45076 EOF=observed
+PASS iteration=37 label=wave-37-connection-0 guest_source_port=57083 bytes=45076 EOF=observed
+PASS iteration=38 label=wave-38-connection-0 guest_source_port=57086 bytes=45076 EOF=observed
+PASS iteration=39 label=wave-39-connection-0 guest_source_port=57089 bytes=45076 EOF=observed
+PASS iteration=40 label=wave-40-connection-0 guest_source_port=57092 bytes=45076 EOF=observed
+PASS iteration=41 label=wave-41-connection-0 guest_source_port=57095 bytes=45076 EOF=observed
+PASS iteration=42 label=wave-42-connection-0 guest_source_port=57098 bytes=45076 EOF=observed
+PASS iteration=43 label=wave-43-connection-0 guest_source_port=57101 bytes=45076 EOF=observed
+PASS iteration=44 label=wave-44-connection-0 guest_source_port=57104 bytes=45076 EOF=observed
+PASS iteration=45 label=wave-45-connection-0 guest_source_port=57107 bytes=45076 EOF=observed
+PASS iteration=46 label=wave-46-connection-0 guest_source_port=57110 bytes=45076 EOF=observed
+PASS iteration=47 label=wave-47-connection-0 guest_source_port=57113 bytes=45076 EOF=observed
+PASS iteration=48 label=wave-48-connection-0 guest_source_port=57116 bytes=45076 EOF=observed
+PASS iteration=49 label=wave-49-connection-0 guest_source_port=57119 bytes=45076 EOF=observed
+PASS iteration=50 label=wave-50-connection-0 guest_source_port=57122 bytes=45076 EOF=observed
+PASS iteration=51 label=wave-51-connection-0 guest_source_port=57125 bytes=45076 EOF=observed
+PASS iteration=52 label=wave-52-connection-0 guest_source_port=57128 bytes=45076 EOF=observed
+PASS iteration=53 label=wave-53-connection-0 guest_source_port=57131 bytes=45076 EOF=observed
+PASS iteration=54 label=wave-54-connection-0 guest_source_port=57134 bytes=45076 EOF=observed
+PASS iteration=55 label=wave-55-connection-0 guest_source_port=57137 bytes=45076 EOF=observed
+PASS iteration=56 label=wave-56-connection-0 guest_source_port=57140 bytes=45076 EOF=observed
+PASS iteration=57 label=wave-57-connection-0 guest_source_port=57143 bytes=45076 EOF=observed
+PASS iteration=58 label=wave-58-connection-0 guest_source_port=57146 bytes=45076 EOF=observed
+PASS iteration=59 label=wave-59-connection-0 guest_source_port=57149 bytes=45076 EOF=observed
+PASS iteration=60 label=wave-60-connection-0 guest_source_port=57152 bytes=45076 EOF=observed
+PASS iteration=61 label=wave-61-connection-0 guest_source_port=57155 bytes=45076 EOF=observed
+PASS iteration=62 label=wave-62-connection-0 guest_source_port=57158 bytes=45076 EOF=observed
+PASS iteration=63 label=wave-63-connection-0 guest_source_port=57161 bytes=45076 EOF=observed
+PASS iteration=64 label=wave-64-connection-0 guest_source_port=57164 bytes=45076 EOF=observed
+PASS iteration=65 label=wave-65-connection-0 guest_source_port=57167 bytes=45076 EOF=observed
+PASS iteration=66 label=wave-66-connection-0 guest_source_port=57170 bytes=45076 EOF=observed
+PASS iteration=67 label=wave-67-connection-0 guest_source_port=57173 bytes=45076 EOF=observed
+PASS iteration=68 label=wave-68-connection-0 guest_source_port=57176 bytes=45076 EOF=observed
+PASS iteration=69 label=wave-69-connection-0 guest_source_port=57180 bytes=45076 EOF=observed
+PASS iteration=70 label=wave-70-connection-0 guest_source_port=57183 bytes=45076 EOF=observed
+PASS iteration=71 label=wave-71-connection-0 guest_source_port=57186 bytes=45076 EOF=observed
+PASS iteration=72 label=wave-72-connection-0 guest_source_port=57189 bytes=45076 EOF=observed
+PASS iteration=73 label=wave-73-connection-0 guest_source_port=57192 bytes=45076 EOF=observed
+PASS iteration=74 label=wave-74-connection-0 guest_source_port=57195 bytes=45076 EOF=observed
+PASS iteration=75 label=wave-75-connection-0 guest_source_port=57198 bytes=45076 EOF=observed
+PASS iteration=76 label=wave-76-connection-0 guest_source_port=57201 bytes=45076 EOF=observed
+PASS iteration=77 label=wave-77-connection-0 guest_source_port=57204 bytes=45076 EOF=observed
+PASS iteration=78 label=wave-78-connection-0 guest_source_port=57207 bytes=45076 EOF=observed
+PASS iteration=79 label=wave-79-connection-0 guest_source_port=57210 bytes=45076 EOF=observed
+PASS iteration=80 label=wave-80-connection-0 guest_source_port=57213 bytes=45076 EOF=observed
+PASS iteration=81 label=wave-81-connection-0 guest_source_port=57216 bytes=45076 EOF=observed
+PASS iteration=82 label=wave-82-connection-0 guest_source_port=57219 bytes=45076 EOF=observed
+PASS iteration=83 label=wave-83-connection-0 guest_source_port=57222 bytes=45076 EOF=observed
+PASS iteration=84 label=wave-84-connection-0 guest_source_port=57225 bytes=45076 EOF=observed
+PASS iteration=85 label=wave-85-connection-0 guest_source_port=57228 bytes=45076 EOF=observed
+PASS iteration=86 label=wave-86-connection-0 guest_source_port=57231 bytes=45076 EOF=observed
+PASS iteration=87 label=wave-87-connection-0 guest_source_port=57234 bytes=45076 EOF=observed
+PASS iteration=88 label=wave-88-connection-0 guest_source_port=57237 bytes=45076 EOF=observed
+PASS iteration=89 label=wave-89-connection-0 guest_source_port=57240 bytes=45076 EOF=observed
+PASS iteration=90 label=wave-90-connection-0 guest_source_port=57243 bytes=45076 EOF=observed
+PASS iteration=91 label=wave-91-connection-0 guest_source_port=57246 bytes=45076 EOF=observed
+PASS iteration=92 label=wave-92-connection-0 guest_source_port=57249 bytes=45076 EOF=observed
+PASS iteration=93 label=wave-93-connection-0 guest_source_port=57252 bytes=45076 EOF=observed
+PASS iteration=94 label=wave-94-connection-0 guest_source_port=57255 bytes=45076 EOF=observed
+PASS iteration=95 label=wave-95-connection-0 guest_source_port=57258 bytes=45076 EOF=observed
+PASS iteration=96 label=wave-96-connection-0 guest_source_port=57261 bytes=45076 EOF=observed
+PASS iteration=97 label=wave-97-connection-0 guest_source_port=57264 bytes=45076 EOF=observed
+PASS iteration=98 label=wave-98-connection-0 guest_source_port=57267 bytes=45076 EOF=observed
+PASS iteration=99 label=wave-99-connection-0 guest_source_port=57270 bytes=45076 EOF=observed
+PASS serial Windows half-close smoke: iterations=100 event_loop_threads=1
+prior-archive
+Verified 75 result/profile files and 11 source snapshots; failed experiments remain labelled.

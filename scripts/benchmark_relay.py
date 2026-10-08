@@ -187,7 +187,7 @@ class EchoHandler(socketserver.BaseRequestHandler):
     def handle(self) -> None:
         connection_id = self.server.next_connection_id()
         self.server.record_event(connection_id, "accepted")
-        self.request.settimeout(30)
+        self.request.settimeout(getattr(self.server, 'diagnostic_timeout', 30))
         diagnostic_index = None
         progress = self.server.diagnostic_progress
         try:
@@ -350,7 +350,7 @@ def throughput_stream(port: int, block: bytes, seconds: float, timeout: float,
                         if remaining <= 0:
                             raise TimeoutError("absolute throughput drain deadline exceeded")
                         sock.settimeout(min(timeout, remaining))
-                        chunk = sock.recv(CHUNK)
+                        chunk = sock.recv(min(CHUNK, len(block)))
                         receive_calls += 1
                         if not chunk:
                             break

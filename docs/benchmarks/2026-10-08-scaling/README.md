@@ -11,6 +11,11 @@ medians of three faults. All samples are shown: **33.09–48.52 seconds before**
 and **4.88–18.15 seconds after**. The small sample and packet/heartbeat phase
 preclude a general five-second recovery guarantee.
 
+The subsequent [jitter diagnosis and 25-trial restart distribution](../2026-10-08-jitter/README.md)
+provides the stronger current recovery description. Its longer diagnostic window
+also exposes a jitter-plus-loss heartbeat expiry beyond this matrix's 38-second
+deadline. The original measurements below remain historical observations.
+
 The final matched measurements are in [results.md](results.md). Concurrent
 throughput still declines: the change removes a measured scheduling cost,
 without claiming to solve the whole scaling curve.
@@ -253,9 +258,9 @@ Use the final percentages in the generated tables for CV claims, retaining
 experiment, not evidence of WAN throughput improvements.
 
 Suggested CV wording: **Improved eight-stream loopback relay throughput 38% by
-co-locating TCP/QUIC event loops; reduced median restart recovery from 33.2s to
-5.4s in three repeated faults.** Keep the linked report's full recovery range
-available for discussion.
+co-locating TCP/QUIC event loops; evaluated restart recovery across 25 faults at
+varied heartbeat phases.** Use the follow-up's full distribution for recovery
+discussion; the earlier 5.4s median describes only the three faults in this report.
 
 ## Interview account
 

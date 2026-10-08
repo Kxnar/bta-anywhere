@@ -4,5 +4,8 @@ gradlew text eol=lf
 *.cmd text eol=crlf
 gradle-wrapper.jar -text -diff -merge -filter
 docs/benchmarks/2026-10-08-scaling/source/** -text -filter
+# Frozen source/log evidence retains original whitespace for hash verification.
+docs/benchmarks/2026-10-08-jitter/source/** -text -filter -whitespace
+docs/benchmarks/2026-10-08-jitter/results/validation.txt -whitespace
 docs/benchmarks/2026-10-08-scaling/results/*.jfr -text -diff -merge -filter
 docs/benchmarks/2026-10-08-scaling/results/*.pstats -text -diff -merge -filter
