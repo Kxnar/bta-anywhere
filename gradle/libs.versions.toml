@@ -14,7 +14,7 @@ jomlPrimitives = "1.10.0"
 slf4j = "2.0.17"
 slf4jLegacy = "1.7.21"
 netty = "4.1.122.Final"
-nettyQuic = "0.0.73.Final"
+nettyQuic = "0.0.75.Final"
 gson = "2.13.1"
 junit = "5.13.4"
 

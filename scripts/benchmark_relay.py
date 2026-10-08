@@ -269,9 +269,9 @@ def payload(seed: int, size: int, index: int) -> bytes:
     return random.Random(f"{seed}:{size}:{index}").randbytes(size)
 
 
-def transfer(port: int, mode: str, data: bytes, timeout: float) -> float:
+def transfer(port: int, mode: str, data: bytes, timeout: float, host: str = "127.0.0.1") -> float:
     started = time.perf_counter()
-    with socket.create_connection(("127.0.0.1", port), timeout=timeout) as sock:
+    with socket.create_connection((host, port), timeout=timeout) as sock:
         sock.settimeout(timeout)
         if mode == "request_response":
             sock.sendall(b"R" + len(data).to_bytes(4, "big") + data)
@@ -294,7 +294,8 @@ def transfer(port: int, mode: str, data: bytes, timeout: float) -> float:
 
 def throughput_stream(port: int, block: bytes, seconds: float, timeout: float,
                       pace_seconds: float = 0, progress: ThroughputProgress | None = None,
-                      stream_index: int | None = None) -> dict[str, float | int]:
+                      stream_index: int | None = None,
+                      host: str = "127.0.0.1") -> dict[str, float | int]:
     if progress is not None:
         progress._check_index(stream_index)
     sent = 0
@@ -304,7 +305,7 @@ def throughput_stream(port: int, block: bytes, seconds: float, timeout: float,
     started = time.perf_counter()
     doubled_block = block + block
     try:
-        with socket.create_connection(("127.0.0.1", port), timeout=timeout) as sock:
+        with socket.create_connection((host, port), timeout=timeout) as sock:
             sock.settimeout(timeout)
             if progress is None:
                 sock.sendall(b"T")
@@ -406,8 +407,8 @@ def run_concurrent(function, count: int, label: str = "parallel transfer") -> li
         return results
 
 
-def http_get(port: int, path: str) -> str:
-    connection = http.client.HTTPConnection("127.0.0.1", port, timeout=2)
+def http_get(port: int, path: str, host: str = "127.0.0.1") -> str:
+    connection = http.client.HTTPConnection(host, port, timeout=2)
     try:
         connection.request("GET", path)
         response = connection.getresponse()

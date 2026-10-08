@@ -24,6 +24,8 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.incubator.codec.quic.QuicChannel;
+import io.netty.incubator.codec.quic.QuicChannelOption;
+import io.netty.incubator.codec.quic.QLogConfiguration;
 import io.netty.incubator.codec.quic.QuicClientCodecBuilder;
 import io.netty.incubator.codec.quic.QuicSslContext;
 import io.netty.incubator.codec.quic.QuicSslContextBuilder;
@@ -148,6 +150,7 @@ public final class NettyTunnelSession implements TunnelSession {
 		}
 		RelayDescriptor descriptor = selection.descriptor();
 		try {
+			QLogConfiguration qlog = TransportDiagnostics.qlogConfiguration();
 			QuicSslContext sslContext = QuicSslContextBuilder.forClient()
 				.trustManager(descriptor.trustedCertificate().toFile())
 				.applicationProtocols(encrypted == null ? ProtocolFrames.ALPN : "bta-anywhere/2")
@@ -189,7 +192,7 @@ public final class NettyTunnelSession implements TunnelSession {
 					return;
 				}
 				datagramChannel = bound.channel();
-				connectQuic(descriptor, bound.channel(), currentGeneration);
+				connectQuic(descriptor, bound.channel(), currentGeneration, qlog);
 			});
 		} catch (RuntimeException failure) {
 			scheduleReconnect(failure, currentGeneration);
@@ -199,7 +202,8 @@ public final class NettyTunnelSession implements TunnelSession {
 	private void connectQuic(
 		RelayDescriptor descriptor,
 		Channel datagram,
-		long currentGeneration
+		long currentGeneration,
+		QLogConfiguration qlog
 	) {
 		Future<QuicChannel> future = QuicChannel.newBootstrap(datagram)
 			.streamHandler(new ChannelInitializer<QuicStreamChannel>() {
@@ -229,6 +233,7 @@ public final class NettyTunnelSession implements TunnelSession {
 			})
 			.streamOption(ChannelOption.AUTO_READ, false)
 			.streamOption(ChannelOption.ALLOW_HALF_CLOSURE, true)
+			.option(QuicChannelOption.QLOG, qlog)
 			.option(ChannelOption.CONNECT_TIMEOUT_MILLIS,
 				(int) Math.max(1, Math.min(Integer.MAX_VALUE, config.connectTimeout().toMillis())))
 			.remoteAddress(new InetSocketAddress(descriptor.host(), descriptor.port()))

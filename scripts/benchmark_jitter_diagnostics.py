@@ -14,10 +14,11 @@ from local_impairment import ImpairmentBridge
 
 
 class DiagnosticRig(NetworkRig):
-    def __init__(self, *args, ordered=False, **kwargs):
+    def __init__(self, *args, ordered=False, qlog_directory=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.diagnostics = collections.deque(maxlen=20000)
         self.ordered = ordered
+        self.qlog_directory = qlog_directory
 
     def start_tunnel(self, relay_port):
         self.bridge = ImpairmentBridge(relay_port, *self.impairment, seed=self.seed,
@@ -29,6 +30,8 @@ class DiagnosticRig(NetworkRig):
             env = dict(env or os.environ, BTA_TRANSPORT_PROFILE='1')
         if label == 'tunnel':
             command.insert(1, '-Dbta.transportProfile=true')
+            if self.qlog_directory is not None:
+                command.insert(1, '-Dbta.qlogDirectory=' + str(self.qlog_directory.resolve()))
         return super().launch(command, label, stdin, env)
 
     def reader(self, stream, label):
@@ -58,9 +61,13 @@ def main():
     parser.add_argument('--streams', type=int, default=8)
     parser.add_argument('--seed', type=int, default=1701)
     parser.add_argument('--ordered', action='store_true', help='control: clamp per-direction departure times to preserve ingress order')
+    parser.add_argument('--qlog', action='store_true', help='capture native QUIC packet metadata in a fresh sibling directory')
     args = parser.parse_args()
     if args.output.exists() or args.output.with_suffix('.checkpoint.json').exists():
         parser.error('use a fresh output path')
+    qlog_directory = args.output.with_suffix('.qlog') if args.qlog else None
+    if qlog_directory is not None and qlog_directory.exists():
+        parser.error('qlog output directory already exists')
     if not (1 <= args.streams <= 8 and 0 < args.seconds <= 60 and 30 <= args.drain <= 180
             and 0 <= args.pace_ms <= 1000 and 1 <= args.block_kib <= 64):
         parser.error('invalid workload bounds')
@@ -69,6 +76,7 @@ def main():
               'block_kib': args.block_kib,
               'streams': args.streams, 'seed': args.seed, 'samples': [],
               'ordered_control': args.ordered,
+              'qlog_enabled': args.qlog,
               'topology': 'Windows loopback userspace UDP bridge; not netem or WAN',
               'sha256': {name: hashlib.sha256(path.read_bytes()).hexdigest() for name, path in {
                   'relay': args.relay_binary, 'tunnel': args.tunnel_jar, 'harness': Path(__file__),
@@ -79,9 +87,12 @@ def main():
     sampler = None
     started = time.monotonic()
     args.output.parent.mkdir(parents=True, exist_ok=True)
+    if qlog_directory is not None:
+        qlog_directory.mkdir()
     try:
         with DiagnosticRig(args.relay_binary.resolve(), args.tunnel_jar.resolve(), 'java', logs,
-                           impairment=CONDITIONS[args.condition], seed=args.seed, ordered=args.ordered) as rig:
+                           impairment=CONDITIONS[args.condition], seed=args.seed, ordered=args.ordered,
+                           qlog_directory=qlog_directory) as rig:
             progress = b.ThroughputProgress(args.streams)
             rig.echo.diagnostic_progress = progress
             rig.echo.diagnostic_timeout = args.seconds + args.drain + 10
@@ -128,6 +139,13 @@ def main():
             sampler.join(2)
         result['wall_seconds'] = time.monotonic() - started
         result['logs'] = list(logs)
+        if qlog_directory is not None:
+            result['qlog_files'] = [{'file': path.name, 'bytes': path.stat().st_size,
+                                    'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}
+                                   for path in sorted(qlog_directory.glob('*.qlog'))]
+            if not any(row['bytes'] for row in result['qlog_files']):
+                result['status'] = 'FAILED'
+                result['capture_error'] = 'native qlog requested but no nonempty capture produced'
         b.checkpoint_result(result, args.output)
         args.output.write_text(json.dumps(result, indent=2), encoding='utf-8')
     print(json.dumps({key: result[key] for key in ('status', 'condition', 'pace_ms', 'wall_seconds')}))

@@ -43,5 +43,6 @@ subprojects {
 tasks.register("checkAll") {
 	group = "verification"
 	description = "Runs every Java verification task."
-	dependsOn(":tunnel-client:check", ":bta-mod:check")
+	dependsOn(":tunnel-client:check")
+	if (findProject(":bta-mod") != null) dependsOn(":bta-mod:check")
 }

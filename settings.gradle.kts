@@ -16,4 +16,6 @@ plugins {
 rootProject.name = "bta-anywhere"
 
 include("tunnel-client")
-include("bta-mod")
+if (providers.gradleProperty("tunnelOnly").orNull != "true") {
+	include("bta-mod")
+}

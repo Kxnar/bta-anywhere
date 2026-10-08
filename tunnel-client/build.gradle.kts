@@ -16,6 +16,14 @@ application {
 	mainClass = "io.github.kxnar.btaanywhere.cli.TunnelCli"
 }
 
+val quicNativeClassifier = when {
+	System.getProperty("os.arch") !in listOf("amd64", "x86_64") ->
+		throw GradleException("Native QUIC currently supports x86-64 builds only")
+	System.getProperty("os.name").startsWith("Windows") -> "windows-x86_64"
+	System.getProperty("os.name").startsWith("Linux") -> "linux-x86_64"
+	else -> throw GradleException("Native QUIC currently supports Windows and Linux only")
+}
+
 dependencies {
 	api(libs.gson)
 	implementation(libs.netty.handler)
@@ -26,7 +34,7 @@ dependencies {
 		exclude(group = "org.slf4j", module = "slf4j-simple")
 	}
 
-	implementation("io.netty.incubator:netty-incubator-codec-native-quic:${libs.versions.nettyQuic.get()}:windows-x86_64") {
+	implementation("io.netty.incubator:netty-incubator-codec-native-quic:${libs.versions.nettyQuic.get()}:$quicNativeClassifier") {
 		exclude(group = "io.netty")
 	}
 

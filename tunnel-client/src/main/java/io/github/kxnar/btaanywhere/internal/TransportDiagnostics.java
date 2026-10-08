@@ -6,7 +6,11 @@ import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import io.netty.incubator.codec.quic.QuicChannel;
+import io.netty.incubator.codec.quic.QLogConfiguration;
 import io.netty.incubator.codec.quic.QuicStreamChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /** Opt-in numeric diagnostics: no payloads, endpoints, tokens or session IDs. */
@@ -14,6 +18,20 @@ final class TransportDiagnostics extends ChannelDuplexHandler {
 	private long readBytes;
 	private long pendingBytes;
 	private long writtenBytes;
+
+	/** Packet metadata only; opt-in captures can be large and include peer addresses. */
+	static QLogConfiguration qlogConfiguration() {
+		String directory = System.getProperty("bta.qlogDirectory");
+		if (directory == null) { return null; }
+		Path root = Path.of(directory).toAbsolutePath();
+		if (!Files.isDirectory(root)) {
+			throw new IllegalArgumentException("bta.qlogDirectory must be an existing directory");
+		}
+		// Native qlog requires a nonexistent path. Separate files also preserve
+		// old connections when a diagnostic run reconnects with an empty local CID.
+		return new QLogConfiguration(root.resolve("connection-" + UUID.randomUUID() + ".qlog").toString(),
+			"BTA Anywhere tunnel", "Opt-in native QUIC packet and recovery events");
+	}
 
 	static void start(QuicChannel channel) {
 		if (Boolean.getBoolean("bta.transportProfile")) {
