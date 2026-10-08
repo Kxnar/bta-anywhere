@@ -56,6 +56,107 @@ class FaultTests(unittest.TestCase):
                 faults.receive_exact(sock, b"abc", {"verified_bytes": 0}, deadline=3)
         self.assertEqual(sock.recv.call_count, 2)
 
+    def make_observed_live(self, terminal_seconds):
+        clock = [0.0]
+        live = object.__new__(faults.LiveStream)
+        live.deadline = 90.0
+        live.record = {"status": "RUNNING", "eof": False, "post_fault_verified_bytes": 0,
+                       "forced_local_close": False, "observation_complete": False}
+        live.sock = mock.Mock()
+        live.record_lock = threading.Lock()
+        live.forced = threading.Event()
+        live.stop = threading.Event()
+        live.post_fault = threading.Event()
+
+        def advance(seconds):
+            clock[0] += seconds
+            if clock[0] >= terminal_seconds:
+                live.record.update(status="FAILED", natural_terminal_observed=True,
+                                   observation_complete=True, terminal_outcome="remote_eof_or_reset")
+
+        live.done = mock.Mock()
+        live.done.wait.side_effect = advance
+        live.thread = mock.Mock()
+        live.thread.is_alive.side_effect = lambda: clock[0] < terminal_seconds and not live.sock.close.called
+        live.thread.join.side_effect = advance
+        return live, clock
+
+    def test_observation_waits_for_natural_terminal_beyond_old_five_second_join(self):
+        live, clock = self.make_observed_live(30)
+        with mock.patch.object(faults.time, "monotonic", side_effect=lambda: clock[0]):
+            row = live.finish(90)
+        self.assertEqual(clock[0], 30)
+        self.assertTrue(row["observation_complete"])
+        self.assertTrue(row["natural_terminal_observed"])
+        self.assertFalse(row["forced_local_close"])
+        live.sock.shutdown.assert_not_called()
+        self.assertTrue(row["worker_terminated"])
+
+    def test_expired_observation_records_forced_close_and_snapshot_is_frozen(self):
+        live, clock = self.make_observed_live(100)
+        with mock.patch.object(faults.time, "monotonic", side_effect=lambda: clock[0]):
+            row = live.finish(5)
+        self.assertTrue(row["forced_local_close"])
+        self.assertFalse(row["observation_complete"])
+        self.assertEqual(row["terminal_outcome"], "forced_local_close")
+        live.record["status"] = "late worker mutation"
+        self.assertEqual(row["status"], "FAILED")
+        self.assertEqual(row["observation_deadline_monotonic"], 5)
+
+    def test_nonterminating_worker_is_failed_and_detached_from_snapshot(self):
+        live, clock = self.make_observed_live(100)
+        live.thread.is_alive.side_effect = lambda: True
+        with mock.patch.object(faults.time, "monotonic", side_effect=lambda: clock[0]):
+            row = live.finish(5)
+        self.assertFalse(row["worker_terminated"])
+        self.assertFalse(row["observation_complete"])
+        live.record["late_nested_error"] = {"message": "late"}
+        self.assertNotIn("late_nested_error", row)
+
+    def test_unexpected_local_worker_error_is_not_natural_interruption(self):
+        sock = mock.Mock()
+        sock.recv.return_value = bench.payload(1701, 4096, 901)
+        with mock.patch.object(faults.socket, "create_connection", return_value=sock):
+            live = faults.LiveStream(1234, 1701)
+        sock.sendall.side_effect = TypeError("unexpected implementation error")
+        live.run()
+        self.assertEqual(live.record["terminal_outcome"], "unexpected_local_error")
+        self.assertFalse(live.record["natural_terminal_observed"])
+        self.assertFalse(live.record["observation_complete"])
+
+    def test_truncated_existing_observation_fails_matrix_despite_fresh_recovery(self):
+        rig = mock.Mock(spec=bench.Rig, public_port=1234, relay=None, tunnel=None)
+        rig.restart_tunnel_process.return_value = {"available": True}
+        rig.metric.return_value = 0
+        live = mock.Mock()
+        live.finish.return_value = {"observation_complete": False, "forced_local_close": True,
+                                    "worker_terminated": True}
+
+        def recovered(_port, _seed, _deadline, record):
+            record.update(available=True)
+
+        with mock.patch.object(faults, "LiveStream", return_value=live), \
+                mock.patch.object(faults, "process_snapshot", return_value={}), \
+                mock.patch.object(faults, "recovery_probe", side_effect=recovered):
+            row = faults.run_fault(rig, "tunnel_process_termination", 1701, {"cases": []})
+        self.assertEqual(row["status"], "FAILED")
+        self.assertTrue(row["new_stream_recovery"]["available"])
+        self.assertIn("observation_failure", row)
+
+    def test_cli_rejects_unbounded_observation(self):
+        for value in ("nan", "inf", "0", "181"):
+            with self.subTest(value=value), self.assertRaises(SystemExit):
+                faults.parse_args(["--relay-binary", "r", "--tunnel-jar", "t", "--output", "o",
+                                   "--existing-stream-observation-seconds", value])
+
+    def test_recovery_progress_survives_cancellation(self):
+        record = {}
+        with mock.patch.object(faults, "exact_probe", side_effect=KeyboardInterrupt()):
+            with self.assertRaises(KeyboardInterrupt):
+                faults.recovery_probe(1234, 1701, time.monotonic() + 2, record)
+        self.assertEqual(record["attempts"], 1)
+        self.assertFalse(record["available"])
+
     def test_probe_surplus_and_missing_eof(self):
         for final, failure in ((b"!", AssertionError), (TimeoutError("timed out"), bench.MissingEofError)):
             with self.subTest(final=final):

@@ -82,6 +82,25 @@ interruption. The fault supplement separately observes existing streams and
 eight slow receivers. Neither surviving an old stream nor opening a fresh one
 implies the other succeeded.
 
+Fault schema 2 gives an existing stream a natural observation budget of 90 seconds,
+configurable with `--existing-stream-observation-seconds` from 1 to 180 seconds.
+For process termination the clock starts at fault onset; for a UDP drop it starts
+at the actual scheduled forwarding gate restoration. JSON records both the
+initial worker deadline and the deadline rebased to that gate. The socket already
+waiting during a drop can retain its slightly earlier timeout for that read.
+Natural EOF/reset, a deadline expiry, an unexpected local error and forced local
+closure are distinct outcomes. A truncated observation or an unjoined worker fails
+the case even when a fresh connection recovers. Natural interruption of an old
+stream is an observation, not a claim that the stream survived. Natural terminal
+latency uses the worker's terminal timestamp; total observation time can include
+waiting for a separate fresh recovery probe. After observation, the gauge must
+drain within the existing ten-second idle check. The relay's default QUIC idle
+timeout is 30 seconds, so an earlier forced socket close cannot establish a leak.
+Keep the original failed outputs and use fresh paths and recorded harness hashes
+when repeating with a corrected observation window. Transfer-count denominators
+cover slow receivers and fresh recovery attempts; existing-stream exchanges and
+internal setup probes are reported separately.
+
 Soak uses eight streams sending 64 KiB blocks with 0.5-second pacing, in waves
 of up to 60 seconds, for two to four hours. It is sustained paced traffic, not
 maximum throughput. Process/relay metrics are sampled during load and after

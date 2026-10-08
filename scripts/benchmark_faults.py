@@ -5,8 +5,11 @@ from __future__ import annotations
 import argparse
 import collections
 import contextlib
+import copy
+import errno
 import hashlib
 import json
+import math
 import platform
 import socket
 import sys
@@ -20,6 +23,7 @@ import benchmark_relay as bench
 STREAMS = 8
 DROP_SECONDS = 55
 RECOVERY_SECONDS = 90
+EXISTING_OBSERVATION_SECONDS = 90
 
 
 def file_hash(path: Path) -> str:
@@ -88,10 +92,15 @@ class LiveStream:
         self.record = {"status": "RUNNING", "verified_bytes": 0, "eof": False,
                        "established_before_fault": False, "post_fault_verified_bytes": 0,
                        "payload_sha256": hashlib.sha256(self.block).hexdigest(),
-                       "existing_stream_survived": False}
+                       "existing_stream_survived": False, "observation_complete": False,
+                       "forced_local_close": False, "natural_terminal_observed": False,
+                       "exchange_attempts": 1, "completed_exchanges": 0}
         self.stop = threading.Event()
         self.restored = threading.Event()
         self.post_fault = threading.Event()
+        self.done = threading.Event()
+        self.forced = threading.Event()
+        self.record_lock = threading.Lock()
         self.thread = None
         self.deadline = time.monotonic() + DROP_SECONDS + RECOVERY_SECONDS + 30
         self.sock = socket.create_connection(("127.0.0.1", port), timeout=5)
@@ -100,6 +109,7 @@ class LiveStream:
             self.sock.sendall(b"T" + self.block)
             receive_exact(self.sock, self.block, self.record, deadline=time.monotonic() + 5)
             self.record["established_before_fault"] = True
+            self.record["completed_exchanges"] = 1
             self.sock.settimeout(DROP_SECONDS + RECOVERY_SECONDS + 10)
         except BaseException:
             self.sock.close()
@@ -110,6 +120,10 @@ class LiveStream:
         self.thread.start()
 
     def run(self):
+        # Publish a completed snapshot under the same lock used by finish. No partial
+        # receive counters can race with serialization if forced shutdown fails.
+        with self.record_lock:
+            record = copy.deepcopy(self.record)
         try:
             while not self.stop.is_set():
                 # Only an exchange started after forwarding restoration counts as survival.
@@ -118,43 +132,88 @@ class LiveStream:
                 if remaining <= 0:
                     raise TimeoutError("existing stream exceeded total observation deadline")
                 self.sock.settimeout(remaining)
+                record["exchange_attempts"] += 1
                 self.sock.sendall(self.block)
-                receive_exact(self.sock, self.block, self.record,
+                receive_exact(self.sock, self.block, record,
                               deadline=self.deadline)
+                record["completed_exchanges"] += 1
                 if after:
-                    self.record["post_fault_verified_bytes"] += len(self.block)
+                    record["post_fault_verified_bytes"] += len(self.block)
                     self.post_fault.set()
                 self.stop.wait(.1)
             self.sock.shutdown(socket.SHUT_WR)
             self.sock.settimeout(max(.001, self.deadline - time.monotonic()))
             if self.sock.recv(1):
-                self.record["byte_mismatch"] = True
+                record["byte_mismatch"] = True
                 raise AssertionError("surplus response bytes")
-            self.record["eof"] = True
-            self.record["status"] = "PASS"
+            record.update(eof=True, status="PASS", terminal_outcome="clean_eof",
+                          natural_terminal_observed=True, observation_complete=True)
         except Exception as error:
-            self.record["status"] = "FAILED"
-            self.record["failure"] = bench.bounded_failure(error)
+            record["status"] = "FAILED"
+            record["failure"] = bench.bounded_failure(error)
+            if self.forced.is_set():
+                record["terminal_outcome"] = "forced_local_close"
+            elif isinstance(error, TimeoutError):
+                record["terminal_outcome"] = "observation_deadline_expired"
+            elif record.get("byte_mismatch"):
+                record.update(terminal_outcome="byte_mismatch", observation_complete=True)
+            elif ((isinstance(error, AssertionError) and str(error).startswith("early EOF"))
+                  or (isinstance(error, OSError) and (error.errno in (errno.ECONNRESET, errno.ECONNABORTED, errno.EPIPE)
+                       or getattr(error, "winerror", None) in (10053, 10054)))):
+                record.update(terminal_outcome="remote_eof_or_socket_reset", natural_terminal_observed=True,
+                              observation_complete=True)
+            else:
+                record["terminal_outcome"] = "unexpected_local_error"
         finally:
             self.sock.close()
+            record["terminal_observed_monotonic"] = time.monotonic()
+            # Observation metadata is parent-owned; never replace it from the worker.
+            record.pop("forced_local_close", None)
+            record.pop("observation_deadline_monotonic", None)
+            with self.record_lock:
+                self.record.update(record)
+            self.done.set()
 
-    def finish(self):
-        self.stop.set()
+    def finish(self, observation_deadline: float | None = None):
+        deadline = self.deadline if observation_deadline is None else observation_deadline
+        with self.record_lock:
+            self.record["observation_deadline_monotonic"] = deadline
         if self.thread:
-            self.thread.join(5)
+            # Await either a natural interruption or a verified post-fault exchange.
+            # A five-second join would truncate the relay's 30-second QUIC idle timer.
+            while self.thread.is_alive() and not self.post_fault.is_set():
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    break
+                self.done.wait(min(1, remaining))
+            self.stop.set()
+            while self.thread.is_alive() and time.monotonic() < deadline:
+                self.thread.join(min(1, max(0, deadline - time.monotonic())))
             if self.thread.is_alive():
+                self.forced.set()
+                with self.record_lock:
+                    self.record["forced_local_close"] = True
+                    self.record["forced_local_close_monotonic"] = time.monotonic()
                 with contextlib.suppress(OSError):
                     self.sock.shutdown(socket.SHUT_RDWR)
                 self.sock.close()
                 self.thread.join(2)
-                self.record["status"] = "FAILED"
-                self.record["failure"] = {"type": "TimeoutError", "message": "existing stream exceeded observation window"}
+                with self.record_lock:
+                    self.record.update(status="FAILED", terminal_outcome="forced_local_close",
+                                       observation_complete=False, natural_terminal_observed=False,
+                                       observation_failure={"type": "TimeoutError", "message": "existing stream observation deadline expired; local socket forcibly closed"})
+            with self.record_lock:
+                self.record["worker_terminated"] = not self.thread.is_alive()
+                if not self.record["worker_terminated"]:
+                    self.record["observation_complete"] = False
         else:
+            self.stop.set()
             self.sock.close()
-        self.record["existing_stream_survived"] = (
-            self.record["status"] == "PASS" and self.record["eof"]
-            and self.record["post_fault_verified_bytes"] > 0)
-        return self.record
+        with self.record_lock:
+            self.record["existing_stream_survived"] = (
+                self.record["status"] == "PASS" and self.record["eof"]
+                and self.record["post_fault_verified_bytes"] > 0)
+            return copy.deepcopy(self.record)
 
 
 def exact_probe(port: int, data: bytes, timeout: float) -> None:
@@ -179,11 +238,12 @@ def exact_probe(port: int, data: bytes, timeout: float) -> None:
             raise bench.MissingEofError("missing EOF before absolute probe deadline") from error
 
 
-def recovery_probe(port: int, seed: int, deadline: float) -> dict:
+def recovery_probe(port: int, seed: int, deadline: float, record: dict | None = None) -> dict:
     data = bench.payload(seed, 65536, 902)
-    row = {"available": False, "new_stream_byte_exact": False, "new_stream_eof": False,
-           "attempts": 0, "payload_sha256": hashlib.sha256(data).hexdigest(),
-           "payload_bytes": len(data), "attempt_failures": []}
+    row = {} if record is None else record
+    row.update({"available": False, "new_stream_byte_exact": False, "new_stream_eof": False,
+           "attempts": 0, "failed_attempts": 0, "payload_sha256": hashlib.sha256(data).hexdigest(),
+           "payload_bytes": len(data), "attempt_failures": []})
     started = time.monotonic()
     while time.monotonic() < deadline:
         row["attempts"] += 1
@@ -192,6 +252,7 @@ def recovery_probe(port: int, seed: int, deadline: float) -> dict:
             row.update(available=True, new_stream_byte_exact=True, new_stream_eof=True)
             break
         except (OSError, TimeoutError, AssertionError) as error:
+            row["failed_attempts"] += 1
             row["attempt_failures"].append(bench.bounded_failure(error))
             row["attempt_failures"] = row["attempt_failures"][-8:]
             if "byte mismatch" in str(error).lower() or "surplus" in str(error).lower():
@@ -202,7 +263,8 @@ def recovery_probe(port: int, seed: int, deadline: float) -> dict:
     return row
 
 
-def run_fault(rig, kind: str, seed: int, result: dict) -> dict:
+def run_fault(rig, kind: str, seed: int, result: dict,
+              observation_seconds: float = EXISTING_OBSERVATION_SECONDS) -> dict:
     row = {"scenario": kind, "status": "FAILED", "existing_stream": {}, "new_stream_recovery": {},
            "endpoint_before_fault": rig.public_port, "process_before": process_snapshot(rig)}
     result["cases"].append(row)  # Retain partial evidence even if setup or injection fails.
@@ -210,8 +272,15 @@ def run_fault(rig, kind: str, seed: int, result: dict) -> dict:
     try:
         live = LiveStream(rig.public_port, seed)
         row["existing_stream"] = live.record
-        live.start()
         row["fault_onset_monotonic"] = time.monotonic()
+        reference = row["fault_onset_monotonic"] + (DROP_SECONDS if kind == "udp_drop_55_seconds" else 0)
+        row["existing_stream_observation"] = {"configured_seconds": observation_seconds,
+                                               "reference": "forwarding_gate_restoration" if kind == "udp_drop_55_seconds" else "fault_onset",
+                                               "reference_monotonic": reference,
+                                               "deadline_monotonic": reference + observation_seconds,
+                                               "initial_worker_deadline_monotonic": reference + observation_seconds}
+        live.deadline = reference + observation_seconds
+        live.start()
         if kind == "tunnel_process_termination":
             row["process_restart"] = rig.restart_tunnel_process()
             if not row["process_restart"]["available"]:
@@ -220,6 +289,11 @@ def run_fault(rig, kind: str, seed: int, result: dict) -> dict:
             assert rig.bridge is not None
             before = rig.bridge.dropped
             rig.bridge.drop_for(DROP_SECONDS)
+            reference = rig.bridge.drop_until
+            row["existing_stream_observation"]["reference_monotonic"] = reference
+            row["existing_stream_observation"]["deadline_monotonic"] = reference + observation_seconds
+            live.deadline = reference + observation_seconds
+            row["existing_stream_observation"]["deadline_rebased_to_actual_gate"] = True
             # No fresh probe can accidentally count a pre-drop exchange as recovery.
             row["udp_drop"] = {"configured_seconds": DROP_SECONDS,
                                "scheduled_gate_seconds": rig.bridge.drop_until - rig.bridge.drop_started,
@@ -234,14 +308,13 @@ def run_fault(rig, kind: str, seed: int, result: dict) -> dict:
         row["endpoint_retained"] = row["endpoint_before_fault"] == rig.public_port
         live.restored.set()
         deadline = time.monotonic() + RECOVERY_SECONDS
-        row["new_stream_recovery"] = recovery_probe(rig.public_port, seed, deadline)
+        recovery_probe(rig.public_port, seed, deadline, row["new_stream_recovery"])
         completed = time.monotonic()
         available = row["new_stream_recovery"]["available"]
         row["new_stream_recovery"]["completion_from_fault_onset_seconds"] = completed - row["fault_onset_monotonic"] if available else None
         restoration = (rig.bridge.drop_until if kind == "udp_drop_55_seconds"
                        else row["forwarding_available_monotonic"])
         row["new_stream_recovery"]["completion_from_forwarding_gate_seconds"] = completed - restoration if available else None
-        live.post_fault.wait(min(5, max(0, deadline - time.monotonic())))
         if not row["new_stream_recovery"]["available"]:
             raise AssertionError("fresh byte-exact/EOF recovery unavailable within window")
         row["status"] = "PASS"
@@ -249,16 +322,26 @@ def run_fault(rig, kind: str, seed: int, result: dict) -> dict:
         row["failure"] = bench.bounded_failure(error)
     finally:
         if live:
-            row["existing_stream"] = live.finish()
+            row["existing_stream"] = live.finish(live.deadline)
+            row["existing_stream"]["observation_elapsed_from_fault_onset_seconds"] = time.monotonic() - row["fault_onset_monotonic"]
+            terminal = row["existing_stream"].get("terminal_observed_monotonic")
+            row["existing_stream"]["natural_terminal_from_fault_onset_seconds"] = (terminal - row["fault_onset_monotonic"]
+                if terminal is not None and row["existing_stream"].get("natural_terminal_observed") else None)
         row["process_after"] = process_snapshot(rig)
         if row["existing_stream"].get("byte_mismatch"):
             row["status"] = "FAILED"
+        if live and not row["existing_stream"].get("observation_complete"):
+            row["status"] = "FAILED"
+            row["observation_failure"] = row["existing_stream"].get("observation_failure", {"type": "TimeoutError", "message": "existing stream observation incomplete"})
         try:
+            idle_started = time.monotonic()
             rig.assert_idle()
             row["active_connections_final"] = rig.metric(bench.ACTIVE_METRIC)
         except Exception as error:
             row["status"] = "FAILED"
             row["idle_failure"] = bench.bounded_failure(error)
+        finally:
+            row["idle_observation_seconds"] = time.monotonic() - idle_started
     return row
 
 
@@ -279,7 +362,12 @@ def parse_args(argv=None):
     parser.add_argument("--java", default="java")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--seed", type=int, default=1701)
-    return parser.parse_args(argv)
+    parser.add_argument("--existing-stream-observation-seconds", type=float, default=EXISTING_OBSERVATION_SECONDS,
+                        help="natural existing-stream observation budget, 1 to 180 seconds; UDP counts from gate restoration")
+    args = parser.parse_args(argv)
+    if not math.isfinite(args.existing_stream_observation_seconds) or not 1 <= args.existing_stream_observation_seconds <= 180:
+        parser.error("--existing-stream-observation-seconds must be between 1 and 180")
+    return args
 
 
 def process_snapshot(rig) -> dict:
@@ -295,6 +383,7 @@ def process_snapshot(rig) -> dict:
 
 def run_slow_receivers(rig, seed: int, result: dict) -> dict:
     row = {"scenario": "eight_slow_receivers", "status": "FAILED", "streams": [],
+           "attempted_transfers": STREAMS,
            "process_before": process_snapshot(rig), "process_samples": []}
     result["cases"].append(row)
     stop = threading.Event()
@@ -333,10 +422,11 @@ def main(argv=None) -> int:
     if sys.platform != "win32" or platform.machine().lower() not in ("amd64", "x86_64"):
         raise SystemExit("benchmark requires Windows x86-64")
     logs = collections.deque(maxlen=100)
-    result = {"schema_version": 1, "profile": "fault-matrix", "status": "FAILED", "cases": [],
+    result = {"schema_version": 2, "profile": "fault-matrix", "status": "FAILED", "cases": [],
               "started_utc": datetime.now(timezone.utc).isoformat(),
               "configuration": {"seed": args.seed, "slow_receivers": STREAMS,
-                                "udp_drop_seconds": DROP_SECONDS, "recovery_window_seconds": RECOVERY_SECONDS}}
+                                "udp_drop_seconds": DROP_SECONDS, "recovery_window_seconds": RECOVERY_SECONDS,
+                                "existing_stream_observation_seconds": args.existing_stream_observation_seconds}}
     rig = None
     try:
         relay, tunnel = args.relay_binary.resolve(), args.tunnel_jar.resolve()
@@ -349,18 +439,27 @@ def main(argv=None) -> int:
         rig = bench.Rig(relay, tunnel, args.java, logs)
         with rig:
             run_slow_receivers(rig, args.seed, result)
-            run_fault(rig, "tunnel_process_termination", args.seed, result)
-            run_fault(rig, "udp_drop_55_seconds", args.seed, result)
+            run_fault(rig, "tunnel_process_termination", args.seed, result, args.existing_stream_observation_seconds)
+            run_fault(rig, "udp_drop_55_seconds", args.seed, result, args.existing_stream_observation_seconds)
         result["clean_shutdown"] = {"relay": rig.relay_clean, "tunnel": rig.tunnel_clean}
         result["status"] = "PASS" if all(row["status"] == "PASS" for row in result["cases"]) and all(result["clean_shutdown"].values()) else "FAILED"
     except BaseException as error:
         result["failure"] = bench.bounded_failure(error)
     finally:
+        if rig is not None and hasattr(rig, "lifecycle_snapshot"):
+            result.update(rig.lifecycle_snapshot())
+            result["reconnect_counter_meaning"] = "observed CLI retry attempts, not completed reconnects"
         if rig is not None and hasattr(rig, "relay_clean"):
             result["clean_shutdown"] = {"relay": rig.relay_clean, "tunnel": rig.tunnel_clean}
             result["process_exits"] = {role: getattr(rig, role).returncode if getattr(rig, role) else None
                                        for role in ("relay", "tunnel")}
         result["diagnostics"] = list(logs)[-50:]
+        attempted = sum(row.get("attempted_transfers", 0) + row.get("new_stream_recovery", {}).get("attempts", 0) for row in result["cases"])
+        successful = sum(sum(stream["status"] == "PASS" for stream in row.get("streams", []))
+                         + int(row.get("new_stream_recovery", {}).get("available", False)) for row in result["cases"])
+        result["transfer_counts"] = {"attempted": attempted, "successful": successful,
+                                     "failed": attempted - successful,
+                                     "scope": "slow receivers and fresh recovery probes; existing stream outcomes and internal Rig setup probes recorded separately"}
         result["finished_utc"] = datetime.now(timezone.utc).isoformat()
         args.output.parent.mkdir(parents=True, exist_ok=True)
         # Immutable failed evidence: never overwrite any previous record.
