@@ -296,6 +296,31 @@ class BenchmarkTests(unittest.TestCase):
             finally:
                 bridge.close()
 
+    def test_reconnect_attempt_counter_survives_diagnostic_ring_truncation(self):
+        import collections
+        import io
+        import queue
+        rig = SimpleNamespace(lifecycle_lock=threading.Lock(), observed_cli_reconnect_attempts=0,
+                              redactions=[], logs=collections.deque(maxlen=2),
+                              events=queue.Queue(), relay_events=queue.Queue())
+        lines = ["Relay unavailable; retrying in 1000 ms"] * 7 + ["unrelated"] * 3
+        benchmark.Rig.reader(rig, io.StringIO("\n".join(lines) + "\n"), "tunnel-err")
+        self.assertEqual(rig.observed_cli_reconnect_attempts, 7)
+        self.assertEqual(list(rig.logs), ["tunnel-err: unrelated"] * 2)
+        benchmark.Rig.reader(rig, io.StringIO(lines[0] + "\n"), "tunnel-out")
+        self.assertEqual(rig.observed_cli_reconnect_attempts, 7)
+
+    def test_lifecycle_snapshot_retains_replaced_process_exit_without_private_paths(self):
+        rig = SimpleNamespace(lifecycle_lock=threading.Lock(), observed_cli_reconnect_attempts=3,
+                              owned_processes=[{"label": "relay", "started_utc": "earlier",
+                                                "process": SimpleNamespace(poll=lambda: 0)},
+                                               {"label": "relay", "started_utc": "later",
+                                                "process": SimpleNamespace(poll=lambda: None)}])
+        snapshot = benchmark.Rig.lifecycle_snapshot(rig)
+        self.assertEqual(snapshot["observed_cli_reconnect_attempts"], 3)
+        self.assertEqual([item["returncode"] for item in snapshot["owned_process_exits"]], [0, None])
+        self.assertNotIn("process", snapshot["owned_process_exits"][0])
+
     def test_summary_labels_latency_counts_and_paired_delta(self):
         report = benchmark.markdown({"status": "PASS", "profile": "full", "latency": [{
             "concurrency": 8, "payload_bytes": 1024, "mode": "half_close",

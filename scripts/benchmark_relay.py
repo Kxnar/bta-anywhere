@@ -638,6 +638,9 @@ class Rig:
         self.tunnel_jar = tunnel_jar
         self.java = java
         self.logs = logs
+        self.observed_cli_reconnect_attempts = 0
+        self.lifecycle_lock = threading.Lock()
+        self.owned_processes = []
         self.redactions: list[str] = []
         self.events: queue.Queue[str] = queue.Queue(maxsize=256)
         self.relay_events: queue.Queue[int] = queue.Queue(maxsize=32)
@@ -660,6 +663,9 @@ class Rig:
     def reader(self, stream, label: str) -> None:
         for line in iter(stream.readline, ""):
             line = line.rstrip("\r\n")
+            if label == "tunnel-err" and line.startswith("Relay unavailable; retrying in "):
+                with self.lifecycle_lock:
+                    self.observed_cli_reconnect_attempts += 1
             for secret in self.redactions:
                 line = line.replace(secret, "<redacted>")
             line = line[:300]
@@ -677,10 +683,21 @@ class Rig:
                env: dict[str, str] | None = None) -> subprocess.Popen[str]:
         process = subprocess.Popen(args, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    text=True, bufsize=1, env=env)
+        with self.lifecycle_lock:
+            self.owned_processes.append({"label": label, "process": process,
+                                         "started_utc": datetime.now(timezone.utc).isoformat()})
         assert process.stdout and process.stderr
         for stream, suffix in ((process.stdout, "out"), (process.stderr, "err")):
             threading.Thread(target=self.reader, args=(stream, f"{label}-{suffix}"), daemon=True).start()
         return process
+
+    def lifecycle_snapshot(self) -> dict:
+        with self.lifecycle_lock:
+            return {"observed_cli_reconnect_attempts": self.observed_cli_reconnect_attempts,
+                    "owned_process_exits": [{"label": item["label"], "started_utc": item["started_utc"],
+                                             "returncode": item["process"].poll(),
+                                             "running": item["process"].poll() is None}
+                                            for item in self.owned_processes]}
 
     def start_relay(self, log_level: str = "warn") -> None:
         relay_env = dict(os.environ)
@@ -1093,7 +1110,9 @@ def soak_sample(rig: Rig, started: float, phase: str) -> dict:
     return {"elapsed_seconds": time.monotonic() - started, "phase": phase,
             "relay": process_sample(rig.relay), "tunnel": process_sample(rig.tunnel),
             "active_connections": metric(body, ACTIVE_METRIC),
-            "metrics_prometheus": body}
+            "metrics_prometheus": body,
+            "observed_cli_reconnect_attempts": getattr(rig, "observed_cli_reconnect_attempts", 0),
+            "reconnect_counter_meaning": "observed CLI retry attempts, not completed reconnects"}
 
 
 def run_soak(rig: Rig, seed: int, duration: float, result: dict,
@@ -1447,6 +1466,9 @@ def main() -> int:
             result["clean_shutdown_after_failure"] = {
                 "relay": rig.relay_clean, "tunnel": rig.tunnel_clean}
     finally:
+        if rig is not None and hasattr(rig, "lifecycle_snapshot"):
+            result.update(rig.lifecycle_snapshot())
+            result["reconnect_counter_meaning"] = "observed CLI retry attempts, not completed reconnects"
         if rig is not None and hasattr(rig, "recovery_attempts"):
             result["last_recovery_probe_attempts"] = dict(rig.recovery_attempts)
         if rig is not None and hasattr(rig, "cleanup_errors"):
