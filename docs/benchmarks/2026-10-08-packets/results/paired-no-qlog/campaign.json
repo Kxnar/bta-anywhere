@@ -1,0 +1,144 @@
+{
+  "schema": 1,
+  "qlog": false,
+  "seconds": 8,
+  "drain_seconds": 120,
+  "streams": 8,
+  "block_kib": 64,
+  "seeds": [
+    1701,
+    1702,
+    1703
+  ],
+  "ordering": "alternate baseline-first and candidate-first by seed",
+  "sha256": {
+    "relay": "d4db8487339b8cfff30d73f9209c03ec3b3db0cbd152a34830fdf2000b215973",
+    "baseline": "366342f3b5d2231a235a7b4cd214200807ba9b47b0223bed8cd83aec79c3a74b",
+    "candidate": "5a74c2ea2a6865ee5ef4ef87edbd8e1c1040d2f77e8c39c80e808ae6184c2727",
+    "driver": "b736fda72f1d5eedc8139baba7d4f1914ec7c1a25a3ec90da4e0dd7f52ace827",
+    "harness": "9d2a719df1fa1d95aa1c77f68be0082600c01a0dafce1bf22ae05ed864aa98af"
+  },
+  "cells": [
+    {
+      "condition": "jitter-10ms-2ms",
+      "seed": 1701,
+      "variant": "baseline",
+      "result": "jitter-10ms-2ms-1701-baseline.json",
+      "started_unix": 1791489678.9701753,
+      "status": "FAILED",
+      "returncode": 1,
+      "wall_seconds": 131.0749592781067
+    },
+    {
+      "condition": "jitter-10ms-2ms",
+      "seed": 1701,
+      "variant": "candidate",
+      "result": "jitter-10ms-2ms-1701-candidate.json",
+      "started_unix": 1791489810.071086,
+      "status": "PASS",
+      "returncode": 0,
+      "wall_seconds": 83.68479299545288
+    },
+    {
+      "condition": "loss-10ms-2ms-1pct",
+      "seed": 1701,
+      "variant": "baseline",
+      "result": "loss-10ms-2ms-1pct-1701-baseline.json",
+      "started_unix": 1791489893.7794378,
+      "status": "FAILED",
+      "returncode": 1,
+      "wall_seconds": 140.13719964027405
+    },
+    {
+      "condition": "loss-10ms-2ms-1pct",
+      "seed": 1701,
+      "variant": "candidate",
+      "result": "loss-10ms-2ms-1pct-1701-candidate.json",
+      "started_unix": 1791490033.9417808,
+      "status": "PASS",
+      "returncode": 0,
+      "wall_seconds": 83.76229047775269
+    },
+    {
+      "condition": "jitter-10ms-2ms",
+      "seed": 1702,
+      "variant": "candidate",
+      "result": "jitter-10ms-2ms-1702-candidate.json",
+      "started_unix": 1791490117.7229164,
+      "status": "PASS",
+      "returncode": 0,
+      "wall_seconds": 74.07535195350647
+    },
+    {
+      "condition": "jitter-10ms-2ms",
+      "seed": 1702,
+      "variant": "baseline",
+      "result": "jitter-10ms-2ms-1702-baseline.json",
+      "started_unix": 1791490191.816126,
+      "status": "PASS",
+      "returncode": 0,
+      "wall_seconds": 111.81254649162292
+    },
+    {
+      "condition": "loss-10ms-2ms-1pct",
+      "seed": 1702,
+      "variant": "candidate",
+      "result": "loss-10ms-2ms-1pct-1702-candidate.json",
+      "started_unix": 1791490303.6506627,
+      "status": "PASS",
+      "returncode": 0,
+      "wall_seconds": 87.80624485015869
+    },
+    {
+      "condition": "loss-10ms-2ms-1pct",
+      "seed": 1702,
+      "variant": "baseline",
+      "result": "loss-10ms-2ms-1pct-1702-baseline.json",
+      "started_unix": 1791490391.4765308,
+      "status": "FAILED",
+      "returncode": 1,
+      "wall_seconds": 140.15822052955627
+    },
+    {
+      "condition": "jitter-10ms-2ms",
+      "seed": 1703,
+      "variant": "baseline",
+      "result": "jitter-10ms-2ms-1703-baseline.json",
+      "started_unix": 1791490531.6634357,
+      "status": "FAILED",
+      "returncode": 1,
+      "wall_seconds": 131.22156143188477
+    },
+    {
+      "condition": "jitter-10ms-2ms",
+      "seed": 1703,
+      "variant": "candidate",
+      "result": "jitter-10ms-2ms-1703-candidate.json",
+      "started_unix": 1791490662.9098513,
+      "status": "PASS",
+      "returncode": 0,
+      "wall_seconds": 62.373555183410645
+    },
+    {
+      "condition": "loss-10ms-2ms-1pct",
+      "seed": 1703,
+      "variant": "baseline",
+      "result": "loss-10ms-2ms-1pct-1703-baseline.json",
+      "started_unix": 1791490725.3000855,
+      "status": "FAILED",
+      "returncode": 1,
+      "wall_seconds": 140.31672191619873
+    },
+    {
+      "condition": "loss-10ms-2ms-1pct",
+      "seed": 1703,
+      "variant": "candidate",
+      "result": "loss-10ms-2ms-1pct-1703-candidate.json",
+      "started_unix": 1791490865.6413069,
+      "status": "PASS",
+      "returncode": 0,
+      "wall_seconds": 75.10589003562927
+    }
+  ],
+  "status": "COMPLETE"
+}

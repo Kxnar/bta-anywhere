@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kxnar.btaanywhere.internal.ControlFrameDecoderTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-08T19:54:18.631Z" hostname="KENARALIENWARE" time="0.171">
+  <properties/>
+  <testcase name="decodesFragmentedFrame()" classname="io.github.kxnar.btaanywhere.internal.ControlFrameDecoderTest" time="0.168"/>
+  <testcase name="rejectsOversizedFrame()" classname="io.github.kxnar.btaanywhere.internal.ControlFrameDecoderTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

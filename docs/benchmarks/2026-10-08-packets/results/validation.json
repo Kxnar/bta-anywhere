@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "java_candidate_tests": {
+    "tests": 126,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 4
+  },
+  "python_tests": {
+    "passed": 97,
+    "failed": 0,
+    "source": "final-python-tests.txt"
+  },
+  "candidate_check_build": {
+    "exit_code": 0,
+    "source": "candidate-build.txt"
+  },
+  "final_package_build": {
+    "exit_code": 0,
+    "source": "final-package-build.txt"
+  },
+  "native_doctor": {
+    "exit_code": 0,
+    "source": "final-native-doctor.txt"
+  },
+  "synthetic_timestamp_reproducer": {
+    "exit_code": 0,
+    "source": "pacer-reproducer.json"
+  },
+  "cleanup_checks": {
+    "valid_transport": "PASS",
+    "known_invalid_jar_rejected": "PASS",
+    "all_owned_processes_stopped": true
+  }
+}

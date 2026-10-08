@@ -13,7 +13,7 @@ import java.nio.file.Path;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-/** Opt-in numeric diagnostics: no payloads, endpoints, tokens or session IDs. */
+/** Opt-in numeric sampling and native qlog; qlog may include endpoint metadata. */
 final class TransportDiagnostics extends ChannelDuplexHandler {
 	private long readBytes;
 	private long pendingBytes;

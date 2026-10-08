@@ -156,6 +156,12 @@ the present dependency includes the Windows native binary.
 
 ## Application claim and next investigation
 
+Later on 8 October, the [packet investigation](../2026-10-08-packets/README.md)
+captured the RTT divergence and evaluated a native dependency update, and the
+[Linux campaign](../2026-10-08-linux/README.md) ran on hosted infrastructure.
+The pending statements above describe this earlier archive's state; its failed
+experiments and source artifacts remain unchanged.
+
 The [38% median eight-stream loopback throughput improvement](../2026-10-08-scaling/README.md)
 remains the strongest measured performance headline. The new instrumented cases
 do not change that matched comparison. For recovery, use the 25-trial distribution

@@ -8,13 +8,20 @@ BTA Anywhere is licensed under Apache License 2.0. Its release artifacts contain
 | --- | --- | --- |
 | Gson and Error Prone annotations | 2.13.1 / 2.38.0 | Apache-2.0 |
 | Netty common, buffer, resolver, transport, codec, and handler | 4.1.122.Final | Apache-2.0 |
-| Netty Incubator Codec QUIC classes and natives | 0.0.73.Final | Apache-2.0 |
+| Netty Incubator Codec QUIC classes and natives | 0.0.75.Final | Apache-2.0 |
 | offbynull portmapper | 2.0.6 | Apache-2.0 |
 | Apache Commons Lang / IO / Collections | 3.4 / 2.5 / 4.1 | Apache-2.0 |
 | SLF4J API and no-op binding | 1.7.21 | MIT |
 | Bouncy Castle PKIX, provider, and utility JARs (experimental encrypted CLI) | 1.86 | MIT |
 
 The Netty QUIC native archives include notices for their bundled native components, including BoringSSL/OpenSSL-derived material and Cloudflare quiche. Shadowing preserves the upstream `META-INF/license/` material and relocates native resource names; it does not remove the native licence notices.
+
+The diagnostic fixture `scripts/fixtures/quiche_pacer_70d6d3.rs` is copied unchanged
+from Cloudflare quiche commit `70d6d3e233568e906e66179a56c93cf9b0616899`,
+`quiche/src/recovery/congestion/pacer.rs`. Its BSD-2-Clause copyright and licence
+notice remain in the file. It is used only by the standalone timestamp
+reproducer, not compiled into the relay or tunnel. Archived upstream source
+snapshots likewise retain their original notices.
 
 ## Rust relay
 

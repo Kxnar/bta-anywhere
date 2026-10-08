@@ -1,0 +1,118 @@
+plugins {
+	`java-library`
+	application
+	id("com.gradleup.shadow")
+}
+
+base.archivesName = "bta-anywhere-tunnel"
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
+	withSourcesJar()
+}
+
+application {
+	mainClass = "io.github.kxnar.btaanywhere.cli.TunnelCli"
+}
+
+val quicNativeClassifier = when {
+	System.getProperty("os.arch") !in listOf("amd64", "x86_64") ->
+		throw GradleException("Native QUIC currently supports x86-64 builds only")
+	System.getProperty("os.name").startsWith("Windows") -> "windows-x86_64"
+	System.getProperty("os.name").startsWith("Linux") -> "linux-x86_64"
+	else -> throw GradleException("Native QUIC currently supports Windows and Linux only")
+}
+
+dependencies {
+	api(libs.gson)
+	implementation(libs.netty.handler)
+	implementation(libs.netty.transport)
+	implementation(libs.slf4j.legacy.nop)
+	implementation("org.bouncycastle:bcpkix-jdk18on:1.86")
+	implementation("com.offbynull.portmapper:portmapper:2.0.6") {
+		exclude(group = "org.slf4j", module = "slf4j-simple")
+	}
+
+	implementation("io.netty.incubator:netty-incubator-codec-native-quic:${libs.versions.nettyQuic.get()}:$quicNativeClassifier") {
+		exclude(group = "io.netty")
+	}
+
+	testImplementation(platform(libs.junit.bom))
+	testImplementation(libs.junit.jupiter)
+	testRuntimeOnly(libs.junit.platform.launcher)
+}
+
+tasks.withType<JavaCompile>().configureEach {
+	options.release = 17
+	options.encoding = "UTF-8"
+	options.compilerArgs.addAll(listOf("-Xlint:all", "-Werror"))
+}
+
+tasks.withType<Test>().configureEach {
+	useJUnitPlatform()
+	systemProperty("btaAnywhereProtocolVectors", rootProject.layout.projectDirectory.dir("protocol/test-vectors").asFile)
+	testLogging {
+		events("failed", "skipped")
+	}
+}
+
+tasks.register<JavaExec>("protocolCorpus") {
+	group = "verification"
+	description = "Run the test-only Java protocol corpus evaluator"
+	maxHeapSize = "256m"
+	dependsOn(tasks.testClasses)
+	classpath = sourceSets.test.get().runtimeClasspath
+	mainClass = "io.github.kxnar.btaanywhere.internal.ProtocolCorpusMain"
+	val corpus = providers.gradleProperty("protocolCorpus")
+	val output = providers.gradleProperty("protocolCorpusOutput")
+	doFirst {
+		if (!corpus.isPresent || !output.isPresent) {
+			throw GradleException("protocolCorpus and protocolCorpusOutput properties are required")
+		}
+	}
+	argumentProviders.add(CommandLineArgumentProvider { listOf(corpus.get(), output.get()) })
+}
+
+tasks.register("protocolCorpusClasspath") {
+	group = "verification"
+	description = "Write the test-only protocol evaluator classpath for long campaigns"
+	dependsOn(tasks.testClasses)
+	val output = providers.gradleProperty("protocolCorpusClasspathOutput")
+	doLast {
+		if (!output.isPresent) {
+			throw GradleException("protocolCorpusClasspathOutput property is required")
+		}
+		file(output.get()).writeText(sourceSets.test.get().runtimeClasspath.asPath)
+	}
+}
+
+tasks.jar {
+	manifest.attributes["Main-Class"] = application.mainClass.get()
+}
+
+tasks.shadowJar {
+	archiveClassifier = "all"
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	exclude("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/io.netty.versions.properties")
+	relocate("io.netty", "io.github.kxnar.btaanywhere.shadow.io.netty")
+	relocate("META-INF/native/libnetty", "META-INF/native/libio_github_kxnar_btaanywhere_shadow_netty")
+	relocate("META-INF/native/netty", "META-INF/native/io_github_kxnar_btaanywhere_shadow_netty")
+	relocate("com.google.gson", "io.github.kxnar.btaanywhere.shadow.com.google.gson")
+	relocate("com.offbynull.portmapper", "io.github.kxnar.btaanywhere.shadow.com.offbynull.portmapper")
+	relocate("org.apache.commons", "io.github.kxnar.btaanywhere.shadow.org.apache.commons")
+	relocate("org.slf4j", "io.github.kxnar.btaanywhere.shadow.org.slf4j")
+}
+
+val shadowElements = configurations.create("shadowElements") {
+	isCanBeConsumed = true
+	isCanBeResolved = false
+}
+
+artifacts {
+	add(shadowElements.name, tasks.shadowJar)
+}
+
+tasks.assemble {
+	dependsOn(tasks.shadowJar)
+}

@@ -1,0 +1,2394 @@
+{
+  "schema": 1,
+  "run": "https://github.com/Kxnar/bta-anywhere/actions/runs/37836851753",
+  "source_commit": "921440abbe5d95b4cf5b40e3d1d71e944cb00446",
+  "sessions": [
+    {
+      "condition": "clean",
+      "session": 0,
+      "status": "PASS",
+      "transaction_attempts": 60,
+      "completed_transactions": 60,
+      "transaction_bytes_each_direction": 22302720,
+      "transaction_cells": {
+        "request_response-1024": {
+          "completed": 10,
+          "p50_ms": 2.977479000008998,
+          "p95_ms": 12.12204389999129
+        },
+        "request_response-65536": {
+          "completed": 10,
+          "p50_ms": 9.078836500009402,
+          "p95_ms": 15.850871149990553
+        },
+        "request_response-1048576": {
+          "completed": 10,
+          "p50_ms": 40.343301999996584,
+          "p95_ms": 62.114395849988554
+        },
+        "half_close-1024": {
+          "completed": 10,
+          "p50_ms": 1.649306000004458,
+          "p95_ms": 2.9049789500064085
+        },
+        "half_close-65536": {
+          "completed": 10,
+          "p50_ms": 3.742702499991424,
+          "p95_ms": 5.6475537999972385
+        },
+        "half_close-1048576": {
+          "completed": 10,
+          "p50_ms": 24.900561000009702,
+          "p95_ms": 28.459566250008095
+        }
+      },
+      "completed_throughput_streams": 8,
+      "throughput_bytes_each_direction": 241696768,
+      "verified_mib_per_second_each_direction": 27.145339613354214,
+      "throughput_wall_seconds": 8.491328651000003,
+      "recovery": {
+        "status": "PASS",
+        "attempts": [
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "PASS",
+            "latency_ms": 2.821355000008907
+          }
+        ],
+        "fault_to_verified_ms": 3878.26172299998,
+        "relay_ready_ms": 1265.9282150000024,
+        "old_endpoint_verified": true
+      },
+      "resources": {
+        "relay": {
+          "peak_sampled_rss_bytes": 21430272,
+          "observed_cpu_seconds_by_pid": {
+            "5067": 4.57,
+            "5191": 0.0
+          }
+        },
+        "tunnel": {
+          "peak_sampled_rss_bytes": 166309888,
+          "observed_cpu_seconds_by_pid": {
+            "5075": 11.65
+          }
+        }
+      }
+    },
+    {
+      "condition": "clean",
+      "session": 1,
+      "status": "PASS",
+      "transaction_attempts": 60,
+      "completed_transactions": 60,
+      "transaction_bytes_each_direction": 22302720,
+      "transaction_cells": {
+        "request_response-1024": {
+          "completed": 10,
+          "p50_ms": 2.853102499997817,
+          "p95_ms": 12.168219849996824
+        },
+        "request_response-65536": {
+          "completed": 10,
+          "p50_ms": 8.130708999985359,
+          "p95_ms": 13.91469415000017
+        },
+        "request_response-1048576": {
+          "completed": 10,
+          "p50_ms": 41.74466849998737,
+          "p95_ms": 58.55981334999852
+        },
+        "half_close-1024": {
+          "completed": 10,
+          "p50_ms": 1.9280960000003233,
+          "p95_ms": 4.435546500002372
+        },
+        "half_close-65536": {
+          "completed": 10,
+          "p50_ms": 3.55358500000591,
+          "p95_ms": 5.478462549989159
+        },
+        "half_close-1048576": {
+          "completed": 10,
+          "p50_ms": 26.294441499985055,
+          "p95_ms": 29.90817924999334
+        }
+      },
+      "completed_throughput_streams": 8,
+      "throughput_bytes_each_direction": 246218752,
+      "verified_mib_per_second_each_direction": 27.526654969258168,
+      "throughput_wall_seconds": 8.53036812000002,
+      "recovery": {
+        "status": "PASS",
+        "attempts": [
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "PASS",
+            "latency_ms": 2.233969000030811
+          }
+        ],
+        "fault_to_verified_ms": 4479.948508000007,
+        "relay_ready_ms": 1266.0295869999914,
+        "old_endpoint_verified": true
+      },
+      "resources": {
+        "relay": {
+          "peak_sampled_rss_bytes": 14905344,
+          "observed_cpu_seconds_by_pid": {
+            "5214": 4.67,
+            "5338": 0.0
+          }
+        },
+        "tunnel": {
+          "peak_sampled_rss_bytes": 169807872,
+          "observed_cpu_seconds_by_pid": {
+            "5222": 12.04
+          }
+        }
+      }
+    },
+    {
+      "condition": "clean",
+      "session": 2,
+      "status": "PASS",
+      "transaction_attempts": 60,
+      "completed_transactions": 60,
+      "transaction_bytes_each_direction": 22302720,
+      "transaction_cells": {
+        "request_response-1024": {
+          "completed": 10,
+          "p50_ms": 2.8685869999947045,
+          "p95_ms": 11.623085350009882
+        },
+        "request_response-65536": {
+          "completed": 10,
+          "p50_ms": 7.853791000002275,
+          "p95_ms": 13.737312800012088
+        },
+        "request_response-1048576": {
+          "completed": 10,
+          "p50_ms": 40.527773500002695,
+          "p95_ms": 57.50094254998997
+        },
+        "half_close-1024": {
+          "completed": 10,
+          "p50_ms": 1.328330000006872,
+          "p95_ms": 2.3521356499770714
+        },
+        "half_close-65536": {
+          "completed": 10,
+          "p50_ms": 3.487667999962696,
+          "p95_ms": 5.502465599988682
+        },
+        "half_close-1048576": {
+          "completed": 10,
+          "p50_ms": 29.24857149997706,
+          "p95_ms": 30.716653650003423
+        }
+      },
+      "completed_throughput_streams": 8,
+      "throughput_bytes_each_direction": 234029056,
+      "verified_mib_per_second_each_direction": 26.382818458071167,
+      "throughput_wall_seconds": 8.45957759800001,
+      "recovery": {
+        "status": "PASS",
+        "attempts": [
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "PASS",
+            "latency_ms": 2.8348769999979595
+          }
+        ],
+        "fault_to_verified_ms": 2974.8490640000114,
+        "relay_ready_ms": 1265.8381910000003,
+        "old_endpoint_verified": true
+      },
+      "resources": {
+        "relay": {
+          "peak_sampled_rss_bytes": 16244736,
+          "observed_cpu_seconds_by_pid": {
+            "5362": 4.48,
+            "5485": 0.0
+          }
+        },
+        "tunnel": {
+          "peak_sampled_rss_bytes": 174743552,
+          "observed_cpu_seconds_by_pid": {
+            "5370": 12.45
+          }
+        }
+      }
+    },
+    {
+      "condition": "jitter",
+      "session": 0,
+      "status": "PASS",
+      "transaction_attempts": 60,
+      "completed_transactions": 60,
+      "transaction_bytes_each_direction": 22302720,
+      "transaction_cells": {
+        "request_response-1024": {
+          "completed": 10,
+          "p50_ms": 26.451562500000136,
+          "p95_ms": 32.40532594999478
+        },
+        "request_response-65536": {
+          "completed": 10,
+          "p50_ms": 96.34699299999738,
+          "p95_ms": 152.81950719999878
+        },
+        "request_response-1048576": {
+          "completed": 10,
+          "p50_ms": 925.1888544999929,
+          "p95_ms": 967.0306545500124
+        },
+        "half_close-1024": {
+          "completed": 10,
+          "p50_ms": 23.47142149997694,
+          "p95_ms": 26.68105080002192
+        },
+        "half_close-65536": {
+          "completed": 10,
+          "p50_ms": 79.12497500001336,
+          "p95_ms": 81.68704150001815
+        },
+        "half_close-1048576": {
+          "completed": 10,
+          "p50_ms": 915.0681870000028,
+          "p95_ms": 934.3979824500252
+        }
+      },
+      "completed_throughput_streams": 8,
+      "throughput_bytes_each_direction": 41615360,
+      "verified_mib_per_second_each_direction": 1.6473994530756833,
+      "throughput_wall_seconds": 24.090999864000025,
+      "recovery": {
+        "status": "PASS",
+        "attempts": [
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "PASS",
+            "latency_ms": 26.739053999961016
+          }
+        ],
+        "fault_to_verified_ms": 6709.425710000005,
+        "relay_ready_ms": 3772.458341999993,
+        "old_endpoint_verified": true
+      },
+      "resources": {
+        "relay": {
+          "peak_sampled_rss_bytes": 24498176,
+          "observed_cpu_seconds_by_pid": {
+            "5092": 2.93,
+            "5254": 0.0
+          }
+        },
+        "tunnel": {
+          "peak_sampled_rss_bytes": 146518016,
+          "observed_cpu_seconds_by_pid": {
+            "5100": 5.529999999999999
+          }
+        }
+      }
+    },
+    {
+      "condition": "jitter",
+      "session": 1,
+      "status": "PASS",
+      "transaction_attempts": 60,
+      "completed_transactions": 60,
+      "transaction_bytes_each_direction": 22302720,
+      "transaction_cells": {
+        "request_response-1024": {
+          "completed": 10,
+          "p50_ms": 26.419888999981822,
+          "p95_ms": 33.035494850000184
+        },
+        "request_response-65536": {
+          "completed": 10,
+          "p50_ms": 94.45949550001842,
+          "p95_ms": 155.52623764998822
+        },
+        "request_response-1048576": {
+          "completed": 10,
+          "p50_ms": 929.7154814999828,
+          "p95_ms": 967.6820580000197
+        },
+        "half_close-1024": {
+          "completed": 10,
+          "p50_ms": 25.222132999999758,
+          "p95_ms": 26.945300000031125
+        },
+        "half_close-65536": {
+          "completed": 10,
+          "p50_ms": 79.29439000000116,
+          "p95_ms": 82.92655634998596
+        },
+        "half_close-1048576": {
+          "completed": 10,
+          "p50_ms": 913.9657639999825,
+          "p95_ms": 935.0588708000032
+        }
+      },
+      "completed_throughput_streams": 8,
+      "throughput_bytes_each_direction": 32440320,
+      "verified_mib_per_second_each_direction": 1.8402012101550398,
+      "throughput_wall_seconds": 16.812020244999985,
+      "recovery": {
+        "status": "PASS",
+        "attempts": [
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "PASS",
+            "latency_ms": 26.072674000033658
+          }
+        ],
+        "fault_to_verified_ms": 11877.352965,
+        "relay_ready_ms": 4323.660086999951,
+        "old_endpoint_verified": true
+      },
+      "resources": {
+        "relay": {
+          "peak_sampled_rss_bytes": 22831104,
+          "observed_cpu_seconds_by_pid": {
+            "5278": 2.31,
+            "5410": 0.0
+          }
+        },
+        "tunnel": {
+          "peak_sampled_rss_bytes": 141647872,
+          "observed_cpu_seconds_by_pid": {
+            "5286": 5.24
+          }
+        }
+      }
+    },
+    {
+      "condition": "jitter",
+      "session": 2,
+      "status": "PASS",
+      "transaction_attempts": 60,
+      "completed_transactions": 60,
+      "transaction_bytes_each_direction": 22302720,
+      "transaction_cells": {
+        "request_response-1024": {
+          "completed": 10,
+          "p50_ms": 26.924112999978433,
+          "p95_ms": 32.21309825001413
+        },
+        "request_response-65536": {
+          "completed": 10,
+          "p50_ms": 96.96648349998327,
+          "p95_ms": 149.44200435000704
+        },
+        "request_response-1048576": {
+          "completed": 10,
+          "p50_ms": 927.6475340000161,
+          "p95_ms": 976.5452785000064
+        },
+        "half_close-1024": {
+          "completed": 10,
+          "p50_ms": 24.892582999996193,
+          "p95_ms": 27.845076049973727
+        },
+        "half_close-65536": {
+          "completed": 10,
+          "p50_ms": 79.84274599999708,
+          "p95_ms": 83.17988874998434
+        },
+        "half_close-1048576": {
+          "completed": 10,
+          "p50_ms": 913.6271204999957,
+          "p95_ms": 935.2014330000173
+        }
+      },
+      "completed_throughput_streams": 8,
+      "throughput_bytes_each_direction": 39583744,
+      "verified_mib_per_second_each_direction": 1.5371289682672176,
+      "throughput_wall_seconds": 24.558772086999966,
+      "recovery": {
+        "status": "PASS",
+        "attempts": [
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "PASS",
+            "latency_ms": 23.325385999953596
+          }
+        ],
+        "fault_to_verified_ms": 12675.927533999982,
+        "relay_ready_ms": 4222.913662999986,
+        "old_endpoint_verified": true
+      },
+      "resources": {
+        "relay": {
+          "peak_sampled_rss_bytes": 26771456,
+          "observed_cpu_seconds_by_pid": {
+            "5435": 2.68,
+            "5564": 0.0
+          }
+        },
+        "tunnel": {
+          "peak_sampled_rss_bytes": 156807168,
+          "observed_cpu_seconds_by_pid": {
+            "5443": 5.35
+          }
+        }
+      }
+    },
+    {
+      "condition": "loss",
+      "session": 0,
+      "status": "PASS",
+      "transaction_attempts": 60,
+      "completed_transactions": 60,
+      "transaction_bytes_each_direction": 22302720,
+      "transaction_cells": {
+        "request_response-1024": {
+          "completed": 10,
+          "p50_ms": 26.917867500003467,
+          "p95_ms": 79.31575685000487
+        },
+        "request_response-65536": {
+          "completed": 10,
+          "p50_ms": 117.5132354999846,
+          "p95_ms": 216.46075140000102
+        },
+        "request_response-1048576": {
+          "completed": 10,
+          "p50_ms": 1038.204753499997,
+          "p95_ms": 1228.2323814500014
+        },
+        "half_close-1024": {
+          "completed": 10,
+          "p50_ms": 24.67871250001963,
+          "p95_ms": 46.550411849992166
+        },
+        "half_close-65536": {
+          "completed": 10,
+          "p50_ms": 87.82604300000685,
+          "p95_ms": 128.61404414998387
+        },
+        "half_close-1048576": {
+          "completed": 10,
+          "p50_ms": 1042.6107790000003,
+          "p95_ms": 1166.607343950008
+        }
+      },
+      "completed_throughput_streams": 8,
+      "throughput_bytes_each_direction": 21626880,
+      "verified_mib_per_second_each_direction": 0.9512963242527589,
+      "throughput_wall_seconds": 21.680941546999975,
+      "recovery": {
+        "status": "PASS",
+        "attempts": [
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "PASS",
+            "latency_ms": 27.104997000037656
+          }
+        ],
+        "fault_to_verified_ms": 4554.361180000001,
+        "relay_ready_ms": 1316.1509180000053,
+        "old_endpoint_verified": true
+      },
+      "resources": {
+        "relay": {
+          "peak_sampled_rss_bytes": 13496320,
+          "observed_cpu_seconds_by_pid": {
+            "5108": 2.73,
+            "5241": 0.0
+          }
+        },
+        "tunnel": {
+          "peak_sampled_rss_bytes": 139816960,
+          "observed_cpu_seconds_by_pid": {
+            "5116": 6.47
+          }
+        }
+      }
+    },
+    {
+      "condition": "loss",
+      "session": 1,
+      "status": "PASS",
+      "transaction_attempts": 60,
+      "completed_transactions": 60,
+      "transaction_bytes_each_direction": 22302720,
+      "transaction_cells": {
+        "request_response-1024": {
+          "completed": 10,
+          "p50_ms": 27.125893499999165,
+          "p95_ms": 32.75152684999227
+        },
+        "request_response-65536": {
+          "completed": 10,
+          "p50_ms": 142.27025750000166,
+          "p95_ms": 218.52617354999774
+        },
+        "request_response-1048576": {
+          "completed": 10,
+          "p50_ms": 1234.2476629999908,
+          "p95_ms": 1426.4349789500127
+        },
+        "half_close-1024": {
+          "completed": 10,
+          "p50_ms": 26.754338499955566,
+          "p95_ms": 42.26748954999945
+        },
+        "half_close-65536": {
+          "completed": 10,
+          "p50_ms": 116.71839950000162,
+          "p95_ms": 208.69632295002694
+        },
+        "half_close-1048576": {
+          "completed": 10,
+          "p50_ms": 1113.4354509999866,
+          "p95_ms": 1452.7522621499909
+        }
+      },
+      "completed_throughput_streams": 8,
+      "throughput_bytes_each_direction": 21364736,
+      "verified_mib_per_second_each_direction": 1.0457037132555136,
+      "throughput_wall_seconds": 19.484486610999966,
+      "recovery": {
+        "status": "PASS",
+        "attempts": [
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "PASS",
+            "latency_ms": 28.41083300000946
+          }
+        ],
+        "fault_to_verified_ms": 3251.875592000033,
+        "relay_ready_ms": 1316.6132840000273,
+        "old_endpoint_verified": true
+      },
+      "resources": {
+        "relay": {
+          "peak_sampled_rss_bytes": 13185024,
+          "observed_cpu_seconds_by_pid": {
+            "5266": 2.83,
+            "5398": 0.0
+          }
+        },
+        "tunnel": {
+          "peak_sampled_rss_bytes": 130404352,
+          "observed_cpu_seconds_by_pid": {
+            "5274": 6.35
+          }
+        }
+      }
+    },
+    {
+      "condition": "loss",
+      "session": 2,
+      "status": "PASS",
+      "transaction_attempts": 60,
+      "completed_transactions": 60,
+      "transaction_bytes_each_direction": 22302720,
+      "transaction_cells": {
+        "request_response-1024": {
+          "completed": 10,
+          "p50_ms": 28.31222550000234,
+          "p95_ms": 34.29572110002538
+        },
+        "request_response-65536": {
+          "completed": 10,
+          "p50_ms": 109.00216649997674,
+          "p95_ms": 192.92117035000157
+        },
+        "request_response-1048576": {
+          "completed": 10,
+          "p50_ms": 983.2666220000306,
+          "p95_ms": 1384.8117776999968
+        },
+        "half_close-1024": {
+          "completed": 10,
+          "p50_ms": 25.904283000016903,
+          "p95_ms": 41.7144638000195
+        },
+        "half_close-65536": {
+          "completed": 10,
+          "p50_ms": 85.98972350000622,
+          "p95_ms": 145.8870409500036
+        },
+        "half_close-1048576": {
+          "completed": 10,
+          "p50_ms": 1139.1926924999893,
+          "p95_ms": 1417.486282100006
+        }
+      },
+      "completed_throughput_streams": 8,
+      "throughput_bytes_each_direction": 18743296,
+      "verified_mib_per_second_each_direction": 0.9704987140159889,
+      "throughput_wall_seconds": 18.418365467,
+      "recovery": {
+        "status": "PASS",
+        "attempts": [
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "FAILED",
+            "type": "ConnectionRefusedError",
+            "message": "[Errno 111] Connection refused"
+          },
+          {
+            "status": "PASS",
+            "latency_ms": 23.329629000045315
+          }
+        ],
+        "fault_to_verified_ms": 4751.679749999994,
+        "relay_ready_ms": 1316.2396230000013,
+        "old_endpoint_verified": true
+      },
+      "resources": {
+        "relay": {
+          "peak_sampled_rss_bytes": 13156352,
+          "observed_cpu_seconds_by_pid": {
+            "5423": 2.69,
+            "5550": 0.0
+          }
+        },
+        "tunnel": {
+          "peak_sampled_rss_bytes": 136368128,
+          "observed_cpu_seconds_by_pid": {
+            "5431": 6.59
+          }
+        }
+      }
+    }
+  ],
+  "totals": {
+    "sessions": 9,
+    "passed_sessions": 9,
+    "completed_transactions": 540,
+    "completed_throughput_streams": 72,
+    "transaction_bytes_each_direction": 200724480,
+    "throughput_bytes_each_direction": 897318912
+  }
+}

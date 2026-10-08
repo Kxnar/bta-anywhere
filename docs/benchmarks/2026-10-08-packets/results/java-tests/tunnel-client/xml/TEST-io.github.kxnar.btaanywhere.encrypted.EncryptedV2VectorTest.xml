@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kxnar.btaanywhere.encrypted.EncryptedV2VectorTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-08T19:54:18.565Z" hostname="KENARALIENWARE" time="0.031">
+  <properties/>
+  <testcase name="sharedV2FrameVectorsMatchDecoderAndRejectMalformedTraffic()" classname="io.github.kxnar.btaanywhere.encrypted.EncryptedV2VectorTest" time="0.02"/>
+  <testcase name="sharedAdmissionVectorsRejectExpiryRevocationReplayTamperingAndWrongIdentity()" classname="io.github.kxnar.btaanywhere.encrypted.EncryptedV2VectorTest" time="0.007"/>
+  <testcase name="sharedV2InvitationAndAuthVectorsMatchParsers()" classname="io.github.kxnar.btaanywhere.encrypted.EncryptedV2VectorTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,8 +1,6 @@
 name: Linux netem validation
 
 on:
-  push:
-    branches: [codex/netem-validation]
   workflow_dispatch:
 
 permissions:

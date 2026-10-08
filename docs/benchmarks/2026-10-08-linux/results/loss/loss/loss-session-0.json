@@ -1,0 +1,2264 @@
+{
+  "schema": 1,
+  "status": "PASS",
+  "session": 0,
+  "condition": "loss",
+  "seed": 1701,
+  "transactions": [
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1024,
+      "repeat": 0,
+      "status": "PASS",
+      "latency_ms": 37.29507100001683
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1024,
+      "repeat": 1,
+      "status": "PASS",
+      "latency_ms": 26.438175999999203
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1024,
+      "repeat": 2,
+      "status": "PASS",
+      "latency_ms": 32.48358799999096
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1024,
+      "repeat": 3,
+      "status": "PASS",
+      "latency_ms": 25.21705099997007
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1024,
+      "repeat": 4,
+      "status": "PASS",
+      "latency_ms": 27.342093000015666
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1024,
+      "repeat": 5,
+      "status": "PASS",
+      "latency_ms": 113.69631799999524
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1024,
+      "repeat": 6,
+      "status": "PASS",
+      "latency_ms": 26.49364199999127
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1024,
+      "repeat": 7,
+      "status": "PASS",
+      "latency_ms": 27.81083200000012
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1024,
+      "repeat": 8,
+      "status": "PASS",
+      "latency_ms": 26.210514000013063
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1024,
+      "repeat": 9,
+      "status": "PASS",
+      "latency_ms": 22.504566000009163
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 65536,
+      "repeat": 0,
+      "status": "PASS",
+      "latency_ms": 246.48136199999726
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 65536,
+      "repeat": 1,
+      "status": "PASS",
+      "latency_ms": 179.76889400000573
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 65536,
+      "repeat": 2,
+      "status": "PASS",
+      "latency_ms": 163.5731769999893
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 65536,
+      "repeat": 3,
+      "status": "PASS",
+      "latency_ms": 127.38722300002792
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 65536,
+      "repeat": 4,
+      "status": "PASS",
+      "latency_ms": 123.67678799995474
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 65536,
+      "repeat": 5,
+      "status": "PASS",
+      "latency_ms": 111.34968300001447
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 65536,
+      "repeat": 6,
+      "status": "PASS",
+      "latency_ms": 108.84293099996967
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 65536,
+      "repeat": 7,
+      "status": "PASS",
+      "latency_ms": 102.40774099997907
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 65536,
+      "repeat": 8,
+      "status": "PASS",
+      "latency_ms": 98.58540800001947
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 65536,
+      "repeat": 9,
+      "status": "PASS",
+      "latency_ms": 99.68120800004954
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1048576,
+      "repeat": 0,
+      "status": "PASS",
+      "latency_ms": 1325.0427620000096
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1048576,
+      "repeat": 1,
+      "status": "PASS",
+      "latency_ms": 1082.5366450000047
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1048576,
+      "repeat": 2,
+      "status": "PASS",
+      "latency_ms": 1055.0620120000076
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1048576,
+      "repeat": 3,
+      "status": "PASS",
+      "latency_ms": 1109.9085829999922
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1048576,
+      "repeat": 4,
+      "status": "PASS",
+      "latency_ms": 1090.8496449999916
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1048576,
+      "repeat": 5,
+      "status": "PASS",
+      "latency_ms": 1009.4659840000304
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1048576,
+      "repeat": 6,
+      "status": "PASS",
+      "latency_ms": 1021.3474949999863
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1048576,
+      "repeat": 7,
+      "status": "PASS",
+      "latency_ms": 1001.6825319999612
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1048576,
+      "repeat": 8,
+      "status": "PASS",
+      "latency_ms": 973.7299899999812
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1048576,
+      "repeat": 9,
+      "status": "PASS",
+      "latency_ms": 924.055734000035
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1024,
+      "repeat": 0,
+      "status": "PASS",
+      "latency_ms": 61.04558999999199
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1024,
+      "repeat": 1,
+      "status": "PASS",
+      "latency_ms": 25.33223199998247
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1024,
+      "repeat": 2,
+      "status": "PASS",
+      "latency_ms": 28.83408299999246
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1024,
+      "repeat": 3,
+      "status": "PASS",
+      "latency_ms": 26.04693099999622
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1024,
+      "repeat": 4,
+      "status": "PASS",
+      "latency_ms": 24.39372399999229
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1024,
+      "repeat": 5,
+      "status": "PASS",
+      "latency_ms": 21.848123999973268
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1024,
+      "repeat": 6,
+      "status": "PASS",
+      "latency_ms": 24.4325460000141
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1024,
+      "repeat": 7,
+      "status": "PASS",
+      "latency_ms": 24.547231000042302
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1024,
+      "repeat": 8,
+      "status": "PASS",
+      "latency_ms": 24.75718499999857
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1024,
+      "repeat": 9,
+      "status": "PASS",
+      "latency_ms": 24.600240000040685
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 65536,
+      "repeat": 0,
+      "status": "PASS",
+      "latency_ms": 85.29438900001196
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 65536,
+      "repeat": 1,
+      "status": "PASS",
+      "latency_ms": 86.46203199998581
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 65536,
+      "repeat": 2,
+      "status": "PASS",
+      "latency_ms": 87.46206199998596
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 65536,
+      "repeat": 3,
+      "status": "PASS",
+      "latency_ms": 90.10065300003589
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 65536,
+      "repeat": 4,
+      "status": "PASS",
+      "latency_ms": 142.49685599997974
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 65536,
+      "repeat": 5,
+      "status": "PASS",
+      "latency_ms": 88.19002400002773
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 65536,
+      "repeat": 6,
+      "status": "PASS",
+      "latency_ms": 80.21399299997256
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 65536,
+      "repeat": 7,
+      "status": "PASS",
+      "latency_ms": 77.70429800001466
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 65536,
+      "repeat": 8,
+      "status": "PASS",
+      "latency_ms": 93.64420299999665
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 65536,
+      "repeat": 9,
+      "status": "PASS",
+      "latency_ms": 111.64616299998897
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1048576,
+      "repeat": 0,
+      "status": "PASS",
+      "latency_ms": 951.148322999984
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1048576,
+      "repeat": 1,
+      "status": "PASS",
+      "latency_ms": 1047.1989870000016
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1048576,
+      "repeat": 2,
+      "status": "PASS",
+      "latency_ms": 1014.3423399999847
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1048576,
+      "repeat": 3,
+      "status": "PASS",
+      "latency_ms": 1163.289529999986
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1048576,
+      "repeat": 4,
+      "status": "PASS",
+      "latency_ms": 1146.0148620000155
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1048576,
+      "repeat": 5,
+      "status": "PASS",
+      "latency_ms": 954.5005420000052
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1048576,
+      "repeat": 6,
+      "status": "PASS",
+      "latency_ms": 1038.022570999999
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1048576,
+      "repeat": 7,
+      "status": "PASS",
+      "latency_ms": 1146.1674579999794
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1048576,
+      "repeat": 8,
+      "status": "PASS",
+      "latency_ms": 1169.3219190000264
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1048576,
+      "repeat": 9,
+      "status": "PASS",
+      "latency_ms": 963.9099690000421
+    }
+  ],
+  "resources": [
+    {
+      "at_seconds": 0.7116600479999988,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.0,
+        "rss_bytes": 8245248
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 0.95,
+        "rss_bytes": 91996160
+      }
+    },
+    {
+      "at_seconds": 1.2121399680000309,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.01,
+        "rss_bytes": 8507392
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 1.12,
+        "rss_bytes": 92782592
+      }
+    },
+    {
+      "at_seconds": 1.7125057480000123,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.03,
+        "rss_bytes": 8638464
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 1.26,
+        "rss_bytes": 94023680
+      }
+    },
+    {
+      "at_seconds": 2.2129155920000017,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.07,
+        "rss_bytes": 8638464
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 1.41,
+        "rss_bytes": 96923648
+      }
+    },
+    {
+      "at_seconds": 2.7132508849999795,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.09,
+        "rss_bytes": 9687040
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 1.51,
+        "rss_bytes": 97447936
+      }
+    },
+    {
+      "at_seconds": 3.2136395279999874,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.12,
+        "rss_bytes": 9687040
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 1.6,
+        "rss_bytes": 98099200
+      }
+    },
+    {
+      "at_seconds": 3.714022990999979,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.19,
+        "rss_bytes": 9687040
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 1.78,
+        "rss_bytes": 102846464
+      }
+    },
+    {
+      "at_seconds": 4.214370244999998,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.22,
+        "rss_bytes": 10735616
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 1.96,
+        "rss_bytes": 110182400
+      }
+    },
+    {
+      "at_seconds": 4.714695783000025,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.26,
+        "rss_bytes": 10735616
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 2.09,
+        "rss_bytes": 110182400
+      }
+    },
+    {
+      "at_seconds": 5.215117677000023,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.28,
+        "rss_bytes": 11784192
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 2.16,
+        "rss_bytes": 110313472
+      }
+    },
+    {
+      "at_seconds": 5.715488306999987,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.31,
+        "rss_bytes": 10919936
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 2.42,
+        "rss_bytes": 121143296
+      }
+    },
+    {
+      "at_seconds": 6.215834677000032,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.34,
+        "rss_bytes": 10919936
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 2.5,
+        "rss_bytes": 121274368
+      }
+    },
+    {
+      "at_seconds": 6.7162095319999935,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.37,
+        "rss_bytes": 10919936
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 2.55,
+        "rss_bytes": 123629568
+      }
+    },
+    {
+      "at_seconds": 7.216549934999989,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.4,
+        "rss_bytes": 11837440
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 2.62,
+        "rss_bytes": 123629568
+      }
+    },
+    {
+      "at_seconds": 7.716995170000018,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.42,
+        "rss_bytes": 10919936
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 2.72,
+        "rss_bytes": 123629568
+      }
+    },
+    {
+      "at_seconds": 8.217343113000027,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.47,
+        "rss_bytes": 11837440
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 2.84,
+        "rss_bytes": 123629568
+      }
+    },
+    {
+      "at_seconds": 8.717732167999998,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.48,
+        "rss_bytes": 11005952
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 2.9,
+        "rss_bytes": 123760640
+      }
+    },
+    {
+      "at_seconds": 9.218108496000013,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.53,
+        "rss_bytes": 11005952
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 2.96,
+        "rss_bytes": 123760640
+      }
+    },
+    {
+      "at_seconds": 9.718472587000008,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.54,
+        "rss_bytes": 11005952
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 3.22,
+        "rss_bytes": 125595648
+      }
+    },
+    {
+      "at_seconds": 10.218837853000025,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.59,
+        "rss_bytes": 12316672
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 3.27,
+        "rss_bytes": 115015680
+      }
+    },
+    {
+      "at_seconds": 10.71926546200001,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.6,
+        "rss_bytes": 12316672
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 3.31,
+        "rss_bytes": 117362688
+      }
+    },
+    {
+      "at_seconds": 11.219609832000003,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.65,
+        "rss_bytes": 12316672
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 3.46,
+        "rss_bytes": 117362688
+      }
+    },
+    {
+      "at_seconds": 11.72011296300002,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.67,
+        "rss_bytes": 12316672
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 3.7,
+        "rss_bytes": 120500224
+      }
+    },
+    {
+      "at_seconds": 12.220516534000012,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.71,
+        "rss_bytes": 12316672
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 3.84,
+        "rss_bytes": 120500224
+      }
+    },
+    {
+      "at_seconds": 12.720850245999998,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.73,
+        "rss_bytes": 12316672
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 4.09,
+        "rss_bytes": 120631296
+      }
+    },
+    {
+      "at_seconds": 13.22157512199999,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.77,
+        "rss_bytes": 12316672
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 4.14,
+        "rss_bytes": 120762368
+      }
+    },
+    {
+      "at_seconds": 13.721934473000033,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.78,
+        "rss_bytes": 12316672
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 4.19,
+        "rss_bytes": 120893440
+      }
+    },
+    {
+      "at_seconds": 14.222321954999984,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.81,
+        "rss_bytes": 12316672
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 4.21,
+        "rss_bytes": 120893440
+      }
+    },
+    {
+      "at_seconds": 14.72269522099998,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.82,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 4.28,
+        "rss_bytes": 125267968
+      }
+    },
+    {
+      "at_seconds": 15.223155071000008,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.86,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 4.42,
+        "rss_bytes": 125530112
+      }
+    },
+    {
+      "at_seconds": 15.723533479000025,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.88,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 4.45,
+        "rss_bytes": 125530112
+      }
+    },
+    {
+      "at_seconds": 16.22392017100003,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.92,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 4.57,
+        "rss_bytes": 125530112
+      }
+    },
+    {
+      "at_seconds": 16.72433306800002,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.94,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 4.61,
+        "rss_bytes": 125530112
+      }
+    },
+    {
+      "at_seconds": 17.224707019999983,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 0.98,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 4.64,
+        "rss_bytes": 125530112
+      }
+    },
+    {
+      "at_seconds": 17.725293367000006,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.01,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 4.67,
+        "rss_bytes": 125530112
+      }
+    },
+    {
+      "at_seconds": 18.225659532999998,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.02,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 4.7,
+        "rss_bytes": 125530112
+      }
+    },
+    {
+      "at_seconds": 18.726079828000024,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.06,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 4.75,
+        "rss_bytes": 125530112
+      }
+    },
+    {
+      "at_seconds": 19.226498099000025,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.08,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 4.79,
+        "rss_bytes": 125530112
+      }
+    },
+    {
+      "at_seconds": 19.729454793000002,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.13,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 4.84,
+        "rss_bytes": 125530112
+      }
+    },
+    {
+      "at_seconds": 20.229817518999994,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.14,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 4.88,
+        "rss_bytes": 125530112
+      }
+    },
+    {
+      "at_seconds": 20.73025697600002,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.18,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 4.96,
+        "rss_bytes": 125530112
+      }
+    },
+    {
+      "at_seconds": 21.230666361000033,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.2,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 4.98,
+        "rss_bytes": 125530112
+      }
+    },
+    {
+      "at_seconds": 21.733940340999993,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.25,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 5.02,
+        "rss_bytes": 125530112
+      }
+    },
+    {
+      "at_seconds": 22.234311386,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.27,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 5.05,
+        "rss_bytes": 125530112
+      }
+    },
+    {
+      "at_seconds": 22.734704276000002,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.31,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 5.08,
+        "rss_bytes": 125530112
+      }
+    },
+    {
+      "at_seconds": 23.235275833000003,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.33,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 5.13,
+        "rss_bytes": 125530112
+      }
+    },
+    {
+      "at_seconds": 23.735722253000006,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.35,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 5.15,
+        "rss_bytes": 125530112
+      }
+    },
+    {
+      "at_seconds": 24.236178616000018,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.39,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 5.2,
+        "rss_bytes": 125530112
+      }
+    },
+    {
+      "at_seconds": 24.73653234699998,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.41,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 5.24,
+        "rss_bytes": 125530112
+      }
+    },
+    {
+      "at_seconds": 25.23699390500002,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.45,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 5.33,
+        "rss_bytes": 125661184
+      }
+    },
+    {
+      "at_seconds": 25.737388807000002,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.51,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 5.45,
+        "rss_bytes": 125792256
+      }
+    },
+    {
+      "at_seconds": 26.237715756,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.55,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 5.49,
+        "rss_bytes": 125792256
+      }
+    },
+    {
+      "at_seconds": 26.738134220000006,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.58,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 5.54,
+        "rss_bytes": 125792256
+      }
+    },
+    {
+      "at_seconds": 27.238531626999986,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.6,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 5.62,
+        "rss_bytes": 125792256
+      }
+    },
+    {
+      "at_seconds": 27.738912234999987,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.63,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 5.64,
+        "rss_bytes": 125792256
+      }
+    },
+    {
+      "at_seconds": 28.239347367999983,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.64,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 5.68,
+        "rss_bytes": 125792256
+      }
+    },
+    {
+      "at_seconds": 28.739694345000032,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.66,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 5.73,
+        "rss_bytes": 126054400
+      }
+    },
+    {
+      "at_seconds": 29.240139623999994,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.68,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 5.87,
+        "rss_bytes": 126578688
+      }
+    },
+    {
+      "at_seconds": 29.740517177000015,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.71,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 5.91,
+        "rss_bytes": 126840832
+      }
+    },
+    {
+      "at_seconds": 30.24084112500003,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.73,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 5.95,
+        "rss_bytes": 127365120
+      }
+    },
+    {
+      "at_seconds": 30.741170855000007,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.76,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 6.0,
+        "rss_bytes": 127758336
+      }
+    },
+    {
+      "at_seconds": 31.242212018000032,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.78,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 6.1,
+        "rss_bytes": 128151552
+      }
+    },
+    {
+      "at_seconds": 31.742598858000008,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.81,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 6.15,
+        "rss_bytes": 128675840
+      }
+    },
+    {
+      "at_seconds": 32.24292211300002,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.84,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 6.18,
+        "rss_bytes": 129069056
+      }
+    },
+    {
+      "at_seconds": 32.74325279200002,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.86,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 6.22,
+        "rss_bytes": 129200128
+      }
+    },
+    {
+      "at_seconds": 33.243646935000015,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.88,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 6.24,
+        "rss_bytes": 129200128
+      }
+    },
+    {
+      "at_seconds": 33.74400413000001,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.9,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 6.27,
+        "rss_bytes": 129200128
+      }
+    },
+    {
+      "at_seconds": 34.24438492500002,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.94,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 6.31,
+        "rss_bytes": 129200128
+      }
+    },
+    {
+      "at_seconds": 34.74501976700003,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.96,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 6.42,
+        "rss_bytes": 129331200
+      }
+    },
+    {
+      "at_seconds": 35.245352534000006,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 1.98,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 6.47,
+        "rss_bytes": 129593344
+      }
+    },
+    {
+      "at_seconds": 35.745656896000014,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 2.0,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 6.51,
+        "rss_bytes": 129724416
+      }
+    },
+    {
+      "at_seconds": 36.246029125999996,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 2.03,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 6.53,
+        "rss_bytes": 129724416
+      }
+    },
+    {
+      "at_seconds": 36.74634027500002,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 2.05,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 6.56,
+        "rss_bytes": 129724416
+      }
+    },
+    {
+      "at_seconds": 37.246654643,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 2.07,
+        "rss_bytes": 13234176
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 6.58,
+        "rss_bytes": 129724416
+      }
+    },
+    {
+      "at_seconds": 37.747106066000015,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 2.1,
+        "rss_bytes": 13496320
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 6.63,
+        "rss_bytes": 129724416
+      }
+    },
+    {
+      "at_seconds": 38.24748846599999,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 2.13,
+        "rss_bytes": 13496320
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 6.68,
+        "rss_bytes": 129724416
+      }
+    },
+    {
+      "at_seconds": 38.74782475500001,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 2.16,
+        "rss_bytes": 13496320
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 6.71,
+        "rss_bytes": 129724416
+      }
+    },
+    {
+      "at_seconds": 39.24820599100002,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 2.18,
+        "rss_bytes": 13496320
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 6.74,
+        "rss_bytes": 129724416
+      }
+    },
+    {
+      "at_seconds": 39.748649709999995,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 2.22,
+        "rss_bytes": 13496320
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 6.78,
+        "rss_bytes": 129724416
+      }
+    },
+    {
+      "at_seconds": 40.249121160000016,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 2.25,
+        "rss_bytes": 13496320
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 6.83,
+        "rss_bytes": 129724416
+      }
+    },
+    {
+      "at_seconds": 40.74950118800001,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 2.28,
+        "rss_bytes": 13496320
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 6.88,
+        "rss_bytes": 129724416
+      }
+    },
+    {
+      "at_seconds": 41.25038453600001,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 2.32,
+        "rss_bytes": 13496320
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 6.94,
+        "rss_bytes": 129855488
+      }
+    },
+    {
+      "at_seconds": 41.75084329200001,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 2.35,
+        "rss_bytes": 13496320
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 6.97,
+        "rss_bytes": 129986560
+      }
+    },
+    {
+      "at_seconds": 42.25129757899998,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 2.39,
+        "rss_bytes": 13496320
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 7.02,
+        "rss_bytes": 129986560
+      }
+    },
+    {
+      "at_seconds": 42.751638157,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 2.42,
+        "rss_bytes": 13496320
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 7.05,
+        "rss_bytes": 129986560
+      }
+    },
+    {
+      "at_seconds": 43.25223944499999,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 2.46,
+        "rss_bytes": 13496320
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 7.1,
+        "rss_bytes": 129986560
+      }
+    },
+    {
+      "at_seconds": 43.752656253,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 2.5,
+        "rss_bytes": 13496320
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 7.14,
+        "rss_bytes": 130117632
+      }
+    },
+    {
+      "at_seconds": 44.253080781999984,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 2.53,
+        "rss_bytes": 13496320
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 7.18,
+        "rss_bytes": 130117632
+      }
+    },
+    {
+      "at_seconds": 44.753421747999994,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 2.57,
+        "rss_bytes": 13496320
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 7.22,
+        "rss_bytes": 130117632
+      }
+    },
+    {
+      "at_seconds": 45.25375850900002,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 2.6,
+        "rss_bytes": 13496320
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 7.24,
+        "rss_bytes": 130117632
+      }
+    },
+    {
+      "at_seconds": 45.754119858000024,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 2.63,
+        "rss_bytes": 13496320
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 7.26,
+        "rss_bytes": 130117632
+      }
+    },
+    {
+      "at_seconds": 46.25451942199999,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 2.68,
+        "rss_bytes": 13496320
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 7.29,
+        "rss_bytes": 130117632
+      }
+    },
+    {
+      "at_seconds": 46.75487628100001,
+      "phase": "relay_restart",
+      "relay": {
+        "pid": 5108,
+        "cpu_seconds": 2.73,
+        "rss_bytes": 13496320
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 7.32,
+        "rss_bytes": 130117632
+      }
+    },
+    {
+      "at_seconds": 47.25518109799998,
+      "phase": "relay_restart",
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 7.35,
+        "rss_bytes": 130379776
+      }
+    },
+    {
+      "at_seconds": 47.75553311700003,
+      "phase": "relay_restart",
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 7.36,
+        "rss_bytes": 130379776
+      }
+    },
+    {
+      "at_seconds": 48.256022109000014,
+      "phase": "relay_restart",
+      "relay": {
+        "pid": 5241,
+        "cpu_seconds": 0.0,
+        "rss_bytes": 7557120
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 7.36,
+        "rss_bytes": 135024640
+      }
+    },
+    {
+      "at_seconds": 48.756342053000026,
+      "phase": "relay_restart",
+      "relay": {
+        "pid": 5241,
+        "cpu_seconds": 0.0,
+        "rss_bytes": 7557120
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 7.36,
+        "rss_bytes": 135024640
+      }
+    },
+    {
+      "at_seconds": 49.25670297099998,
+      "phase": "relay_restart",
+      "relay": {
+        "pid": 5241,
+        "cpu_seconds": 0.0,
+        "rss_bytes": 8343552
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 7.38,
+        "rss_bytes": 135024640
+      }
+    },
+    {
+      "at_seconds": 49.75711543199998,
+      "phase": "relay_restart",
+      "relay": {
+        "pid": 5241,
+        "cpu_seconds": 0.0,
+        "rss_bytes": 8343552
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 7.38,
+        "rss_bytes": 135024640
+      }
+    },
+    {
+      "at_seconds": 50.25750607100002,
+      "phase": "relay_restart",
+      "relay": {
+        "pid": 5241,
+        "cpu_seconds": 0.0,
+        "rss_bytes": 8343552
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 7.38,
+        "rss_bytes": 135024640
+      }
+    },
+    {
+      "at_seconds": 50.75791334600001,
+      "phase": "relay_restart",
+      "relay": {
+        "pid": 5241,
+        "cpu_seconds": 0.0,
+        "rss_bytes": 8343552
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 7.38,
+        "rss_bytes": 135024640
+      }
+    },
+    {
+      "at_seconds": 51.25821978800002,
+      "phase": "relay_restart",
+      "relay": {
+        "pid": 5241,
+        "cpu_seconds": 0.0,
+        "rss_bytes": 8474624
+      },
+      "tunnel": {
+        "pid": 5116,
+        "cpu_seconds": 7.42,
+        "rss_bytes": 139816960
+      }
+    }
+  ],
+  "failures": [],
+  "workload": {
+    "transaction_timeout_seconds": 15,
+    "transaction_repeats_per_cell": 10,
+    "streams": 8,
+    "throughput_send_seconds": 8,
+    "drain_seconds": 120,
+    "restart_deadline_seconds": 100
+  },
+  "topology": "Linux-only QUIC campaign in two disposable namespaces; requires root.\n\nGuest and echo workload run in the host namespace, relay in the peer namespace.\nOnly UDP traverses netem: guest-to-relay TCP and readiness HTTP are unshaped.\nThis is a kernel impairment experiment on one machine, not a WAN or game demo.",
+  "netem_seed": null,
+  "netem_seed_note": "kernel random impairment; independent runs, not identical packet replay",
+  "sha256": {
+    "relay": "78588b64024aba0592ad100d4d519061b8b13d7a3090a58d0a59e299e165935b",
+    "tunnel": "dda39f601105d9565224e32fd247a40ccf5edfcb129388928c60f4d8cbde29e5",
+    "driver": "35437e09c21b9b00f2ee7afb40187655c1a4385ac11706dcff806ea46ce86a15",
+    "workload": "9683e43580847a24e862ecf338c349f66bb046b95443810d78a83ba1bbf2cffc"
+  },
+  "throughput": [
+    {
+      "seconds": 18.272397264999995,
+      "guest_to_host_bytes": 2031616,
+      "host_to_guest_bytes": 2031616,
+      "receive_calls_including_eof": 1633
+    },
+    {
+      "seconds": 20.69266535600002,
+      "guest_to_host_bytes": 2490368,
+      "host_to_guest_bytes": 2490368,
+      "receive_calls_including_eof": 2122
+    },
+    {
+      "seconds": 18.955823675999966,
+      "guest_to_host_bytes": 2162688,
+      "host_to_guest_bytes": 2162688,
+      "receive_calls_including_eof": 1640
+    },
+    {
+      "seconds": 20.777036625999983,
+      "guest_to_host_bytes": 2883584,
+      "host_to_guest_bytes": 2883584,
+      "receive_calls_including_eof": 2290
+    },
+    {
+      "seconds": 21.67657989999998,
+      "guest_to_host_bytes": 3735552,
+      "host_to_guest_bytes": 3735552,
+      "receive_calls_including_eof": 2048
+    },
+    {
+      "seconds": 18.570467633999954,
+      "guest_to_host_bytes": 1900544,
+      "host_to_guest_bytes": 1900544,
+      "receive_calls_including_eof": 1447
+    },
+    {
+      "seconds": 21.342404122000005,
+      "guest_to_host_bytes": 3080192,
+      "host_to_guest_bytes": 3080192,
+      "receive_calls_including_eof": 2305
+    },
+    {
+      "seconds": 21.46656020399996,
+      "guest_to_host_bytes": 3342336,
+      "host_to_guest_bytes": 3342336,
+      "receive_calls_including_eof": 2500
+    }
+  ],
+  "throughput_wall_seconds": 21.680941546999975,
+  "progress": [
+    {
+      "stream": 0,
+      "guest_send_bytes": 2031616,
+      "guest_receive_bytes": 2031616,
+      "echo_receive_bytes": 2031616,
+      "echo_send_bytes": 2031616,
+      "guest_connected": true,
+      "guest_write_closed": true,
+      "guest_read_eof": true,
+      "echo_connected": true,
+      "echo_read_eof": true,
+      "echo_write_closed": true,
+      "guest_error": null,
+      "echo_error": null
+    },
+    {
+      "stream": 1,
+      "guest_send_bytes": 2490368,
+      "guest_receive_bytes": 2490368,
+      "echo_receive_bytes": 2490368,
+      "echo_send_bytes": 2490368,
+      "guest_connected": true,
+      "guest_write_closed": true,
+      "guest_read_eof": true,
+      "echo_connected": true,
+      "echo_read_eof": true,
+      "echo_write_closed": true,
+      "guest_error": null,
+      "echo_error": null
+    },
+    {
+      "stream": 2,
+      "guest_send_bytes": 2162688,
+      "guest_receive_bytes": 2162688,
+      "echo_receive_bytes": 2162688,
+      "echo_send_bytes": 2162688,
+      "guest_connected": true,
+      "guest_write_closed": true,
+      "guest_read_eof": true,
+      "echo_connected": true,
+      "echo_read_eof": true,
+      "echo_write_closed": true,
+      "guest_error": null,
+      "echo_error": null
+    },
+    {
+      "stream": 3,
+      "guest_send_bytes": 2883584,
+      "guest_receive_bytes": 2883584,
+      "echo_receive_bytes": 2883584,
+      "echo_send_bytes": 2883584,
+      "guest_connected": true,
+      "guest_write_closed": true,
+      "guest_read_eof": true,
+      "echo_connected": true,
+      "echo_read_eof": true,
+      "echo_write_closed": true,
+      "guest_error": null,
+      "echo_error": null
+    },
+    {
+      "stream": 4,
+      "guest_send_bytes": 3735552,
+      "guest_receive_bytes": 3735552,
+      "echo_receive_bytes": 3735552,
+      "echo_send_bytes": 3735552,
+      "guest_connected": true,
+      "guest_write_closed": true,
+      "guest_read_eof": true,
+      "echo_connected": true,
+      "echo_read_eof": true,
+      "echo_write_closed": true,
+      "guest_error": null,
+      "echo_error": null
+    },
+    {
+      "stream": 5,
+      "guest_send_bytes": 1900544,
+      "guest_receive_bytes": 1900544,
+      "echo_receive_bytes": 1900544,
+      "echo_send_bytes": 1900544,
+      "guest_connected": true,
+      "guest_write_closed": true,
+      "guest_read_eof": true,
+      "echo_connected": true,
+      "echo_read_eof": true,
+      "echo_write_closed": true,
+      "guest_error": null,
+      "echo_error": null
+    },
+    {
+      "stream": 6,
+      "guest_send_bytes": 3080192,
+      "guest_receive_bytes": 3080192,
+      "echo_receive_bytes": 3080192,
+      "echo_send_bytes": 3080192,
+      "guest_connected": true,
+      "guest_write_closed": true,
+      "guest_read_eof": true,
+      "echo_connected": true,
+      "echo_read_eof": true,
+      "echo_write_closed": true,
+      "guest_error": null,
+      "echo_error": null
+    },
+    {
+      "stream": 7,
+      "guest_send_bytes": 3342336,
+      "guest_receive_bytes": 3342336,
+      "echo_receive_bytes": 3342336,
+      "echo_send_bytes": 3342336,
+      "guest_connected": true,
+      "guest_write_closed": true,
+      "guest_read_eof": true,
+      "echo_connected": true,
+      "echo_read_eof": true,
+      "echo_write_closed": true,
+      "guest_error": null,
+      "echo_error": null
+    }
+  ],
+  "recovery": {
+    "status": "PASS",
+    "attempts": [
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "PASS",
+        "latency_ms": 27.104997000037656
+      }
+    ],
+    "fault_to_verified_ms": 4554.361180000001,
+    "relay_ready_ms": 1316.1509180000053,
+    "old_endpoint_verified": true
+  },
+  "echo_errors_including_restart_probes": [],
+  "wall_seconds": 51.75529264400001,
+  "logs": [
+    "relay-out: \u001b[2m2026-10-08T20:09:19.163657Z\u001b[0m \u001b[32m INFO\u001b[0m relay ready \u001b[3mquic\u001b[0m\u001b[2m=\u001b[0m10.203.0.1:52581 \u001b[3mtcp_start\u001b[0m\u001b[2m=\u001b[0m44099 \u001b[3mtcp_end\u001b[0m\u001b[2m=\u001b[0m44100",
+    "relay-out: \u001b[2m2026-10-08T20:09:19.163701Z\u001b[0m \u001b[32m INFO\u001b[0m admin endpoint listening \u001b[3maddress\u001b[0m\u001b[2m=\u001b[0m10.203.0.1:52531",
+    "relay-out: \u001b[2m2026-10-08T20:09:19.836748Z\u001b[0m \u001b[32m INFO\u001b[0m registered relay session \u001b[3mport\u001b[0m\u001b[2m=\u001b[0m44099",
+    "relay-out: \u001b[2m2026-10-08T20:09:19.836780Z\u001b[0m \u001b[32m INFO\u001b[0m host control stream active \u001b[3mport\u001b[0m\u001b[2m=\u001b[0m44099 \u001b[3mresumed\u001b[0m\u001b[2m=\u001b[0mfalse \u001b[3mremote\u001b[0m\u001b[2m=\u001b[0m10.203.0.2:56221",
+    "tunnel-out: Relay selection: static",
+    "tunnel-out: Public endpoint: 10.203.0.1:44099",
+    "tunnel-out: Press Ctrl+C or type 'stop' to stop.",
+    "relay-out: \u001b[2m2026-10-08T20:10:05.859964Z\u001b[0m \u001b[32m INFO\u001b[0m shutdown requested",
+    "relay-out: \u001b[2m2026-10-08T20:10:05.860058Z\u001b[0m \u001b[33m WARN\u001b[0m control stream ended \u001b[3mport\u001b[0m\u001b[2m=\u001b[0m44099 \u001b[3merror\u001b[0m\u001b[2m=\u001b[0mI/O while reading or writing a frame: connection lost",
+    "relay-out: \u001b[2m2026-10-08T20:10:05.860086Z\u001b[0m \u001b[33m WARN\u001b[0m host control connection rejected or closed \u001b[3merror\u001b[0m\u001b[2m=\u001b[0mI/O while reading or writing a frame: connection lost",
+    "tunnel-err: Relay unavailable; retrying in 1000 ms: relay control stream closed",
+    "relay-out: \u001b[2m2026-10-08T20:10:07.077977Z\u001b[0m \u001b[32m INFO\u001b[0m relay ready \u001b[3mquic\u001b[0m\u001b[2m=\u001b[0m10.203.0.1:52581 \u001b[3mtcp_start\u001b[0m\u001b[2m=\u001b[0m44099 \u001b[3mtcp_end\u001b[0m\u001b[2m=\u001b[0m44100",
+    "relay-out: \u001b[2m2026-10-08T20:10:07.078008Z\u001b[0m \u001b[32m INFO\u001b[0m admin endpoint listening \u001b[3maddress\u001b[0m\u001b[2m=\u001b[0m10.203.0.1:52531",
+    "tunnel-err: Relay unavailable; retrying in 2179 ms: resume_rejected: resume token is invalid or expired",
+    "relay-out: \u001b[2m2026-10-08T20:10:08.071994Z\u001b[0m \u001b[33m WARN\u001b[0m host control connection rejected or closed \u001b[3merror\u001b[0m\u001b[2m=\u001b[0mresume token is invalid or expired",
+    "relay-out: \u001b[2m2026-10-08T20:10:10.298534Z\u001b[0m \u001b[32m INFO\u001b[0m registered relay session \u001b[3mport\u001b[0m\u001b[2m=\u001b[0m44099",
+    "relay-out: \u001b[2m2026-10-08T20:10:10.298568Z\u001b[0m \u001b[32m INFO\u001b[0m host control stream active \u001b[3mport\u001b[0m\u001b[2m=\u001b[0m44099 \u001b[3mresumed\u001b[0m\u001b[2m=\u001b[0mfalse \u001b[3mremote\u001b[0m\u001b[2m=\u001b[0m10.203.0.2:58884",
+    "relay-out: \u001b[2m2026-10-08T20:10:10.427678Z\u001b[0m \u001b[32m INFO\u001b[0m host closed session \u001b[3mport\u001b[0m\u001b[2m=\u001b[0m44099 \u001b[3mreason_length\u001b[0m\u001b[2m=\u001b[0m15",
+    "relay-out: \u001b[2m2026-10-08T20:10:10.427762Z\u001b[0m \u001b[32m INFO\u001b[0m released relay session \u001b[3mport\u001b[0m\u001b[2m=\u001b[0m44099",
+    "relay-out: \u001b[2m2026-10-08T20:10:10.446536Z\u001b[0m \u001b[32m INFO\u001b[0m shutdown requested"
+  ],
+  "lifecycle": {
+    "observed_cli_reconnect_attempts": 2,
+    "owned_process_exits": [
+      {
+        "label": "relay",
+        "started_utc": "2026-10-08T20:09:19.160504+00:00",
+        "returncode": 0,
+        "running": false
+      },
+      {
+        "label": "tunnel",
+        "started_utc": "2026-10-08T20:09:19.263984+00:00",
+        "returncode": 0,
+        "running": false
+      },
+      {
+        "label": "relay",
+        "started_utc": "2026-10-08T20:10:07.074811+00:00",
+        "returncode": 0,
+        "running": false
+      }
+    ]
+  },
+  "cleanup": {
+    "tunnel_clean": true,
+    "relay_clean": true,
+    "errors": []
+  }
+}

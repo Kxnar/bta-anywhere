@@ -115,7 +115,11 @@ jobs:
             --event-loop-threads 1
       - name: Test benchmark reporting
         shell: pwsh
-        run: python -m unittest discover -s scripts -p "test_benchmark*.py"
+        run: |
+          python -m unittest discover -s scripts -p "test_benchmark*.py"
+          python -m unittest discover -s scripts -p test_analyze_qlog.py
+          rustc scripts/reproduce_pacer_timestamp.rs -o .dev/pacer-timestamp.exe
+          .dev/pacer-timestamp.exe
       - name: Run short direct and relay benchmark smoke
         shell: pwsh
         run: |

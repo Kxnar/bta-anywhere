@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kxnar.btaanywhere.mod.hosting.ServerDistributionManagerTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-08T19:54:36.799Z" hostname="KENARALIENWARE" time="0.038">
+  <properties/>
+  <testcase name="replacesRuntimeWithoutRetainingStaleFiles()" classname="io.github.kxnar.btaanywhere.mod.hosting.ServerDistributionManagerTest" time="0.011"/>
+  <testcase name="checksumComparisonRejectsMismatch()" classname="io.github.kxnar.btaanywhere.mod.hosting.ServerDistributionManagerTest" time="0.005"/>
+  <testcase name="rejectsUnixSymbolicLinkEntry()" classname="io.github.kxnar.btaanywhere.mod.hosting.ServerDistributionManagerTest" time="0.007"/>
+  <testcase name="extractsNormalArchiveAndRejectsZipSlip()" classname="io.github.kxnar.btaanywhere.mod.hosting.ServerDistributionManagerTest" time="0.014"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

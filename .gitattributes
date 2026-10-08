@@ -12,3 +12,13 @@ docs/benchmarks/2026-10-08-scaling/results/*.pstats -text -diff -merge -filter
 # Journey evidence is hashed after privacy redaction; preserve its exact bytes.
 docs/validation/2026-10-08-journey/results/** -text -filter -whitespace
 docs/validation/2026-10-08-journey/source/** -text -filter -whitespace
+# Frozen transport and hosted Linux measurements retain exact manifest bytes.
+docs/benchmarks/2026-10-08-packets/results/** -text -filter -whitespace
+docs/benchmarks/2026-10-08-packets/source/** -text -filter -whitespace
+docs/benchmarks/2026-10-08-packets/captures/** -text -filter -whitespace
+docs/benchmarks/2026-10-08-linux/results/** -text -filter -whitespace
+docs/benchmarks/2026-10-08-linux/source/** -text -filter -whitespace
+docs/benchmarks/2026-10-08-packets/results/** linguist-generated=true
+docs/benchmarks/2026-10-08-packets/source/** linguist-generated=true
+docs/benchmarks/2026-10-08-linux/results/** linguist-generated=true
+docs/benchmarks/2026-10-08-linux/source/** linguist-generated=true

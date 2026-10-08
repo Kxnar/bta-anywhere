@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kxnar.btaanywhere.mod.hosting.HostControllerWorldOpenGuardTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-08T19:54:36.120Z" hostname="KENARALIENWARE" time="0.159">
+  <properties/>
+  <testcase name="failedValidationWithoutHandoffDoesNotKeepWorldBlocked()" classname="io.github.kxnar.btaanywhere.mod.hosting.HostControllerWorldOpenGuardTest" time="0.021"/>
+  <testcase name="failedBeforeSupervisorLaunchCanClearJournalBecauseNoProcessWasStarted()" classname="io.github.kxnar.btaanywhere.mod.hosting.HostControllerWorldOpenGuardTest" time="0.049"/>
+  <testcase name="failedPreJournalHandoffReleasesOriginalAfterNoProcessWasLaunched()" classname="io.github.kxnar.btaanywhere.mod.hosting.HostControllerWorldOpenGuardTest" time="0.028"/>
+  <testcase name="liveHandoffBlocksOriginalBeforeJournalExistsAndReleasesAfterCleanStop()" classname="io.github.kxnar.btaanywhere.mod.hosting.HostControllerWorldOpenGuardTest" time="0.033"/>
+  <testcase name="showcaseHandoffLeavesOriginalAvailable()" classname="io.github.kxnar.btaanywhere.mod.hosting.HostControllerWorldOpenGuardTest" time="0.027"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

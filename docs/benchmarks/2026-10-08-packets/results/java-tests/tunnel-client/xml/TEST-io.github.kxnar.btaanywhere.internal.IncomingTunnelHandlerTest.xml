@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kxnar.btaanywhere.internal.IncomingTunnelHandlerTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-08T19:54:18.844Z" hostname="KENARALIENWARE" time="0.102">
+  <properties/>
+  <testcase name="rejectedConnectHandoffClosesLocalSocketAndReleasesPendingPayload()" classname="io.github.kxnar.btaanywhere.internal.IncomingTunnelHandlerTest" time="0.01"/>
+  <testcase name="inputEofDuringConnectRetainsPayloadUntilHandoffOrClose()" classname="io.github.kxnar.btaanywhere.internal.IncomingTunnelHandlerTest" time="0.003"/>
+  <testcase name="pendingMegabyteAndEofReachRealLocalSocketAfterConnectHandoff()" classname="io.github.kxnar.btaanywhere.internal.IncomingTunnelHandlerTest" time="0.078"/>
+  <testcase name="rejectsMalformedOrUnboundedRemoteAddresses()" classname="io.github.kxnar.btaanywhere.internal.IncomingTunnelHandlerTest" time="0.001"/>
+  <testcase name="acceptsSocketAddressesProducedByTheRustRelay()" classname="io.github.kxnar.btaanywhere.internal.IncomingTunnelHandlerTest" time="0.001"/>
+  <testcase name="pendingPayloadRemainsBoundedAndIsReleasedOnOverflow()" classname="io.github.kxnar.btaanywhere.internal.IncomingTunnelHandlerTest" time="0.002"/>
+  <testcase name="retainsAdditionalPayloadWhileLocalConnectionIsPending()" classname="io.github.kxnar.btaanywhere.internal.IncomingTunnelHandlerTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

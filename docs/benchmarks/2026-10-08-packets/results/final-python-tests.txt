@@ -1,0 +1,29 @@
+......usage: python.exe -m unittest [-h] --relay-binary RELAY_BINARY
+                              --tunnel-jar TUNNEL_JAR [--java JAVA]
+                              --output OUTPUT [--seed SEED]
+                              [--existing-stream-observation-seconds EXISTING_STREAM_OBSERVATION_SECONDS]
+python.exe -m unittest: error: --existing-stream-observation-seconds must be between 1 and 180
+usage: python.exe -m unittest [-h] --relay-binary RELAY_BINARY
+                              --tunnel-jar TUNNEL_JAR [--java JAVA]
+                              --output OUTPUT [--seed SEED]
+                              [--existing-stream-observation-seconds EXISTING_STREAM_OBSERVATION_SECONDS]
+python.exe -m unittest: error: --existing-stream-observation-seconds must be between 1 and 180
+usage: python.exe -m unittest [-h] --relay-binary RELAY_BINARY
+                              --tunnel-jar TUNNEL_JAR [--java JAVA]
+                              --output OUTPUT [--seed SEED]
+                              [--existing-stream-observation-seconds EXISTING_STREAM_OBSERVATION_SECONDS]
+python.exe -m unittest: error: --existing-stream-observation-seconds must be between 1 and 180
+usage: python.exe -m unittest [-h] --relay-binary RELAY_BINARY
+                              --tunnel-jar TUNNEL_JAR [--java JAVA]
+                              --output OUTPUT [--seed SEED]
+                              [--existing-stream-observation-seconds EXISTING_STREAM_OBSERVATION_SECONDS]
+python.exe -m unittest: error: --existing-stream-observation-seconds must be between 1 and 180
+............................................{'type': 'OSError', 'message': 'missing java'}
+...............................................
+----------------------------------------------------------------------
+Ran 97 tests in 10.358s
+
+OK
+FAILED: <user>\AppData\Local\Temp\tmpuw9u5tec\result.json
+FAILED: <user>\AppData\Local\Temp\tmpceay4hee\failed.json and <user>\AppData\Local\Temp\tmpceay4hee\failed.md
+<user>\AppData\Local\Temp\tmpnwrd2vez\summary\summary.md
