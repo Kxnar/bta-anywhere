@@ -166,6 +166,17 @@ Windows classifier and Netty core version. Release Rust source is unchanged.
 checkout line endings. Runtime binaries can differ in ZIP/build metadata after
 a fresh build; the frozen hashes identify the original measured artifacts.
 
+The retained patch has Windows CRLF line endings. A dry run against LF Git
+blobs rejected its context; normalizing only the patch's CRLF to LF made all
+three patched files match the measured source after the same line-ending
+normalization. Keep the original hashed patch intact. In a separate checkout
+of `7226336`, using a saved copy of this archive, apply it as follows:
+
+```powershell
+python -c "from pathlib import Path; Path('baseline-lf.patch').write_bytes(Path(r'<saved-archive>/source/baseline-source.patch').read_bytes().replace(b'\r\n', b'\n'))"
+git apply baseline-lf.patch
+```
+
 ```powershell
 python scripts/benchmark_jitter_diagnostics.py --relay-binary <release-relay.exe> --tunnel-jar <completed-baseline.jar> --condition jitter-10ms-2ms --seconds 8 --drain 120 --streams 8 --seed 1701 --qlog --output <fresh-baseline.json>
 python scripts/benchmark_jitter_diagnostics.py --relay-binary <release-relay.exe> --tunnel-jar <completed-candidate.jar> --condition loss-10ms-2ms-1pct --seconds 8 --drain 120 --streams 8 --seed 1701 --qlog --output <fresh-candidate.json>
