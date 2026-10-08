@@ -1,0 +1,26 @@
+Rust CI test evidence excerpt (selected invocation and result lines; not a complete job log).
+Exact HEAD: b7961e1c87d953a28818a9a78bb0223a2d3ceb5d
+Run: https://github.com/Kxnar/bta-anywhere/actions/runs/37706673912
+Full job log: https://github.com/Kxnar/bta-anywhere/actions/runs/37706673912/job/113082573892
+Job: Rust relay (Windows x86-64); conclusion: success
+
+Aggregate from 8 test-result summaries: 46 passed; 0 failed; 0 ignored.
+
+Rust relay (Windows x86-64)	Test	﻿2026-10-08T00:15:53.0775296Z ##[group]Run cargo test --locked --all
+Rust relay (Windows x86-64)	Test	2026-10-08T00:15:53.0775694Z ^[[36;1mcargo test --locked --all^[[0m
+Rust relay (Windows x86-64)	Test	2026-10-08T00:17:08.0809745Z running 0 tests
+Rust relay (Windows x86-64)	Test	2026-10-08T00:17:08.0814142Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Rust relay (Windows x86-64)	Test	2026-10-08T00:17:08.0937007Z running 0 tests
+Rust relay (Windows x86-64)	Test	2026-10-08T00:17:08.0937655Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Rust relay (Windows x86-64)	Test	2026-10-08T00:17:08.1078931Z running 6 tests
+Rust relay (Windows x86-64)	Test	2026-10-08T00:17:12.0066459Z test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.90s
+Rust relay (Windows x86-64)	Test	2026-10-08T00:17:12.0206605Z running 3 tests
+Rust relay (Windows x86-64)	Test	2026-10-08T00:17:12.0294243Z test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+Rust relay (Windows x86-64)	Test	2026-10-08T00:17:12.0428364Z running 25 tests
+Rust relay (Windows x86-64)	Test	2026-10-08T00:17:12.2500240Z test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+Rust relay (Windows x86-64)	Test	2026-10-08T00:17:12.2633836Z running 12 tests
+Rust relay (Windows x86-64)	Test	2026-10-08T00:17:12.2689478Z test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+Rust relay (Windows x86-64)	Test	2026-10-08T00:17:12.3727624Z running 0 tests
+Rust relay (Windows x86-64)	Test	2026-10-08T00:17:12.3728651Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Rust relay (Windows x86-64)	Test	2026-10-08T00:17:12.4429071Z running 0 tests
+Rust relay (Windows x86-64)	Test	2026-10-08T00:17:12.4429937Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

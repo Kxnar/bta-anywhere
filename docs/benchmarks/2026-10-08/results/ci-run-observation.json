@@ -1,0 +1,195 @@
+{
+  "schema_version": 1,
+  "evidence_kind": "completed_remote_ci",
+  "run_id": 37708979889,
+  "exact_head": "4717790f3154f23a8dd8c6a080d54b06dadb6dbc",
+  "run_url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37708979889",
+  "status": "completed",
+  "conclusion": "failure",
+  "jobs": [
+    {
+      "id": 113090101497,
+      "name": "Windows relay-to-tunnel integration",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37708979889/job/113090101497",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install Rust 1.85",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build integration artifacts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Seeded protocol corpus smoke",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run concurrent byte-exact integration test",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run serial Windows half-close smoke test",
+          "conclusion": "success"
+        },
+        {
+          "name": "Test benchmark reporting",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run short direct and relay benchmark smoke",
+          "conclusion": "failure"
+        },
+        {
+          "name": "Retain benchmark evidence, including failures",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 113090101669,
+      "name": "Java and native QUIC (Windows x86-64)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37708979889/job/113090101669",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c",
+          "conclusion": "success"
+        },
+        {
+          "name": "Validate Gradle wrapper",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build and test",
+          "conclusion": "success"
+        },
+        {
+          "name": "Load shaded native QUIC transport",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 113090101720,
+      "name": "Rust relay (Windows x86-64)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37708979889/job/113090101720",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install Rust 1.85",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check formatting",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check dependency licences",
+          "conclusion": "success"
+        },
+        {
+          "name": "Lint",
+          "conclusion": "success"
+        },
+        {
+          "name": "Test",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 113090101963,
+      "name": "Attribution audit",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37708979889/job/113090101963",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Reject agent authorship trailers",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ]
+}

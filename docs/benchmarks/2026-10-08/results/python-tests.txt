@@ -1,0 +1,8 @@
+.................................{'type': 'OSError', 'message': 'missing java'}
+..................
+----------------------------------------------------------------------
+Ran 51 tests in 9.196s
+
+OK
+FAILED: <temporary-directory>\result.json
+FAILED: <temporary-directory>\failed.json and <temporary-directory>\failed.md

@@ -1,0 +1,28 @@
+...usage: python.exe -m unittest [-h] --relay-binary RELAY_BINARY
+                              --tunnel-jar TUNNEL_JAR [--java JAVA]
+                              --output OUTPUT [--seed SEED]
+                              [--existing-stream-observation-seconds EXISTING_STREAM_OBSERVATION_SECONDS]
+python.exe -m unittest: error: --existing-stream-observation-seconds must be between 1 and 180
+usage: python.exe -m unittest [-h] --relay-binary RELAY_BINARY
+                              --tunnel-jar TUNNEL_JAR [--java JAVA]
+                              --output OUTPUT [--seed SEED]
+                              [--existing-stream-observation-seconds EXISTING_STREAM_OBSERVATION_SECONDS]
+python.exe -m unittest: error: --existing-stream-observation-seconds must be between 1 and 180
+usage: python.exe -m unittest [-h] --relay-binary RELAY_BINARY
+                              --tunnel-jar TUNNEL_JAR [--java JAVA]
+                              --output OUTPUT [--seed SEED]
+                              [--existing-stream-observation-seconds EXISTING_STREAM_OBSERVATION_SECONDS]
+python.exe -m unittest: error: --existing-stream-observation-seconds must be between 1 and 180
+usage: python.exe -m unittest [-h] --relay-binary RELAY_BINARY
+                              --tunnel-jar TUNNEL_JAR [--java JAVA]
+                              --output OUTPUT [--seed SEED]
+                              [--existing-stream-observation-seconds EXISTING_STREAM_OBSERVATION_SECONDS]
+python.exe -m unittest: error: --existing-stream-observation-seconds must be between 1 and 180
+......................................{'type': 'OSError', 'message': 'missing java'}
+...................
+----------------------------------------------------------------------
+Ran 60 tests in 9.108s
+
+OK
+FAILED: <temporary-directory>\result.json
+FAILED: <temporary-directory>\failed.json and <temporary-directory>\failed.md

@@ -1,0 +1,18 @@
+<testsuite name="io.github.kxnar.btaanywhere.internal.IncomingTunnelHandlerTest" tests="1" skipped="0" failures="1" errors="0" timestamp="2026-10-07T23:44:58.768Z" hostname="windows-loopback-host" time="0.21">
+  <properties />
+  <testcase name="retainsAdditionalPayloadWhileLocalConnectionIsPending()" classname="io.github.kxnar.btaanywhere.internal.IncomingTunnelHandlerTest" time="0.197">
+    <failure message="org.opentest4j.AssertionFailedError: a second read during connect must not close the stream ==&gt; expected: &lt;true&gt; but was: &lt;false&gt;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: a second read during connect must not close the stream ==&gt; expected: &lt;true&gt; but was: &lt;false&gt;
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:214)
+	at io.github.kxnar.btaanywhere.internal.IncomingTunnelHandlerTest.retainsAdditionalPayloadWhileLocalConnectionIsPending(IncomingTunnelHandlerTest.java:29)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+</failure>
+  </testcase>
+  <system-out />
+  <system-err />
+</testsuite>

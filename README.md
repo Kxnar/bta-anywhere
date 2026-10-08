@@ -10,6 +10,10 @@ Use a disposable world while testing.
 
 JDK 21 and Rust 1.85+ are needed. See [setup](docs/setup.md) for build commands.
 
+See the [benchmark procedure](docs/benchmarking.md) and the
+[Windows loopback reliability report](docs/benchmarks/2026-10-08/README.md)
+for measured results, retained failures and reproduction details.
+
 ## License
 
 [Apache-2.0](LICENSE). See [third-party notices](THIRD_PARTY_NOTICES.md) for dependencies and references.

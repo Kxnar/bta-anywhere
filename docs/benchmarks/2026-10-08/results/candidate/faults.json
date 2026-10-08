@@ -1,0 +1,468 @@
+{
+  "schema_version": 1,
+  "profile": "fault-matrix",
+  "status": "FAILED",
+  "cases": [
+    {
+      "scenario": "eight_slow_receivers",
+      "status": "PASS",
+      "streams": [
+        {
+          "stream": 0,
+          "status": "PASS",
+          "verified_bytes": 1048576,
+          "payload_sha256": "16611e41af31a782a943b359a5d2126f29d856b0d777fd7421e6769d81c8a51f",
+          "eof": true,
+          "receive_chunk_bytes": 4096,
+          "receive_buffer_requested_bytes": 4096,
+          "receive_delay_seconds": 0.01,
+          "receive_buffer_actual_bytes": 4096,
+          "elapsed_seconds": 2.9406562999938615
+        },
+        {
+          "stream": 1,
+          "status": "PASS",
+          "verified_bytes": 1048576,
+          "payload_sha256": "a450b6f2b0d25e2a625eb4f5543a0f309e658d89244622ab33c6a8ec7a4bce2c",
+          "eof": true,
+          "receive_chunk_bytes": 4096,
+          "receive_buffer_requested_bytes": 4096,
+          "receive_delay_seconds": 0.01,
+          "receive_buffer_actual_bytes": 4096,
+          "elapsed_seconds": 2.935077400004957
+        },
+        {
+          "stream": 2,
+          "status": "PASS",
+          "verified_bytes": 1048576,
+          "payload_sha256": "54b54bbf2b37703ad11d5a0453e152d936f7e56d09d6d8624c8d9ce955e91515",
+          "eof": true,
+          "receive_chunk_bytes": 4096,
+          "receive_buffer_requested_bytes": 4096,
+          "receive_delay_seconds": 0.01,
+          "receive_buffer_actual_bytes": 4096,
+          "elapsed_seconds": 2.938482400000794
+        },
+        {
+          "stream": 3,
+          "status": "PASS",
+          "verified_bytes": 1048576,
+          "payload_sha256": "24e3f0b82b1fe53ceced45ac5f579391cd7c493f085120fa77d0359264b4fc4c",
+          "eof": true,
+          "receive_chunk_bytes": 4096,
+          "receive_buffer_requested_bytes": 4096,
+          "receive_delay_seconds": 0.01,
+          "receive_buffer_actual_bytes": 4096,
+          "elapsed_seconds": 2.9400942999927793
+        },
+        {
+          "stream": 4,
+          "status": "PASS",
+          "verified_bytes": 1048576,
+          "payload_sha256": "c9fe26cf4975c3e436384f5d752c9758df740a9e94a1ca1967d3a8dc9973c870",
+          "eof": true,
+          "receive_chunk_bytes": 4096,
+          "receive_buffer_requested_bytes": 4096,
+          "receive_delay_seconds": 0.01,
+          "receive_buffer_actual_bytes": 4096,
+          "elapsed_seconds": 2.932887799994205
+        },
+        {
+          "stream": 5,
+          "status": "PASS",
+          "verified_bytes": 1048576,
+          "payload_sha256": "ad26f821b6a0bade26c85eff64511989744e5d7508bce5fec2a25a895e0489df",
+          "eof": true,
+          "receive_chunk_bytes": 4096,
+          "receive_buffer_requested_bytes": 4096,
+          "receive_delay_seconds": 0.01,
+          "receive_buffer_actual_bytes": 4096,
+          "elapsed_seconds": 2.924981600008323
+        },
+        {
+          "stream": 6,
+          "status": "PASS",
+          "verified_bytes": 1048576,
+          "payload_sha256": "b2ba913362dbfd89918bbe3694adbb19590c85415b2a1500f2307f863f58cf8c",
+          "eof": true,
+          "receive_chunk_bytes": 4096,
+          "receive_buffer_requested_bytes": 4096,
+          "receive_delay_seconds": 0.01,
+          "receive_buffer_actual_bytes": 4096,
+          "elapsed_seconds": 2.9191640999924857
+        },
+        {
+          "stream": 7,
+          "status": "PASS",
+          "verified_bytes": 1048576,
+          "payload_sha256": "680f6ee3eb539fbe5138ecb28d1aef64ff6a79e9e28429782d030bddcb6df70c",
+          "eof": true,
+          "receive_chunk_bytes": 4096,
+          "receive_buffer_requested_bytes": 4096,
+          "receive_delay_seconds": 0.01,
+          "receive_buffer_actual_bytes": 4096,
+          "elapsed_seconds": 2.9223877000040375
+        }
+      ],
+      "process_before": {
+        "time_monotonic": 116402.2001393,
+        "relay": {
+          "exit_code": null,
+          "cpu_seconds": 0.234375,
+          "working_set_bytes": 9564160,
+          "peak_working_set_bytes": 9564160
+        },
+        "tunnel": {
+          "exit_code": null,
+          "cpu_seconds": 0.796875,
+          "working_set_bytes": 101498880,
+          "peak_working_set_bytes": 101498880
+        }
+      },
+      "process_samples": [
+        {
+          "time_monotonic": 116402.7116649,
+          "relay": {
+            "exit_code": null,
+            "cpu_seconds": 0.421875,
+            "working_set_bytes": 19296256,
+            "peak_working_set_bytes": 19296256
+          },
+          "tunnel": {
+            "exit_code": null,
+            "cpu_seconds": 3.203125,
+            "working_set_bytes": 180600832,
+            "peak_working_set_bytes": 201232384
+          }
+        },
+        {
+          "time_monotonic": 116403.2136165,
+          "relay": {
+            "exit_code": null,
+            "cpu_seconds": 0.4375,
+            "working_set_bytes": 18337792,
+            "peak_working_set_bytes": 19296256
+          },
+          "tunnel": {
+            "exit_code": null,
+            "cpu_seconds": 3.203125,
+            "working_set_bytes": 180600832,
+            "peak_working_set_bytes": 201232384
+          }
+        },
+        {
+          "time_monotonic": 116403.7280939,
+          "relay": {
+            "exit_code": null,
+            "cpu_seconds": 0.4375,
+            "working_set_bytes": 16142336,
+            "peak_working_set_bytes": 19296256
+          },
+          "tunnel": {
+            "exit_code": null,
+            "cpu_seconds": 3.203125,
+            "working_set_bytes": 180600832,
+            "peak_working_set_bytes": 201232384
+          }
+        },
+        {
+          "time_monotonic": 116404.2406903,
+          "relay": {
+            "exit_code": null,
+            "cpu_seconds": 0.453125,
+            "working_set_bytes": 15081472,
+            "peak_working_set_bytes": 19296256
+          },
+          "tunnel": {
+            "exit_code": null,
+            "cpu_seconds": 3.203125,
+            "working_set_bytes": 180600832,
+            "peak_working_set_bytes": 201232384
+          }
+        },
+        {
+          "time_monotonic": 116404.7491059,
+          "relay": {
+            "exit_code": null,
+            "cpu_seconds": 0.453125,
+            "working_set_bytes": 12558336,
+            "peak_working_set_bytes": 19296256
+          },
+          "tunnel": {
+            "exit_code": null,
+            "cpu_seconds": 3.203125,
+            "working_set_bytes": 180600832,
+            "peak_working_set_bytes": 201232384
+          }
+        }
+      ],
+      "active_connections_final": 0.0,
+      "process_after": {
+        "time_monotonic": 116405.1867855,
+        "relay": {
+          "exit_code": null,
+          "cpu_seconds": 0.453125,
+          "working_set_bytes": 11501568,
+          "peak_working_set_bytes": 19296256
+        },
+        "tunnel": {
+          "exit_code": null,
+          "cpu_seconds": 3.203125,
+          "working_set_bytes": 180535296,
+          "peak_working_set_bytes": 201232384
+        }
+      }
+    },
+    {
+      "scenario": "tunnel_process_termination",
+      "status": "FAILED",
+      "existing_stream": {
+        "status": "FAILED",
+        "verified_bytes": 4096,
+        "eof": false,
+        "established_before_fault": true,
+        "post_fault_verified_bytes": 0,
+        "payload_sha256": "34b168ac53d248bf72689c1f2dee0a87ac8f2e38cf80e10214925b0665e6c92f",
+        "existing_stream_survived": false,
+        "failure": {
+          "type": "TimeoutError",
+          "message": "existing stream exceeded observation window"
+        }
+      },
+      "new_stream_recovery": {
+        "available": true,
+        "new_stream_byte_exact": true,
+        "new_stream_eof": true,
+        "attempts": 1,
+        "payload_sha256": "81686c05351e5a69152d74e6db2ba73d7a6e03fea725bf9cb7f633c4fc421109",
+        "payload_bytes": 65536,
+        "attempt_failures": [],
+        "elapsed_seconds": 0.031549099992844276,
+        "completion_from_fault_onset_seconds": 0.581329900000128,
+        "completion_from_forwarding_gate_seconds": 0.03191550000337884
+      },
+      "endpoint_before_fault": 59615,
+      "process_before": {
+        "time_monotonic": 116405.1868475,
+        "relay": {
+          "exit_code": null,
+          "cpu_seconds": 0.453125,
+          "working_set_bytes": 11501568,
+          "peak_working_set_bytes": 19296256
+        },
+        "tunnel": {
+          "exit_code": null,
+          "cpu_seconds": 3.203125,
+          "working_set_bytes": 180535296,
+          "peak_working_set_bytes": 201232384
+        }
+      },
+      "fault_onset_monotonic": 116405.2035597,
+      "process_restart": {
+        "scenario": "tunnel_process_restart_with_new_in_memory_state",
+        "available": true,
+        "old_port": 59615,
+        "new_port": 59616,
+        "old_process_terminated": true,
+        "endpoint_retained": false,
+        "completion_ms": 549.4055000017397,
+        "bridge_loopback_port": 61719,
+        "relay_port_range": [
+          59615,
+          59616
+        ]
+      },
+      "forwarding_available_monotonic": 116405.7529741,
+      "endpoint_after_fault": 59616,
+      "endpoint_retained": false,
+      "process_after": {
+        "time_monotonic": 116415.8135507,
+        "relay": {
+          "exit_code": null,
+          "cpu_seconds": 0.484375,
+          "working_set_bytes": 11776000,
+          "peak_working_set_bytes": 19296256
+        },
+        "tunnel": {
+          "exit_code": null,
+          "cpu_seconds": 1.21875,
+          "working_set_bytes": 108191744,
+          "peak_working_set_bytes": 110645248
+        }
+      },
+      "idle_failure": {
+        "type": "TimeoutError",
+        "message": "timed out waiting for active streams to drain: None"
+      }
+    },
+    {
+      "scenario": "udp_drop_55_seconds",
+      "status": "PASS",
+      "existing_stream": {
+        "status": "FAILED",
+        "verified_bytes": 4096,
+        "eof": false,
+        "established_before_fault": true,
+        "post_fault_verified_bytes": 0,
+        "payload_sha256": "34b168ac53d248bf72689c1f2dee0a87ac8f2e38cf80e10214925b0665e6c92f",
+        "existing_stream_survived": false,
+        "failure": {
+          "type": "AssertionError",
+          "message": "early EOF after 0/4096 bytes"
+        }
+      },
+      "new_stream_recovery": {
+        "available": true,
+        "new_stream_byte_exact": true,
+        "new_stream_eof": true,
+        "attempts": 8,
+        "payload_sha256": "81686c05351e5a69152d74e6db2ba73d7a6e03fea725bf9cb7f633c4fc421109",
+        "payload_bytes": 65536,
+        "attempt_failures": [
+          {
+            "type": "ConnectionAbortedError",
+            "message": "[WinError 10053] An established connection was aborted by the software in your host machine"
+          },
+          {
+            "type": "ConnectionAbortedError",
+            "message": "[WinError 10053] An established connection was aborted by the software in your host machine"
+          },
+          {
+            "type": "ConnectionAbortedError",
+            "message": "[WinError 10053] An established connection was aborted by the software in your host machine"
+          },
+          {
+            "type": "ConnectionAbortedError",
+            "message": "[WinError 10053] An established connection was aborted by the software in your host machine"
+          },
+          {
+            "type": "ConnectionAbortedError",
+            "message": "[WinError 10053] An established connection was aborted by the software in your host machine"
+          },
+          {
+            "type": "ConnectionAbortedError",
+            "message": "[WinError 10053] An established connection was aborted by the software in your host machine"
+          },
+          {
+            "type": "ConnectionAbortedError",
+            "message": "[WinError 10053] An established connection was aborted by the software in your host machine"
+          }
+        ],
+        "elapsed_seconds": 1.536359799996717,
+        "completion_from_fault_onset_seconds": 56.53689970000414,
+        "completion_from_forwarding_gate_seconds": 1.5368959000043105
+      },
+      "endpoint_before_fault": 59616,
+      "process_before": {
+        "time_monotonic": 116425.8325928,
+        "relay": {
+          "exit_code": null,
+          "cpu_seconds": 0.484375,
+          "working_set_bytes": 11386880,
+          "peak_working_set_bytes": 19296256
+        },
+        "tunnel": {
+          "exit_code": null,
+          "cpu_seconds": 1.25,
+          "working_set_bytes": 108277760,
+          "peak_working_set_bytes": 110645248
+        }
+      },
+      "fault_onset_monotonic": 116425.8576988,
+      "udp_drop": {
+        "configured_seconds": 55,
+        "scheduled_gate_seconds": 55.0,
+        "drop_onset_monotonic": 116425.8577026,
+        "forwarding_gate_deadline_monotonic": 116480.8577026,
+        "drop_wait_finished_monotonic": 116480.8579381,
+        "dropped_datagrams": 55
+      },
+      "forwarding_available_monotonic": 116480.8579462,
+      "endpoint_after_fault": 59616,
+      "endpoint_retained": true,
+      "process_after": {
+        "time_monotonic": 116487.4041762,
+        "relay": {
+          "exit_code": null,
+          "cpu_seconds": 0.5,
+          "working_set_bytes": 10911744,
+          "peak_working_set_bytes": 19296256
+        },
+        "tunnel": {
+          "exit_code": null,
+          "cpu_seconds": 1.46875,
+          "working_set_bytes": 131280896,
+          "peak_working_set_bytes": 132104192
+        }
+      },
+      "active_connections_final": 0.0
+    }
+  ],
+  "started_utc": "2026-10-08T00:33:45.433913+00:00",
+  "configuration": {
+    "seed": 1701,
+    "slow_receivers": 8,
+    "udp_drop_seconds": 55,
+    "recovery_window_seconds": 90
+  },
+  "artifacts": {
+    "relay_sha256": "ac9f10a8ab606a5aa24c8f3586fb31765bf818af86b7aece1fcba9d8e210e105",
+    "tunnel_sha256": "7c9160947275629778a5a3a18e820bea9991474c01f7dee20daa7b2a5de10303",
+    "fault_harness_sha256": "53885d8b7fd060e319dcb17f7e41d933362ef945bd2f3f25973b5b26e479a035",
+    "shared_harness_sha256": "a676bedb0c6951b48ab7b0267caa6cc2e9cc643838eb0721946d273c06439203"
+  },
+  "source_provenance": {
+    "harness": {
+      "status": "available",
+      "commit": "b7961e1c87d953a28818a9a78bb0223a2d3ceb5d",
+      "dirty": false
+    },
+    "relay": {
+      "status": "available",
+      "commit": "b7961e1c87d953a28818a9a78bb0223a2d3ceb5d",
+      "dirty": false
+    },
+    "tunnel": {
+      "status": "available",
+      "commit": "b7961e1c87d953a28818a9a78bb0223a2d3ceb5d",
+      "dirty": false
+    }
+  },
+  "machine": {
+    "os": "Windows-11-10.0.26300-SP0",
+    "windows_build": "10.0.26300",
+    "architecture": "AMD64",
+    "cpu": "Intel64 Family 6 Model 165 Stepping 5, GenuineIntel",
+    "logical_cores": 20,
+    "ram_bytes": 16923529216,
+    "ac_power": true,
+    "java": "openjdk version \"21.0.12.1\" 2026-08-18 LTS",
+    "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+    "cargo": "cargo 1.97.1 (c980f4866 2026-06-30)",
+    "python": "3.14.6"
+  },
+  "clean_shutdown": {
+    "relay": true,
+    "tunnel": true
+  },
+  "process_exits": {
+    "relay": 1,
+    "tunnel": 0
+  },
+  "diagnostics": [
+    "tunnel-out: Relay selection: static",
+    "tunnel-out: Public endpoint: localhost:59615",
+    "tunnel-out: Press Ctrl+C or type 'stop' to stop.",
+    "tunnel-out: Relay selection: static",
+    "tunnel-out: Public endpoint: localhost:59616",
+    "tunnel-out: Press Ctrl+C or type 'stop' to stop.",
+    "relay-out: 2026-10-08T00:34:20.221595Z  WARN control stream ended port=59615 error=I/O while reading or writing a frame: connection lost",
+    "relay-out: 2026-10-08T00:34:20.221711Z  WARN host control connection rejected or closed error=I/O while reading or writing a frame: connection lost",
+    "relay-out: 2026-10-08T00:34:40.889277Z  WARN control stream ended port=59616 error=I/O while reading or writing a frame: connection lost",
+    "relay-out: 2026-10-08T00:34:40.889328Z  WARN host control connection rejected or closed error=I/O while reading or writing a frame: connection lost",
+    "tunnel-err: Relay unavailable; retrying in 1032 ms: relay control stream closed",
+    "tunnel-err: Relay unavailable; retrying in 1519 ms: connection timed out: QuicConnectionAddress{EPHEMERAL}",
+    "tunnel-err: Relay unavailable; retrying in 3833 ms: connection timed out: QuicConnectionAddress{EPHEMERAL}"
+  ],
+  "finished_utc": "2026-10-08T00:35:13.970094+00:00"
+}

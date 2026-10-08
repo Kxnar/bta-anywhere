@@ -1,0 +1,30 @@
+{
+  "source_commit": "5e04359fae7b1bbe2be2104f5e61a2f3980fd12a",
+  "source_dirty_at_build": false,
+  "note": "Source artifacts built before production changes; copies frozen before baseline runs. Containing checkout can be dirty during measurement.",
+  "commands": [
+    ".\\gradlew.bat --no-daemon check build",
+    "cargo test --locked --all",
+    "cargo build --locked --release --package bta-anywhere-relay"
+  ],
+  "release_profile": {
+    "strip": "symbols",
+    "codegen_units": 1,
+    "lto": "fat"
+  },
+  "power_scheme": "Power Scheme GUID: d8cc5f7b-c83c-4372-bf21-305c486540e7  (Ultimate Performance)",
+  "artifacts": [
+    {
+      "name": "bta-anywhere-relay.exe",
+      "sha256": "ac9f10a8ab606a5aa24c8f3586fb31765bf818af86b7aece1fcba9d8e210e105"
+    },
+    {
+      "name": "bta-anywhere-tunnel-0.1.0-all.jar",
+      "sha256": "5f758ea359ab3f165aa0dbd89f98bbf96e7be70042a14cd49ca0aea6e252c4ff"
+    },
+    {
+      "name": "benchmark_relay.py",
+      "sha256": "7c3bcae367b9eeee683711789e31e1d052886f3fdb7273e2d69b958dd33650e7"
+    }
+  ]
+}

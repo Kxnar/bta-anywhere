@@ -1,0 +1,227 @@
+{
+  "totals": {
+    "tests": 124,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 4
+  },
+  "suites": [
+    {
+      "suite": "io.github.kxnar.btaanywhere.mod.hosting.CrashFaultCampaignTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.mod.hosting.GameDirectoryLeaseTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.mod.hosting.HardCrashRecoveryTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.mod.hosting.HostControllerFaultCampaignTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.mod.hosting.HostControllerFaultTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.mod.hosting.HostControllerHardCrashTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.mod.hosting.HostControllerWorldOpenGuardTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.mod.hosting.ManagedServerRecoveryTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.mod.hosting.ModMirrorServiceTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.mod.hosting.PrelaunchTimingTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.mod.hosting.RecoveryFailClosedTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.mod.hosting.ServerDistributionManagerTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.mod.hosting.WorldBackupServiceTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.mod.hosting.WorldOpenGuardTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.CoordinatorRelayResolverTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest",
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.encrypted.BtaeInvitationTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.encrypted.EncryptedProtocolTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.encrypted.EncryptedV2VectorTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.encrypted.InvitationRegistryTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.internal.ControlFrameDecoderTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.internal.CoordinatorRegistrationTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.internal.EofTraceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.internal.IncomingTunnelHandlerTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.internal.NettyTunnelSessionNoticeTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.internal.ProtocolVectorTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.internal.StreamEofProtocolTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.internal.TlsHostnameVerifierTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.PublicAddressTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.PublicEndpointTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "io.github.kxnar.btaanywhere.SecretTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ]
+}

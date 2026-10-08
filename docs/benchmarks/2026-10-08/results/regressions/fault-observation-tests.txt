@@ -1,0 +1,46 @@
+test_cancellation_writes_failed_record (test_benchmark_faults.FaultTests.test_cancellation_writes_failed_record) ... ok
+test_cli_rejects_unbounded_observation (test_benchmark_faults.FaultTests.test_cli_rejects_unbounded_observation) ... usage: python.exe -m unittest [-h] --relay-binary RELAY_BINARY
+                              --tunnel-jar TUNNEL_JAR [--java JAVA]
+                              --output OUTPUT [--seed SEED]
+                              [--existing-stream-observation-seconds EXISTING_STREAM_OBSERVATION_SECONDS]
+python.exe -m unittest: error: --existing-stream-observation-seconds must be between 1 and 180
+usage: python.exe -m unittest [-h] --relay-binary RELAY_BINARY
+                              --tunnel-jar TUNNEL_JAR [--java JAVA]
+                              --output OUTPUT [--seed SEED]
+                              [--existing-stream-observation-seconds EXISTING_STREAM_OBSERVATION_SECONDS]
+python.exe -m unittest: error: --existing-stream-observation-seconds must be between 1 and 180
+usage: python.exe -m unittest [-h] --relay-binary RELAY_BINARY
+                              --tunnel-jar TUNNEL_JAR [--java JAVA]
+                              --output OUTPUT [--seed SEED]
+                              [--existing-stream-observation-seconds EXISTING_STREAM_OBSERVATION_SECONDS]
+python.exe -m unittest: error: --existing-stream-observation-seconds must be between 1 and 180
+usage: python.exe -m unittest [-h] --relay-binary RELAY_BINARY
+                              --tunnel-jar TUNNEL_JAR [--java JAVA]
+                              --output OUTPUT [--seed SEED]
+                              [--existing-stream-observation-seconds EXISTING_STREAM_OBSERVATION_SECONDS]
+python.exe -m unittest: error: --existing-stream-observation-seconds must be between 1 and 180
+ok
+test_corruption_explicitly_recorded (test_benchmark_faults.FaultTests.test_corruption_explicitly_recorded) ... ok
+test_expired_observation_records_forced_close_and_snapshot_is_frozen (test_benchmark_faults.FaultTests.test_expired_observation_records_forced_close_and_snapshot_is_frozen) ... ok
+test_failed_fault_setup_retains_case (test_benchmark_faults.FaultTests.test_failed_fault_setup_retains_case) ... ok
+test_file_hash_and_cli (test_benchmark_faults.FaultTests.test_file_hash_and_cli) ... ok
+test_incremental_exact_and_early_eof (test_benchmark_faults.FaultTests.test_incremental_exact_and_early_eof) ... ok
+test_live_stream_survival_is_separate_from_new_recovery (test_benchmark_faults.FaultTests.test_live_stream_survival_is_separate_from_new_recovery) ... ok
+test_new_stream_recovery_requires_transfer_success (test_benchmark_faults.FaultTests.test_new_stream_recovery_requires_transfer_success) ... ok
+test_nonterminating_worker_is_failed_and_detached_from_snapshot (test_benchmark_faults.FaultTests.test_nonterminating_worker_is_failed_and_detached_from_snapshot) ... ok
+test_observation_waits_for_natural_terminal_beyond_old_five_second_join (test_benchmark_faults.FaultTests.test_observation_waits_for_natural_terminal_beyond_old_five_second_join) ... ok
+test_probe_surplus_and_missing_eof (test_benchmark_faults.FaultTests.test_probe_surplus_and_missing_eof) ... ok
+test_receive_total_deadline_expires_despite_readable_data (test_benchmark_faults.FaultTests.test_receive_total_deadline_expires_despite_readable_data) ... ok
+test_recovery_cannot_hide_corruption_by_retry (test_benchmark_faults.FaultTests.test_recovery_cannot_hide_corruption_by_retry) ... ok
+test_recovery_progress_survives_cancellation (test_benchmark_faults.FaultTests.test_recovery_progress_survives_cancellation) ... ok
+test_slow_receiver_partial_successes_retained (test_benchmark_faults.FaultTests.test_slow_receiver_partial_successes_retained) ... ok
+test_slow_receiver_verifies_eof (test_benchmark_faults.FaultTests.test_slow_receiver_verifies_eof) ... ok
+test_surplus_response_is_corruption (test_benchmark_faults.FaultTests.test_surplus_response_is_corruption) ... ok
+test_truncated_existing_observation_fails_matrix_despite_fresh_recovery (test_benchmark_faults.FaultTests.test_truncated_existing_observation_fails_matrix_despite_fresh_recovery) ... ok
+test_unexpected_local_worker_error_is_not_natural_interruption (test_benchmark_faults.FaultTests.test_unexpected_local_worker_error_is_not_natural_interruption) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 1.274s
+
+OK
+FAILED: <temporary-directory>\result.json

@@ -1,0 +1,37 @@
+Published copy: local paths and execution identifiers are redacted. The original file hash is retained in archive-index.json.
+
+Recovered original Python benchmark-harness failure (verbatim tool output below).
+Session ID: <local-session>
+Source log filename: rollout-2026-10-08T00-40-10-<local-session>.jsonl
+Source JSONL line: 59; event ordinal: 58
+Completed UTC: 2026-10-07T23:43:31.010Z
+Command: python -m unittest discover -s scripts -p test_benchmark_relay.py
+Command execution ID: <local-execution>
+Exit code: 1
+Exact aggregated-output UTF-8 SHA-256: 2e7fef054e3bc8be491b3bc62fca6752753c70ae77b168d87b6d2387c550b15f
+
+Context: This is the original 19-test suite, before the sender-clock fix.
+The parent batch also had build/toolchain commands running (same tool output cell).
+The failing test used a 20 ms send duration and observed zero guest-to-host bytes.
+Later diagnosis: starting the deadline before connection/thread startup lets startup scheduling consume the send duration; the final harness starts its deadline inside the sender and explicitly tests delayed startup.
+The transcript failure establishes the zero-byte assertion, not a measured causal attribution to build load.
+No tests/builds/benchmarks were rerun to recover this excerpt.
+Original workstation path is retained below for exact local evidence; redact it in the public archive copy.
+
+--- BEGIN EXACT AGGREGATED OUTPUT ---
+
+...F...............
+======================================================================
+FAIL: test_diagnostic_stream_tracks_both_ends_without_payloads (test_benchmark_relay.BenchmarkTests.test_diagnostic_stream_tracks_both_ends_without_payloads)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<workspace>\scripts\test_benchmark_relay.py", line 229, in test_diagnostic_stream_tracks_both_ends_without_payloads
+    self.assertGreater(result["guest_to_host_bytes"], 0)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 not greater than 0
+
+----------------------------------------------------------------------
+Ran 19 tests in 6.159s
+
+FAILED (failures=1)
+--- END EXACT AGGREGATED OUTPUT ---

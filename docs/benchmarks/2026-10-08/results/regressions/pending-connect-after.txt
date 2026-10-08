@@ -1,0 +1,17 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.3.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build
+
+> Configure project :bta-mod
+Fabric Loom: 1.15.5
+Project directory '<workspace>\bta-mod' is located in OneDrive. This is known to cause issues and slower performance. Consider moving the project to a different location.
+
+> Task :tunnel-client:compileJava
+> Task :tunnel-client:processResources NO-SOURCE
+> Task :tunnel-client:classes
+> Task :tunnel-client:compileTestJava
+> Task :tunnel-client:processTestResources NO-SOURCE
+> Task :tunnel-client:testClasses
+> Task :tunnel-client:test
+
+BUILD SUCCESSFUL in 17s
+3 actionable tasks: 3 executed

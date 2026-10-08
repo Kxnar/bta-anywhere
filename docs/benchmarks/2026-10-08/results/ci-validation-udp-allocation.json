@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "exact_head": "800bdccb7e185a8e95ab31c46a772aab0541b1c5",
+  "run_id": 37709933380,
+  "conclusion": "success",
+  "run_url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37709933380",
+  "jobs": [
+    {
+      "id": 113093223849,
+      "name": "Attribution audit",
+      "conclusion": "success",
+      "url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37709933380/job/113093223849"
+    },
+    {
+      "id": 113093223946,
+      "name": "Java and native QUIC (Windows x86-64)",
+      "conclusion": "success",
+      "url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37709933380/job/113093223946"
+    },
+    {
+      "id": 113093224084,
+      "name": "Rust relay (Windows x86-64)",
+      "conclusion": "success",
+      "url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37709933380/job/113093224084"
+    },
+    {
+      "id": 113093224104,
+      "name": "Windows relay-to-tunnel integration",
+      "conclusion": "success",
+      "url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37709933380/job/113093224104"
+    }
+  ],
+  "python_tests": {
+    "reporting_and_fault_suite_counts": [
+      63
+    ],
+    "expected_count": 63,
+    "expected_count_confirmed": true,
+    "evidence_excerpt": [
+      "Windows relay-to-tunnel integration\tSeeded protocol corpus smoke\t2026-10-08T00:56:35.4292355Z Ran 20 tests in 0.311s",
+      "Windows relay-to-tunnel integration\tSeeded protocol corpus smoke\t2026-10-08T00:56:35.4292619Z OK",
+      "Windows relay-to-tunnel integration\tSeeded protocol corpus smoke\t2026-10-08T00:56:35.9703210Z Ran 3 tests in 0.076s",
+      "Windows relay-to-tunnel integration\tSeeded protocol corpus smoke\t2026-10-08T00:56:35.9703588Z OK",
+      "Windows relay-to-tunnel integration\tTest benchmark reporting\t2026-10-08T00:58:33.8849875Z Ran 63 tests in 10.631s",
+      "Windows relay-to-tunnel integration\tTest benchmark reporting\t2026-10-08T00:58:33.8850355Z OK"
+    ]
+  },
+  "smoke": {
+    "status": "PASS",
+    "failure_counts": {
+      "failed_transfers": 0,
+      "byte_mismatches": 0,
+      "missing_eofs": 0,
+      "timeouts": 0,
+      "leaked_active_stream_gauges": 0
+    },
+    "evidence_json": "ci-udp-allocation/ci-smoke.json",
+    "evidence_md": "ci-udp-allocation/ci-smoke.md"
+  },
+  "artifact_download": {
+    "name": "windows-benchmark-evidence",
+    "outcome": "success",
+    "directory": "ci-udp-allocation"
+  },
+  "note": "Remote CI only; previous failed 4717790 CI evidence unchanged and no local tests, builds or performance runs executed."
+}

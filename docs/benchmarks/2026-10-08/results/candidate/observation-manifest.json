@@ -1,0 +1,20 @@
+{
+  "source_commit": "4717790f3154f23a8dd8c6a080d54b06dadb6dbc",
+  "tracked_source_clean": true,
+  "note": "Only untracked publication copies under docs/benchmarks were present. Binary build provenance is in build-manifest.json; scripts frozen before sequential fault repeats and soak.",
+  "captured_utc": "2026-10-08T00:40:16.6214759Z",
+  "artifacts": [
+    {
+      "sha256": "27a68ac99f95662ff75a7f5bb9ea7ade8270a834ce7e73fba091e161f3bc3ea7",
+      "name": "benchmark_direct.py"
+    },
+    {
+      "sha256": "ff8372a6dec5fdc6228d66e54d808bd13e6a4a4067f1cd689d522770ea19e3cf",
+      "name": "benchmark_faults.py"
+    },
+    {
+      "sha256": "a676bedb0c6951b48ab7b0267caa6cc2e9cc643838eb0721946d273c06439203",
+      "name": "benchmark_relay.py"
+    }
+  ]
+}

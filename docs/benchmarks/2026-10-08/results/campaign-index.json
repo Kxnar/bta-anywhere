@@ -1,0 +1,254 @@
+{
+  "scope": "Separate run outcomes; not a pooled statistical sample. Expected cancellation and deliberate fault interruptions remain visible.",
+  "runs": [
+    {
+      "file": "baseline/smoke.json",
+      "status": "PASS",
+      "profile": "smoke",
+      "elapsed_seconds": 108.21529340000416,
+      "started_utc": "2026-10-07T23:46:13.764687+00:00",
+      "failure_counts": {
+        "failed_transfers": 0,
+        "byte_mismatches": 0,
+        "missing_eofs": 0,
+        "timeouts": 0,
+        "leaked_active_stream_gauges": 0
+      }
+    },
+    {
+      "file": "baseline/full.json",
+      "status": "FAILED",
+      "profile": "full",
+      "elapsed_seconds": 553.7653813999932,
+      "started_utc": "2026-10-07T23:48:11.961562+00:00",
+      "failure": {
+        "type": "ConcurrentTransferError",
+        "message": "throughput concurrency=1 run=4 path='direct': stream=0 RuntimeError: throughput socket failed after 42.326s sent=33076674560 received=33076281344: ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host"
+      },
+      "failure_counts": {
+        "failed_transfers": 1,
+        "byte_mismatches": 0,
+        "missing_eofs": 0,
+        "timeouts": 0,
+        "leaked_active_stream_gauges": 0
+      }
+    },
+    {
+      "file": "direct-diagnostic.json",
+      "status": "PASS",
+      "profile": "diagnostic-direct",
+      "elapsed_seconds": 300.4400342000008,
+      "started_utc": "2026-10-07T23:59:33.929407+00:00",
+      "failure_counts": {
+        "failed_transfers": 0,
+        "byte_mismatches": 0,
+        "missing_eofs": 0,
+        "timeouts": 0,
+        "leaked_active_stream_gauges": 0
+      }
+    },
+    {
+      "file": "candidate/smoke.json",
+      "status": "PASS",
+      "profile": "smoke",
+      "elapsed_seconds": 110.5818680000084,
+      "started_utc": "2026-10-08T00:06:31.254888+00:00",
+      "failure_counts": {
+        "failed_transfers": 0,
+        "byte_mismatches": 0,
+        "missing_eofs": 0,
+        "timeouts": 0,
+        "leaked_active_stream_gauges": 0
+      }
+    },
+    {
+      "file": "candidate/full.json",
+      "status": "PASS",
+      "profile": "full",
+      "elapsed_seconds": 1339.3994352000009,
+      "started_utc": "2026-10-08T00:09:30.102884+00:00",
+      "failure_counts": {
+        "failed_transfers": 0,
+        "byte_mismatches": 0,
+        "missing_eofs": 0,
+        "timeouts": 0,
+        "leaked_active_stream_gauges": 0
+      }
+    },
+    {
+      "file": "baseline/faults.json",
+      "status": "FAILED",
+      "profile": "fault-matrix",
+      "elapsed_seconds": 89.396271,
+      "started_utc": "2026-10-08T00:31:54.081901+00:00",
+      "case_statuses": [
+        {
+          "scenario": "eight_slow_receivers",
+          "status": "PASS"
+        },
+        {
+          "scenario": "tunnel_process_termination",
+          "status": "FAILED"
+        },
+        {
+          "scenario": "udp_drop_55_seconds",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "file": "candidate/faults.json",
+      "status": "FAILED",
+      "profile": "fault-matrix",
+      "elapsed_seconds": 88.536181,
+      "started_utc": "2026-10-08T00:33:45.433913+00:00",
+      "case_statuses": [
+        {
+          "scenario": "eight_slow_receivers",
+          "status": "PASS"
+        },
+        {
+          "scenario": "tunnel_process_termination",
+          "status": "FAILED"
+        },
+        {
+          "scenario": "udp_drop_55_seconds",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "file": "candidate/cancelled.json",
+      "status": "FAILED",
+      "profile": "smoke",
+      "elapsed_seconds": 2.492594299998018,
+      "started_utc": "2026-10-08T00:34:16.952159+00:00",
+      "failure": {
+        "type": "KeyboardInterrupt",
+        "message": "intentional cancellation cleanup probe"
+      },
+      "failure_counts": {
+        "failed_transfers": 0,
+        "byte_mismatches": 0,
+        "missing_eofs": 0,
+        "timeouts": 0,
+        "leaked_active_stream_gauges": 0
+      },
+      "injected_fault": "KeyboardInterrupt after one byte-exact half-close transaction"
+    },
+    {
+      "file": "baseline/faults-observed.json",
+      "status": "PASS",
+      "profile": "fault-matrix",
+      "elapsed_seconds": 93.334965,
+      "started_utc": "2026-10-08T00:40:19.355694+00:00",
+      "transfer_counts": {
+        "attempted": 19,
+        "successful": 10,
+        "failed": 9,
+        "scope": "slow receivers and fresh recovery probes; existing stream outcomes and internal Rig setup probes recorded separately"
+      },
+      "case_statuses": [
+        {
+          "scenario": "eight_slow_receivers",
+          "status": "PASS"
+        },
+        {
+          "scenario": "tunnel_process_termination",
+          "status": "PASS"
+        },
+        {
+          "scenario": "udp_drop_55_seconds",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "file": "candidate/faults-observed.json",
+      "status": "PASS",
+      "profile": "fault-matrix",
+      "elapsed_seconds": 93.27196,
+      "started_utc": "2026-10-08T00:41:57.234569+00:00",
+      "transfer_counts": {
+        "attempted": 19,
+        "successful": 10,
+        "failed": 9,
+        "scope": "slow receivers and fresh recovery probes; existing stream outcomes and internal Rig setup probes recorded separately"
+      },
+      "case_statuses": [
+        {
+          "scenario": "eight_slow_receivers",
+          "status": "PASS"
+        },
+        {
+          "scenario": "tunnel_process_termination",
+          "status": "PASS"
+        },
+        {
+          "scenario": "udp_drop_55_seconds",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "file": "candidate/soak.json",
+      "status": "PASS",
+      "profile": "soak",
+      "elapsed_seconds": 7232.067775100004,
+      "started_utc": "2026-10-08T00:43:35.730068+00:00",
+      "failure_counts": {
+        "failed_transfers": 0,
+        "byte_mismatches": 0,
+        "missing_eofs": 0,
+        "timeouts": 0,
+        "leaked_active_stream_gauges": 0
+      }
+    },
+    {
+      "file": "ci/ci-smoke.json",
+      "status": "PASS",
+      "profile": "smoke",
+      "elapsed_seconds": 114.38973469999996,
+      "started_utc": "2026-10-08T00:21:44.270877+00:00",
+      "failure_counts": {
+        "failed_transfers": 0,
+        "byte_mismatches": 0,
+        "missing_eofs": 0,
+        "timeouts": 0,
+        "leaked_active_stream_gauges": 0
+      }
+    },
+    {
+      "file": "ci-observation/ci-smoke.json",
+      "status": "FAILED",
+      "profile": "smoke",
+      "elapsed_seconds": 21.411738600000035,
+      "started_utc": "2026-10-08T00:46:55.903088+00:00",
+      "failure": {
+        "type": "TimeoutError",
+        "message": "timed out waiting for relay ready: timed out"
+      },
+      "failure_counts": {
+        "failed_transfers": 0,
+        "byte_mismatches": 0,
+        "missing_eofs": 0,
+        "timeouts": 1,
+        "leaked_active_stream_gauges": 0
+      }
+    },
+    {
+      "file": "ci-udp-allocation/ci-smoke.json",
+      "status": "PASS",
+      "profile": "smoke",
+      "elapsed_seconds": 127.83192799999995,
+      "started_utc": "2026-10-08T00:58:34.892989+00:00",
+      "failure_counts": {
+        "failed_transfers": 0,
+        "byte_mismatches": 0,
+        "missing_eofs": 0,
+        "timeouts": 0,
+        "leaked_active_stream_gauges": 0
+      }
+    }
+  ]
+}

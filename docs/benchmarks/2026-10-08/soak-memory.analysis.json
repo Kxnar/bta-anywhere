@@ -1,0 +1,40 @@
+{
+  "status": "PASS",
+  "completed_waves": 120,
+  "load_duration_seconds": 7200.233061699997,
+  "cooldown_seconds": 30.02323520000209,
+  "valid_process_samples": 843,
+  "sample_errors": 0,
+  "observed_cli_reconnect_attempts": 0,
+  "memory_review": "Descriptive observations, not proof of absence of leaks.",
+  "relay": {
+    "before_load_mib": 9.16015625,
+    "observed_max_mib": 14.20703125,
+    "last_sample_mib": 13.57421875,
+    "after_15min_median_mib": 13.53515625,
+    "last_10min_load_median_mib": 13.8125,
+    "after_15min_linear_slope_mib_per_hour": 0.7776224149088532,
+    "cpu_seconds_before_load": 0.21875,
+    "cpu_seconds_final": 263.828125,
+    "cooldown_mib": [
+      13.57421875,
+      13.57421875,
+      13.57421875
+    ]
+  },
+  "tunnel": {
+    "before_load_mib": 96.21875,
+    "observed_max_mib": 364.203125,
+    "last_sample_mib": 252.75390625,
+    "after_15min_median_mib": 249.015625,
+    "last_10min_load_median_mib": 252.74609375,
+    "after_15min_linear_slope_mib_per_hour": 4.635432754932176,
+    "cpu_seconds_before_load": 0.859375,
+    "cpu_seconds_final": 391.046875,
+    "cooldown_mib": [
+      252.75390625,
+      252.75390625,
+      252.75390625
+    ]
+  }
+}

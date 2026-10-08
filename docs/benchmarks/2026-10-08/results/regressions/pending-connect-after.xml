@@ -1,0 +1,10 @@
+<testsuite name="io.github.kxnar.btaanywhere.internal.IncomingTunnelHandlerTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-07T23:45:52.624Z" hostname="windows-loopback-host" time="0.179">
+  <properties />
+  <testcase name="inputEofDuringConnectRetainsPayloadUntilHandoffOrClose()" classname="io.github.kxnar.btaanywhere.internal.IncomingTunnelHandlerTest" time="0.155" />
+  <testcase name="rejectsMalformedOrUnboundedRemoteAddresses()" classname="io.github.kxnar.btaanywhere.internal.IncomingTunnelHandlerTest" time="0.003" />
+  <testcase name="acceptsSocketAddressesProducedByTheRustRelay()" classname="io.github.kxnar.btaanywhere.internal.IncomingTunnelHandlerTest" time="0.002" />
+  <testcase name="pendingPayloadRemainsBoundedAndIsReleasedOnOverflow()" classname="io.github.kxnar.btaanywhere.internal.IncomingTunnelHandlerTest" time="0.002" />
+  <testcase name="retainsAdditionalPayloadWhileLocalConnectionIsPending()" classname="io.github.kxnar.btaanywhere.internal.IncomingTunnelHandlerTest" time="0.001" />
+  <system-out />
+  <system-err />
+</testsuite>

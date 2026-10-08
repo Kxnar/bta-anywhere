@@ -1,0 +1,107 @@
+{
+  "schema_version": 9,
+  "status": "FAILED",
+  "profile": "smoke",
+  "source_provenance": {
+    "method": "containing_git_checkout",
+    "harness": {
+      "status": "available",
+      "commit": "4717790f3154f23a8dd8c6a080d54b06dadb6dbc",
+      "dirty": false
+    },
+    "relay": {
+      "status": "available",
+      "commit": "4717790f3154f23a8dd8c6a080d54b06dadb6dbc",
+      "dirty": false
+    },
+    "tunnel": {
+      "status": "available",
+      "commit": "4717790f3154f23a8dd8c6a080d54b06dadb6dbc",
+      "dirty": false
+    }
+  },
+  "started_utc": "2026-10-08T00:46:55.903088+00:00",
+  "configuration": {
+    "seed": 1701,
+    "sizes_bytes": [
+      1024,
+      65536,
+      1048576
+    ],
+    "concurrency": [
+      1,
+      8
+    ],
+    "accepts_per_minute_test_override": 10000,
+    "relay_log_level_during_measurement": "warn",
+    "relay_log_level_during_recovery": "info",
+    "diagnostic_sequence_stop_after": null,
+    "soak_seconds": null
+  },
+  "failures": [
+    {
+      "type": "TimeoutError",
+      "message": "timed out waiting for relay ready: timed out"
+    }
+  ],
+  "failure_counts": {
+    "failed_transfers": 0,
+    "byte_mismatches": 0,
+    "missing_eofs": 0,
+    "timeouts": 1,
+    "leaked_active_stream_gauges": 0
+  },
+  "latency": [],
+  "throughput": [],
+  "current_case": {
+    "phase": "startup"
+  },
+  "artifacts": {
+    "relay_sha256": "ba845fc5db48392e3bcc8f804a9df74dd43758e873ecd4a2861de7efeaecd266",
+    "tunnel_sha256": "7c9160947275629778a5a3a18e820bea9991474c01f7dee20daa7b2a5de10303",
+    "harness_sha256": "03a08e96714c45f8cad5a054390329e75a71edf1245a2d96fa33e840fb088968"
+  },
+  "machine": {
+    "os": "Windows-2025Server-10.0.26100-SP0",
+    "windows_build": "10.0.26100",
+    "architecture": "AMD64",
+    "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
+    "logical_cores": 4,
+    "ram_bytes": 17174360064,
+    "ac_power": true,
+    "java": "openjdk version \"21.0.12.1\" 2026-08-18 LTS",
+    "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+    "cargo": "cargo 1.85.0 (d73d2caf9 2024-12-31)",
+    "python": "3.12.10"
+  },
+  "failure": {
+    "type": "TimeoutError",
+    "message": "timed out waiting for relay ready: timed out"
+  },
+  "failure_traceback": "Traceback (most recent call last):\n  File \"<ci-workspace>\\scripts\\benchmark_relay.py\", line 1385, in main\n    with rig:\n         ^^^\n  File \"<ci-workspace>\\scripts\\benchmark_relay.py\", line 737, in __enter__\n    return self._start()\n           ^^^^^^^^^^^^^\n  File \"<ci-workspace>\\scripts\\benchmark_relay.py\", line 765, in _start\n    self.start_relay()\n  File \"<ci-workspace>\\scripts\\benchmark_relay.py\", line 707, in start_relay\n    wait_until(lambda: bool(http_get(self.admin_port, \"/readyz\")), 20, \"relay ready\")\n  File \"<ci-workspace>\\scripts\\benchmark_relay.py\", line 437, in wait_until\n    raise TimeoutError(f\"timed out waiting for {description}: {last}\")\nTimeoutError: timed out waiting for relay ready: timed out\n",
+  "diagnostics": [
+    "relay-err: Error: failed to bind QUIC endpoint at 127.0.0.1:55291",
+    "relay-err: ",
+    "relay-err: Caused by:",
+    "relay-err:     An attempt was made to access a socket in a way forbidden by its access permissions. (os error 10013)"
+  ],
+  "echo_errors": [],
+  "echo_events_on_failure": [],
+  "clean_shutdown_after_failure": {
+    "relay": false,
+    "tunnel": true
+  },
+  "observed_cli_reconnect_attempts": 0,
+  "owned_process_exits": [
+    {
+      "label": "relay",
+      "started_utc": "2026-10-08T00:46:56.143165+00:00",
+      "returncode": 1,
+      "running": false
+    }
+  ],
+  "reconnect_counter_meaning": "observed CLI retry attempts, not completed reconnects",
+  "cleanup_errors": [],
+  "elapsed_seconds": 21.411738600000035,
+  "finished_utc": "2026-10-08T00:47:17.315400+00:00"
+}

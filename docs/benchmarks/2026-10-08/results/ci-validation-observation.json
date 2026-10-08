@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "exact_head": "4717790f3154f23a8dd8c6a080d54b06dadb6dbc",
+  "run_id": 37708979889,
+  "conclusion": "failure",
+  "run_url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37708979889",
+  "jobs": [
+    {
+      "id": 113090101497,
+      "name": "Windows relay-to-tunnel integration",
+      "conclusion": "failure",
+      "url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37708979889/job/113090101497"
+    },
+    {
+      "id": 113090101669,
+      "name": "Java and native QUIC (Windows x86-64)",
+      "conclusion": "success",
+      "url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37708979889/job/113090101669"
+    },
+    {
+      "id": 113090101720,
+      "name": "Rust relay (Windows x86-64)",
+      "conclusion": "success",
+      "url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37708979889/job/113090101720"
+    },
+    {
+      "id": 113090101963,
+      "name": "Attribution audit",
+      "conclusion": "success",
+      "url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37708979889/job/113090101963"
+    }
+  ],
+  "python_suites": {
+    "reporting_and_fault_tests": 60,
+    "protocol_campaign_tests": 20,
+    "protocol_long_campaign_tests": 3,
+    "evidence_excerpt": [
+      "Windows relay-to-tunnel integration\tSeeded protocol corpus smoke\t2026-10-08T00:45:15.8834669Z Ran 20 tests in 0.307s",
+      "Windows relay-to-tunnel integration\tSeeded protocol corpus smoke\t2026-10-08T00:45:15.8835008Z OK",
+      "Windows relay-to-tunnel integration\tSeeded protocol corpus smoke\t2026-10-08T00:45:16.5381629Z Ran 3 tests in 0.076s",
+      "Windows relay-to-tunnel integration\tSeeded protocol corpus smoke\t2026-10-08T00:45:16.5381970Z OK",
+      "Windows relay-to-tunnel integration\tTest benchmark reporting\t2026-10-08T00:46:55.0101344Z Ran 60 tests in 9.034s",
+      "Windows relay-to-tunnel integration\tTest benchmark reporting\t2026-10-08T00:46:55.0101750Z OK"
+    ]
+  },
+  "rust_tests": {
+    "invocation": "cargo test --locked --all",
+    "passed": 46.0,
+    "job_id": 113090101720
+  },
+  "smoke_failure": {
+    "phase": "startup",
+    "type": "TimeoutError",
+    "immediate_cause": "Windows UDP QUIC bind rejected with WSAEACCES10013 at127.0.0.1:55291",
+    "transfers_attempted": 0,
+    "evidence_json": "ci-observation/ci-smoke.json",
+    "evidence_md": "ci-observation/ci-smoke.md"
+  },
+  "artifact_download": {
+    "name": "windows-benchmark-evidence",
+    "outcome": "success",
+    "directory": "ci-observation"
+  },
+  "note": "Failure retained as CI startup failure; no local builds or tests run and earlier b7961e1 evidence unchanged."
+}

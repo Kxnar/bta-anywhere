@@ -1,0 +1,151 @@
+{
+  "schema_version": 9,
+  "status": "FAILED",
+  "profile": "smoke",
+  "source_provenance": {
+    "method": "containing_git_checkout",
+    "harness": {
+      "status": "available",
+      "commit": "b7961e1c87d953a28818a9a78bb0223a2d3ceb5d",
+      "dirty": false
+    },
+    "relay": {
+      "status": "available",
+      "commit": "b7961e1c87d953a28818a9a78bb0223a2d3ceb5d",
+      "dirty": false
+    },
+    "tunnel": {
+      "status": "available",
+      "commit": "b7961e1c87d953a28818a9a78bb0223a2d3ceb5d",
+      "dirty": false
+    }
+  },
+  "started_utc": "2026-10-08T00:34:16.952159+00:00",
+  "configuration": {
+    "seed": 1701,
+    "sizes_bytes": [
+      1024,
+      65536,
+      1048576
+    ],
+    "concurrency": [
+      1,
+      8
+    ],
+    "accepts_per_minute_test_override": 10000,
+    "relay_log_level_during_measurement": "warn",
+    "relay_log_level_during_recovery": "info",
+    "diagnostic_sequence_stop_after": null,
+    "soak_seconds": null
+  },
+  "failures": [
+    {
+      "type": "KeyboardInterrupt",
+      "message": "intentional cancellation cleanup probe"
+    }
+  ],
+  "failure_counts": {
+    "failed_transfers": 0,
+    "byte_mismatches": 0,
+    "missing_eofs": 0,
+    "timeouts": 0,
+    "leaked_active_stream_gauges": 0
+  },
+  "latency": [],
+  "throughput": [],
+  "current_case": {
+    "phase": "intentional_cancellation"
+  },
+  "artifacts": {
+    "relay_sha256": "ac9f10a8ab606a5aa24c8f3586fb31765bf818af86b7aece1fcba9d8e210e105",
+    "tunnel_sha256": "7c9160947275629778a5a3a18e820bea9991474c01f7dee20daa7b2a5de10303",
+    "harness_sha256": "a676bedb0c6951b48ab7b0267caa6cc2e9cc643838eb0721946d273c06439203"
+  },
+  "machine": {
+    "os": "Windows-11-10.0.26300-SP0",
+    "windows_build": "10.0.26300",
+    "architecture": "AMD64",
+    "cpu": "Intel64 Family 6 Model 165 Stepping 5, GenuineIntel",
+    "logical_cores": 20,
+    "ram_bytes": 16923529216,
+    "ac_power": true,
+    "java": "openjdk version \"21.0.12.1\" 2026-08-18 LTS",
+    "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+    "cargo": "cargo 1.97.1 (c980f4866 2026-06-30)",
+    "python": "3.14.6"
+  },
+  "initial_process_sample": {
+    "relay": {
+      "cpu_seconds": 0.21875,
+      "working_set_bytes": 9646080,
+      "peak_working_set_bytes": 9646080
+    },
+    "tunnel": {
+      "cpu_seconds": 0.921875,
+      "working_set_bytes": 100675584,
+      "peak_working_set_bytes": 100675584
+    }
+  },
+  "injected_fault": "KeyboardInterrupt after one byte-exact half-close transaction",
+  "cancellation_probe_transaction_ms": 34.55589999794029,
+  "failure_metrics": {
+    "bta_anywhere_active_connections": 0.0,
+    "bta_anywhere_bytes_guest_to_host_total": 65537.0,
+    "bta_anywhere_bytes_host_to_guest_total": 65536.0
+  },
+  "failure": {
+    "type": "KeyboardInterrupt",
+    "message": "intentional cancellation cleanup probe"
+  },
+  "failure_traceback": "Traceback (most recent call last):\n  File \"<workspace>\\scripts\\benchmark_relay.py\", line 1404, in main\n    result[\"latency\"] = run_latency(rig, args.profile, args.seed, result)\n                        ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<workspace>\\.local\\cancel_probe.py\", line 14, in cancel_after_transfer\n    raise KeyboardInterrupt('intentional cancellation cleanup probe')\nKeyboardInterrupt: intentional cancellation cleanup probe\n",
+  "diagnostics": [
+    "tunnel-out: Relay selection: static",
+    "tunnel-out: Public endpoint: localhost:59741",
+    "tunnel-out: Press Ctrl+C or type 'stop' to stop."
+  ],
+  "echo_errors": [],
+  "echo_events_on_failure": [
+    {
+      "time_monotonic": 116433.4036905,
+      "connection_id": 1,
+      "event": "accepted",
+      "case": {}
+    },
+    {
+      "time_monotonic": 116433.4110554,
+      "connection_id": 1,
+      "event": "mode",
+      "case": {},
+      "mode": "H"
+    },
+    {
+      "time_monotonic": 116433.4206909,
+      "connection_id": 1,
+      "event": "eof_sent",
+      "case": {}
+    }
+  ],
+  "clean_shutdown_after_failure": {
+    "relay": true,
+    "tunnel": true
+  },
+  "observed_cli_reconnect_attempts": 0,
+  "owned_process_exits": [
+    {
+      "label": "relay",
+      "started_utc": "2026-10-08T00:34:17.167919+00:00",
+      "returncode": 1,
+      "running": false
+    },
+    {
+      "label": "tunnel",
+      "started_utc": "2026-10-08T00:34:17.691341+00:00",
+      "returncode": 0,
+      "running": false
+    }
+  ],
+  "reconnect_counter_meaning": "observed CLI retry attempts, not completed reconnects",
+  "cleanup_errors": [],
+  "elapsed_seconds": 2.492594299998018,
+  "finished_utc": "2026-10-08T00:34:19.444776+00:00"
+}

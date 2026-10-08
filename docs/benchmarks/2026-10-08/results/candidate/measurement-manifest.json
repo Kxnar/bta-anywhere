@@ -1,0 +1,20 @@
+{
+  "captured_utc": "2026-10-08T00:09:29.3246293Z",
+  "harness_source_commit": "b7961e1c87d953a28818a9a78bb0223a2d3ceb5d",
+  "binary_manifest": "build-manifest.json",
+  "configuration": "same seeded workloads; added CLI reconnect-attempt and child-lifecycle observations",
+  "sources": [
+    {
+      "sha256": "a676bedb0c6951b48ab7b0267caa6cc2e9cc643838eb0721946d273c06439203",
+      "name": "benchmark_relay.py"
+    },
+    {
+      "sha256": "53885d8b7fd060e319dcb17f7e41d933362ef945bd2f3f25973b5b26e479a035",
+      "name": "benchmark_faults.py"
+    },
+    {
+      "sha256": "27a68ac99f95662ff75a7f5bb9ea7ade8270a834ce7e73fba091e161f3bc3ea7",
+      "name": "benchmark_direct.py"
+    }
+  ]
+}

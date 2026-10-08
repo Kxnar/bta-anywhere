@@ -1,0 +1,35 @@
+{
+  "captured_utc": "2026-10-08T00:05:46.7402504Z",
+  "relay_source_commit": "5e04359fae7b1bbe2be2104f5e61a2f3980fd12a",
+  "tunnel_source_commit": "70adbce3c274ebe0a19f27bdf4cfa4e647cba239",
+  "harness_source_commit": "70adbce3c274ebe0a19f27bdf4cfa4e647cba239",
+  "tunnel_built_from_clean_tree": true,
+  "relay_note": "Identical release executable to baseline; Rust source and Cargo inputs unchanged.",
+  "commands": [
+    "cargo build --locked --release --package bta-anywhere-relay",
+    ".\\gradlew.bat --no-daemon --rerun-tasks :tunnel-client:shadowJar"
+  ],
+  "power_scheme": "Power Scheme GUID: d8cc5f7b-c83c-4372-bf21-305c486540e7  (Ultimate Performance)",
+  "artifacts": [
+    {
+      "sha256": "ac9f10a8ab606a5aa24c8f3586fb31765bf818af86b7aece1fcba9d8e210e105",
+      "name": "bta-anywhere-relay.exe"
+    },
+    {
+      "sha256": "7c9160947275629778a5a3a18e820bea9991474c01f7dee20daa7b2a5de10303",
+      "name": "bta-anywhere-tunnel-0.1.0-all.jar"
+    },
+    {
+      "sha256": "60a28c0a32f5a82797391f6f74eae04c35714e3291bde086912c3a3df6aa2d78",
+      "name": "benchmark_relay.py"
+    },
+    {
+      "sha256": "53885d8b7fd060e319dcb17f7e41d933362ef945bd2f3f25973b5b26e479a035",
+      "name": "benchmark_faults.py"
+    },
+    {
+      "sha256": "27a68ac99f95662ff75a7f5bb9ea7ade8270a834ce7e73fba091e161f3bc3ea7",
+      "name": "benchmark_direct.py"
+    }
+  ]
+}

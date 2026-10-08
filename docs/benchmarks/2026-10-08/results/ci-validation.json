@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "evidence_kind": "completed_remote_ci",
+  "exact_head": "b7961e1c87d953a28818a9a78bb0223a2d3ceb5d",
+  "run_id": 37706673912,
+  "run_url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37706673912",
+  "status": "completed",
+  "conclusion": "success",
+  "jobs": [
+    {
+      "id": 113082573720,
+      "name": "Java and native QUIC (Windows x86-64)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37706673912/job/113082573720"
+    },
+    {
+      "id": 113082573892,
+      "name": "Rust relay (Windows x86-64)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37706673912/job/113082573892"
+    },
+    {
+      "id": 113082573978,
+      "name": "Windows relay-to-tunnel integration",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37706673912/job/113082573978"
+    },
+    {
+      "id": 113082574050,
+      "name": "Attribution audit",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37706673912/job/113082574050"
+    }
+  ],
+  "rust_tests": {
+    "invocation": "cargo test --locked --all",
+    "passed": 46,
+    "failed": 0,
+    "ignored": 0,
+    "test_result_summary_count": 8,
+    "nonempty_suite_counts": [
+      6,
+      3,
+      25,
+      12
+    ],
+    "evidence_excerpt": "rust-ci-tests.txt",
+    "job_id": 113082573892
+  },
+  "note": "Remote CI evidence only; no local tests or builds rerun during benchmark measurement."
+}

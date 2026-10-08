@@ -1,0 +1,33 @@
+{
+  "conclusion": "success",
+  "createdAt": "2026-10-08T00:14:07Z",
+  "headSha": "b7961e1c87d953a28818a9a78bb0223a2d3ceb5d",
+  "jobs": [
+    {
+      "completedAt": "2026-10-08T00:18:04Z",
+      "conclusion": "success",
+      "name": "Java and native QUIC (Windows x86-64)",
+      "startedAt": "2026-10-08T00:14:10Z"
+    },
+    {
+      "completedAt": "2026-10-08T00:17:16Z",
+      "conclusion": "success",
+      "name": "Rust relay (Windows x86-64)",
+      "startedAt": "2026-10-08T00:14:12Z"
+    },
+    {
+      "completedAt": "2026-10-08T00:23:53Z",
+      "conclusion": "success",
+      "name": "Windows relay-to-tunnel integration",
+      "startedAt": "2026-10-08T00:14:10Z"
+    },
+    {
+      "completedAt": "2026-10-08T00:14:23Z",
+      "conclusion": "success",
+      "name": "Attribution audit",
+      "startedAt": "2026-10-08T00:14:10Z"
+    }
+  ],
+  "updatedAt": "2026-10-08T00:23:53Z",
+  "url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37706673912"
+}

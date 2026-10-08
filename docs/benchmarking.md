@@ -131,3 +131,7 @@ failure makes the run fail. Review memory after warm-up and during cooldown;
 Archive reviewed JSON and reports under `docs/benchmarks/` when publishing
 evidence. Working outputs, binaries and credentials belong in ignored local
 directories. CI retains benchmark output even when its smoke step fails.
+
+The [2026-10-08 Windows loopback report](benchmarks/2026-10-08/README.md)
+includes the completed full campaign, revised fault cases, two-hour soak,
+memory review and retained original failures.
