@@ -1,0 +1,855 @@
+{
+  "scaling": [
+    {
+      "streams": 1,
+      "before_mib_s": 53.159772471974144,
+      "after_mib_s": 53.24286790413048,
+      "change_percent": 0.1563126181552743,
+      "before_samples": [
+        52.57736289392351,
+        53.444303911018295,
+        53.159772471974144
+      ],
+      "after_samples": [
+        53.24286790413048,
+        52.695485358798166,
+        54.39901065005647
+      ],
+      "java_cpu_seconds_per_mib_before": 0.022202017832003755,
+      "java_cpu_seconds_per_mib_after": 0.018832168660428757,
+      "java_cpu_per_mib_reduction_percent": 15.17812118282974
+    },
+    {
+      "streams": 2,
+      "before_mib_s": 43.689760987276735,
+      "after_mib_s": 48.92637546073621,
+      "change_percent": 11.985907807974684,
+      "before_samples": [
+        43.689760987276735,
+        42.13977967296836,
+        44.04829761129537
+      ],
+      "after_samples": [
+        48.56687250597816,
+        48.92637546073621,
+        48.96900499909688
+      ],
+      "java_cpu_seconds_per_mib_before": 0.034912073296881924,
+      "java_cpu_seconds_per_mib_after": 0.02052571283095723,
+      "java_cpu_per_mib_reduction_percent": 41.20740794620631
+    },
+    {
+      "streams": 4,
+      "before_mib_s": 29.98654935844589,
+      "after_mib_s": 39.337608937996414,
+      "change_percent": 31.18418017282385,
+      "before_samples": [
+        29.98654935844589,
+        30.255137291334616,
+        29.403491382694416
+      ],
+      "after_samples": [
+        39.53432375327673,
+        39.337608937996414,
+        38.7438630913962
+      ],
+      "java_cpu_seconds_per_mib_before": 0.061894736842105266,
+      "java_cpu_seconds_per_mib_after": 0.025569520816967794,
+      "java_cpu_per_mib_reduction_percent": 58.688699360341154
+    },
+    {
+      "streams": 8,
+      "before_mib_s": 19.65287580511054,
+      "after_mib_s": 27.038619814312142,
+      "change_percent": 37.58098347764967,
+      "before_samples": [
+        19.640779431625095,
+        19.65287580511054,
+        21.17080469976227
+      ],
+      "after_samples": [
+        26.99341349854616,
+        27.235095835100328,
+        27.038619814312142
+      ],
+      "java_cpu_seconds_per_mib_before": 0.10716520650813517,
+      "java_cpu_seconds_per_mib_after": 0.036836711455249374,
+      "java_cpu_per_mib_reduction_percent": 65.6262394712476
+    },
+    {
+      "streams": 16,
+      "before_mib_s": 17.909460689450842,
+      "after_mib_s": 22.10968995757841,
+      "change_percent": 23.452572586965825,
+      "before_samples": [
+        18.62275606748576,
+        17.694184794801863,
+        17.909460689450842
+      ],
+      "after_samples": [
+        22.10968995757841,
+        22.20734016096775,
+        19.1798382421254
+      ],
+      "java_cpu_seconds_per_mib_before": 0.11186903137789904,
+      "java_cpu_seconds_per_mib_after": 0.045098846787479406,
+      "java_cpu_per_mib_reduction_percent": 59.68603085948487
+    }
+  ],
+  "recovery": [
+    {
+      "build": "before",
+      "condition": "bridge-zero",
+      "samples_seconds": [
+        48.51631939999061,
+        33.0858498000016,
+        33.19360009999946
+      ],
+      "median_seconds": 33.19360009999946,
+      "median_detection_seconds": 30.039984800008824,
+      "median_first_retry_seconds": 1.0116918,
+      "median_final_registration_ms": 213.6783
+    },
+    {
+      "build": "after",
+      "condition": "bridge-zero",
+      "samples_seconds": [
+        18.146845099981874,
+        4.878914900007658,
+        5.367433300008997
+      ],
+      "median_seconds": 5.367433300008997,
+      "median_detection_seconds": 1.905931999994209,
+      "median_first_retry_seconds": 1.2091243,
+      "median_final_registration_ms": 214.1259
+    },
+    {
+      "build": "after",
+      "condition": "delay-10ms",
+      "samples_seconds": [
+        18.718682100006845,
+        19.308171000011498,
+        4.897160499996971
+      ],
+      "median_seconds": 18.718682100006845,
+      "median_detection_seconds": 14.960902199993143,
+      "median_first_retry_seconds": 1.0150833,
+      "median_final_registration_ms": 312.8082
+    },
+    {
+      "build": "after",
+      "condition": "jitter-10ms-2ms",
+      "samples_seconds": [
+        19.31259129999671,
+        18.700763000000734,
+        5.066682999982731
+      ],
+      "median_seconds": 18.700763000000734,
+      "median_detection_seconds": 14.747669600008521,
+      "median_first_retry_seconds": 1.1087711,
+      "median_final_registration_ms": 369.1441
+    },
+    {
+      "build": "after",
+      "condition": "loss-10ms-2ms-1pct",
+      "samples_seconds": [
+        18.95303000000422,
+        5.37940959999105,
+        6.010912800004007
+      ],
+      "median_seconds": 6.010912800004007,
+      "median_detection_seconds": 1.9360080999904312,
+      "median_first_retry_seconds": 1.1354221,
+      "median_final_registration_ms": 359.1678
+    }
+  ],
+  "matrix": [
+    {
+      "condition": "bridge-zero",
+      "streams": 1,
+      "throughput_samples_mib_s": [
+        25.214842775417974,
+        20.529008969365385
+      ],
+      "p50_ms": [
+        3.8956500065978616,
+        2.4603999918326735
+      ],
+      "p95_ms": [
+        21.11361000133912,
+        21.2220149973291
+      ],
+      "statuses": [
+        "PASS",
+        "PASS"
+      ],
+      "errors": [
+        null,
+        null
+      ],
+      "reconnects": [
+        0,
+        0
+      ],
+      "bridge_residence_p50_ms": [
+        0.4037999897263944,
+        0.18044999160338193
+      ],
+      "bridge_residence_p95_ms": [
+        1.098100001399871,
+        0.7174999918788671
+      ],
+      "bridge_counters": [
+        {
+          "received": 377753,
+          "peak_queue_bytes": 91521,
+          "peak_queue_packets": 64,
+          "forwarded": 377753
+        },
+        {
+          "received": 309224,
+          "peak_queue_bytes": 88140,
+          "peak_queue_packets": 64,
+          "forwarded": 309224
+        }
+      ]
+    },
+    {
+      "condition": "bridge-zero",
+      "streams": 8,
+      "throughput_samples_mib_s": [
+        13.263676051714329,
+        16.295074272246268
+      ],
+      "p50_ms": [
+        9.305400002631359,
+        9.067199993296526
+      ],
+      "p95_ms": [
+        12.839674980205015,
+        10.845199997129384
+      ],
+      "statuses": [
+        "PASS",
+        "PASS"
+      ],
+      "errors": [
+        null,
+        null
+      ],
+      "reconnects": [
+        0,
+        0
+      ],
+      "bridge_residence_p50_ms": [
+        0.6132500129751861,
+        0.5424999981187284
+      ],
+      "bridge_residence_p95_ms": [
+        1.474675016652327,
+        0.9595250012353063
+      ],
+      "bridge_counters": [
+        {
+          "received": 231491,
+          "peak_queue_bytes": 85872,
+          "peak_queue_packets": 64,
+          "forwarded": 231491
+        },
+        {
+          "received": 292885,
+          "peak_queue_bytes": 86376,
+          "peak_queue_packets": 64,
+          "forwarded": 292885
+        }
+      ]
+    },
+    {
+      "condition": "delay-10ms",
+      "streams": 1,
+      "throughput_samples_mib_s": [
+        1.1007257932182977,
+        1.128655654892064
+      ],
+      "p50_ms": [
+        30.66009999020025,
+        44.486699989647605
+      ],
+      "p95_ms": [
+        46.258795000903774,
+        44.96533000346972
+      ],
+      "statuses": [
+        "PASS",
+        "PASS"
+      ],
+      "errors": [
+        null,
+        null
+      ],
+      "reconnects": [
+        0,
+        0
+      ],
+      "bridge_residence_p50_ms": [
+        14.762999999220483,
+        14.71389998914674
+      ],
+      "bridge_residence_p95_ms": [
+        15.701224998338148,
+        16.69012499769451
+      ],
+      "bridge_counters": [
+        {
+          "received": 18502,
+          "peak_queue_bytes": 84169,
+          "peak_queue_packets": 77,
+          "forwarded": 18502,
+          "icmp_resets_ignored": 1
+        },
+        {
+          "received": 19220,
+          "peak_queue_bytes": 97430,
+          "peak_queue_packets": 85,
+          "forwarded": 19220,
+          "icmp_resets_ignored": 5
+        }
+      ]
+    },
+    {
+      "condition": "delay-10ms",
+      "streams": 8,
+      "throughput_samples_mib_s": [
+        1.4199634486521873,
+        1.3442841022449923
+      ],
+      "p50_ms": [
+        44.89175000344403,
+        44.643550005275756
+      ],
+      "p95_ms": [
+        46.659314997668844,
+        45.457279999391176
+      ],
+      "statuses": [
+        "PASS",
+        "PASS"
+      ],
+      "errors": [
+        null,
+        null
+      ],
+      "reconnects": [
+        0,
+        0
+      ],
+      "bridge_residence_p50_ms": [
+        14.486999993096106,
+        14.743599997018464
+      ],
+      "bridge_residence_p95_ms": [
+        15.395775022625457,
+        15.585749984893482
+      ],
+      "bridge_counters": [
+        {
+          "received": 45251,
+          "peak_queue_bytes": 77449,
+          "peak_queue_packets": 82,
+          "forwarded": 45251,
+          "icmp_resets_ignored": 3
+        },
+        {
+          "received": 45336,
+          "peak_queue_bytes": 90232,
+          "peak_queue_packets": 91,
+          "forwarded": 45336,
+          "icmp_resets_ignored": 1
+        }
+      ]
+    },
+    {
+      "condition": "jitter-10ms-2ms",
+      "streams": 1,
+      "throughput_samples_mib_s": [
+        0.3020173451096937,
+        0.2775855816333182
+      ],
+      "p50_ms": [
+        46.085399997537024,
+        45.534150005551055
+      ],
+      "p95_ms": [
+        46.82270499761216,
+        46.35413499636343
+      ],
+      "statuses": [
+        "PASS",
+        "PASS"
+      ],
+      "errors": [
+        null,
+        null
+      ],
+      "reconnects": [
+        0,
+        0
+      ],
+      "bridge_residence_p50_ms": [
+        14.859550021355972,
+        14.906099997460842
+      ],
+      "bridge_residence_p95_ms": [
+        15.872624993789941,
+        15.88840000476921
+      ],
+      "bridge_counters": [
+        {
+          "received": 7957,
+          "peak_queue_bytes": 39134,
+          "peak_queue_packets": 33,
+          "forwarded": 7957,
+          "icmp_resets_ignored": 5
+        },
+        {
+          "received": 7131,
+          "peak_queue_bytes": 34085,
+          "peak_queue_packets": 28,
+          "forwarded": 7131,
+          "icmp_resets_ignored": 1
+        }
+      ]
+    },
+    {
+      "condition": "jitter-10ms-2ms",
+      "streams": 8,
+      "throughput_samples_mib_s": [],
+      "p50_ms": [
+        46.258549991762266,
+        44.98805000912398
+      ],
+      "p95_ms": [
+        87.90816499094944,
+        77.26095500402148
+      ],
+      "statuses": [
+        "FAILED",
+        "FAILED"
+      ],
+      "errors": [
+        {
+          "type": "ConcurrentTransferError",
+          "message": "parallel transfer: stream=0 RuntimeError: throughput socket failed after 38.010s sent=2293760 received=1363111: TimeoutError: timed out; stream=1 RuntimeError: throughput socket failed after 38.010s sent=2162688 received=1325793: TimeoutError: timed out; stream=2 RuntimeError: throughput socket failed after 38.010s sent=1966080 received=1343254: TimeoutError: timed out; stream=3 RuntimeError: throughput socket failed after 38.009s sent=1835008 received=1337228: TimeoutError: timed out; stream=4 "
+        },
+        {
+          "type": "ConcurrentTransferError",
+          "message": "parallel transfer: stream=0 RuntimeError: throughput socket failed after 38.016s sent=2555904 received=1259510: TimeoutError: timed out; stream=1 RuntimeError: throughput socket failed after 38.016s sent=2686976 received=1235826: TimeoutError: timed out; stream=2 RuntimeError: throughput socket failed after 38.015s sent=2359296 received=1254309: TimeoutError: timed out; stream=3 RuntimeError: throughput socket failed after 38.015s sent=1507328 received=1245693: TimeoutError: timed out; stream=4 "
+        }
+      ],
+      "reconnects": [
+        0,
+        0
+      ],
+      "bridge_residence_p50_ms": [
+        14.931400015484542,
+        15.066849999129772
+      ],
+      "bridge_residence_p95_ms": [
+        15.921650010568555,
+        15.856900012295227
+      ],
+      "bridge_counters": [
+        {
+          "received": 32557,
+          "peak_queue_bytes": 31234,
+          "peak_queue_packets": 32,
+          "forwarded": 32557,
+          "icmp_resets_ignored": 7
+        },
+        {
+          "received": 34378,
+          "peak_queue_bytes": 30380,
+          "peak_queue_packets": 33,
+          "forwarded": 34378,
+          "icmp_resets_ignored": 4
+        }
+      ]
+    },
+    {
+      "condition": "loss-10ms-2ms-1pct",
+      "streams": 1,
+      "throughput_samples_mib_s": [
+        0.11783338935387082,
+        0.15677565898603646
+      ],
+      "p50_ms": [
+        37.09080000407994,
+        45.340850003412925
+      ],
+      "p95_ms": [
+        45.04328000039095,
+        62.42442499788014
+      ],
+      "statuses": [
+        "PASS",
+        "PASS"
+      ],
+      "errors": [
+        null,
+        null
+      ],
+      "reconnects": [
+        0,
+        0
+      ],
+      "bridge_residence_p50_ms": [
+        15.074349998030812,
+        14.980150008341298
+      ],
+      "bridge_residence_p95_ms": [
+        15.913774994260166,
+        15.909600006125402
+      ],
+      "bridge_counters": [
+        {
+          "received": 6255,
+          "peak_queue_bytes": 21672,
+          "peak_queue_packets": 16,
+          "forwarded": 6195,
+          "random_dropped": 60,
+          "icmp_resets_ignored": 2
+        },
+        {
+          "received": 5665,
+          "peak_queue_bytes": 16177,
+          "peak_queue_packets": 13,
+          "forwarded": 5611,
+          "random_dropped": 54,
+          "icmp_resets_ignored": 1
+        }
+      ]
+    },
+    {
+      "condition": "loss-10ms-2ms-1pct",
+      "streams": 8,
+      "throughput_samples_mib_s": [],
+      "p50_ms": [
+        45.10055000719149,
+        44.979099999181926
+      ],
+      "p95_ms": [
+        71.69291000609519,
+        78.45959000114814
+      ],
+      "statuses": [
+        "FAILED",
+        "FAILED"
+      ],
+      "errors": [
+        {
+          "type": "ConcurrentTransferError",
+          "message": "parallel transfer: stream=0 RuntimeError: throughput socket failed after 38.012s sent=2621440 received=372063: TimeoutError: timed out; stream=1 RuntimeError: throughput socket failed after 38.012s sent=2621440 received=376106: TimeoutError: timed out; stream=2 RuntimeError: throughput socket failed after 38.012s sent=2424832 received=361417: TimeoutError: timed out; stream=3 RuntimeError: throughput socket failed after 38.011s sent=2424832 received=365967: TimeoutError: timed out; stream=4 Runt"
+        },
+        {
+          "type": "ConcurrentTransferError",
+          "message": "parallel transfer: stream=0 RuntimeError: throughput socket failed after 38.006s sent=2490368 received=299285: TimeoutError: timed out; stream=1 RuntimeError: throughput socket failed after 38.005s sent=2293760 received=278346: TimeoutError: timed out; stream=2 RuntimeError: throughput socket failed after 38.005s sent=2031616 received=264761: TimeoutError: timed out; stream=3 RuntimeError: throughput socket failed after 38.004s sent=2162688 received=280673: TimeoutError: timed out; stream=4 Runt"
+        }
+      ],
+      "reconnects": [
+        0,
+        0
+      ],
+      "bridge_residence_p50_ms": [
+        15.094399990630336,
+        15.029800008051097
+      ],
+      "bridge_residence_p95_ms": [
+        15.906124986940995,
+        15.91550000011921
+      ],
+      "bridge_counters": [
+        {
+          "received": 11603,
+          "peak_queue_bytes": 17361,
+          "peak_queue_packets": 25,
+          "forwarded": 11491,
+          "random_dropped": 112,
+          "icmp_resets_ignored": 8
+        },
+        {
+          "received": 11610,
+          "peak_queue_bytes": 15468,
+          "peak_queue_packets": 25,
+          "forwarded": 11498,
+          "random_dropped": 112,
+          "icmp_resets_ignored": 8
+        }
+      ]
+    }
+  ],
+  "outages": [
+    {
+      "build": "before",
+      "condition": "bridge-zero",
+      "seconds": 1,
+      "runs": 3,
+      "reconnects": 0,
+      "recovery_after_restore_ms": [
+        21.406599989859387,
+        27.411800023401156,
+        27.912599995033816
+      ]
+    },
+    {
+      "build": "before",
+      "condition": "bridge-zero",
+      "seconds": 3,
+      "runs": 3,
+      "reconnects": 0,
+      "recovery_after_restore_ms": [
+        19.098999997368082,
+        24.860300007276237,
+        13.484900002367795
+      ]
+    },
+    {
+      "build": "after",
+      "condition": "bridge-zero",
+      "seconds": 1,
+      "runs": 3,
+      "reconnects": 0,
+      "recovery_after_restore_ms": [
+        18.418299994664267,
+        14.130399998975918,
+        14.491799985989928
+      ]
+    },
+    {
+      "build": "after",
+      "condition": "bridge-zero",
+      "seconds": 3,
+      "runs": 3,
+      "reconnects": 0,
+      "recovery_after_restore_ms": [
+        15.118399984203279,
+        26.91459999186918,
+        20.209800015436485
+      ]
+    },
+    {
+      "build": "after",
+      "condition": "delay-10ms",
+      "seconds": 1,
+      "runs": 3,
+      "reconnects": 0,
+      "recovery_after_restore_ms": [
+        48.727799992775545,
+        51.407899998594075,
+        45.277299999725074
+      ]
+    },
+    {
+      "build": "after",
+      "condition": "delay-10ms",
+      "seconds": 3,
+      "runs": 3,
+      "reconnects": 0,
+      "recovery_after_restore_ms": [
+        46.07740000938065,
+        57.11009999504313,
+        44.903700007125735
+      ]
+    },
+    {
+      "build": "after",
+      "condition": "jitter-10ms-2ms",
+      "seconds": 1,
+      "runs": 3,
+      "reconnects": 0,
+      "recovery_after_restore_ms": [
+        32.523300003958866,
+        44.87169999629259,
+        29.933599987998605
+      ]
+    },
+    {
+      "build": "after",
+      "condition": "jitter-10ms-2ms",
+      "seconds": 3,
+      "runs": 3,
+      "reconnects": 0,
+      "recovery_after_restore_ms": [
+        28.862400009529665,
+        43.3070000144653,
+        54.2342999833636
+      ]
+    },
+    {
+      "build": "after",
+      "condition": "loss-10ms-2ms-1pct",
+      "seconds": 1,
+      "runs": 3,
+      "reconnects": 0,
+      "recovery_after_restore_ms": [
+        48.64379999344237,
+        51.19110000669025,
+        30.942199984565377
+      ]
+    },
+    {
+      "build": "after",
+      "condition": "loss-10ms-2ms-1pct",
+      "seconds": 3,
+      "runs": 3,
+      "reconnects": 0,
+      "recovery_after_restore_ms": [
+        47.54300002241507,
+        38.931399991270155,
+        43.78589999396354
+      ]
+    }
+  ],
+  "process_cpu": [
+    {
+      "build": "before",
+      "streams": 1,
+      "cpu_seconds_per_mib": {
+        "relay": 0.0159971975712284,
+        "tunnel": 0.022202017832003755,
+        "python": 0.006452369779446269
+      },
+      "mean_cores": {
+        "relay": 0.8549590887213342,
+        "tunnel": 1.1802542163680323,
+        "python": 0.34300650938040567
+      }
+    },
+    {
+      "build": "after",
+      "streams": 1,
+      "cpu_seconds_per_mib": {
+        "relay": 0.014636801099908342,
+        "tunnel": 0.018832168660428757,
+        "python": 0.0072467919340054995
+      },
+      "mean_cores": {
+        "relay": 0.796227498916672,
+        "tunnel": 0.9956739174320028,
+        "python": 0.39421831159670845
+      }
+    },
+    {
+      "build": "before",
+      "streams": 2,
+      "cpu_seconds_per_mib": {
+        "relay": 0.023883550028264557,
+        "tunnel": 0.034912073296881924,
+        "python": 0.01582815149802148
+      },
+      "mean_cores": {
+        "relay": 1.0520297196592592,
+        "tunnel": 1.4711870766571264,
+        "python": 0.6941044626568347
+      }
+    },
+    {
+      "build": "after",
+      "streams": 2,
+      "cpu_seconds_per_mib": {
+        "relay": 0.016095934333718098,
+        "tunnel": 0.02052571283095723,
+        "python": 0.011488034623217923
+      },
+      "mean_cores": {
+        "relay": 0.7817291906502833,
+        "tunnel": 1.0042487325666642,
+        "python": 0.5620678952814974
+      }
+    },
+    {
+      "build": "before",
+      "streams": 4,
+      "cpu_seconds_per_mib": {
+        "relay": 0.037789473684210526,
+        "tunnel": 0.061894736842105266,
+        "python": 0.037944582299421006
+      },
+      "mean_cores": {
+        "relay": 1.1161246659471176,
+        "tunnel": 1.852608242905806,
+        "python": 1.1378270900072005
+      }
+    },
+    {
+      "build": "after",
+      "streams": 4,
+      "cpu_seconds_per_mib": {
+        "relay": 0.019148768161718257,
+        "tunnel": 0.025569520816967794,
+        "python": 0.01926721415034744
+      },
+      "mean_cores": {
+        "relay": 0.7484502768687896,
+        "tunnel": 0.9971077439274201,
+        "python": 0.7484186441989807
+      }
+    },
+    {
+      "build": "before",
+      "streams": 8,
+      "cpu_seconds_per_mib": {
+        "relay": 0.053530092592592594,
+        "tunnel": 0.10716520650813517,
+        "python": 0.07641921397379912
+      },
+      "mean_cores": {
+        "relay": 1.0561268521676268,
+        "tunnel": 2.1317824176843954,
+        "python": 1.5100125458597802
+      }
+    },
+    {
+      "build": "after",
+      "streams": 8,
+      "cpu_seconds_per_mib": {
+        "relay": 0.03596511101042139,
+        "tunnel": 0.036836711455249374,
+        "python": 0.03478706445001139
+      },
+      "mean_cores": {
+        "relay": 0.9746250760443997,
+        "tunnel": 1.0011088126971066,
+        "python": 0.9405942101198314
+      }
+    },
+    {
+      "build": "before",
+      "streams": 16,
+      "cpu_seconds_per_mib": {
+        "relay": 0.056448882870683816,
+        "tunnel": 0.11186903137789904,
+        "python": 0.08513879485443467
+      },
+      "mean_cores": {
+        "relay": 1.0109690487359269,
+        "tunnel": 1.9794313140160338,
+        "python": 1.5247898995927174
+      }
+    },
+    {
+      "build": "after",
+      "streams": 16,
+      "cpu_seconds_per_mib": {
+        "relay": 0.04572170585019136,
+        "tunnel": 0.045098846787479406,
+        "python": 0.04578528281164195
+      },
+      "mean_cores": {
+        "relay": 0.9864976985465381,
+        "tunnel": 0.9971215199155008,
+        "python": 0.9571971674173625
+      }
+    }
+  ],
+  "restart_reduction_percent": 83.82991515280355
+}

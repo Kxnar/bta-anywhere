@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" tests="24" skipped="0" failures="0" errors="0" timestamp="2026-10-08T18:07:19.584Z" hostname="KENARALIENWARE" time="0.371">
+  <properties/>
+  <testcase name="repetition 1 of 20" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.034"/>
+  <testcase name="repetition 2 of 20" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.025"/>
+  <testcase name="repetition 3 of 20" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.014"/>
+  <testcase name="repetition 4 of 20" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.014"/>
+  <testcase name="repetition 5 of 20" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.014"/>
+  <testcase name="repetition 6 of 20" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.015"/>
+  <testcase name="repetition 7 of 20" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.015"/>
+  <testcase name="repetition 8 of 20" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.015"/>
+  <testcase name="repetition 9 of 20" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.015"/>
+  <testcase name="repetition 10 of 20" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.015"/>
+  <testcase name="repetition 11 of 20" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.015"/>
+  <testcase name="repetition 12 of 20" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.015"/>
+  <testcase name="repetition 13 of 20" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.015"/>
+  <testcase name="repetition 14 of 20" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.015"/>
+  <testcase name="repetition 15 of 20" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.015"/>
+  <testcase name="repetition 16 of 20" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.014"/>
+  <testcase name="repetition 17 of 20" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.015"/>
+  <testcase name="repetition 18 of 20" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.015"/>
+  <testcase name="repetition 19 of 20" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.014"/>
+  <testcase name="repetition 20 of 20" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.015"/>
+  <testcase name="rejectsCarrierGradeNatAndClosesDiscovery()" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.002"/>
+  <testcase name="rejectsCarrierGradeNatReturnedByRenewal()" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.012"/>
+  <testcase name="closingServiceCompletesAnInFlightOpen()" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.001"/>
+  <testcase name="triesProtocolsInOrderAndCleansRejectedMappings()" classname="io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

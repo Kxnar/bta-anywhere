@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "forged_packets": 64,
+  "verified_probes": 65,
+  "sha256": {
+    "relay": "cce961da6b301e75fed661127a2e5af2fc967042edb38b4ab1c52b79d5e4ff6e",
+    "tunnel": "0680b2eb67efc10a72dfd11bd34cc24ab79157c8778ce8ddbb87cacbb84bfcdf",
+    "harness": "6700bebb710ceabd5ed989b9acbb301e65a5e1b2b8dde41655559ecd981f3afd"
+  },
+  "reconnects": 0,
+  "logs": [
+    "relay-out: 2026-10-08T17:44:07.508933Z  INFO relay ready quic=127.0.0.1:55020 tcp_start=64621 tcp_end=64622",
+    "relay-out: 2026-10-08T17:44:07.509019Z  INFO admin endpoint listening address=127.0.0.1:64623",
+    "tunnel-err: BTA_LIFECYCLE connect_start 178223336311700",
+    "relay-out: 2026-10-08T17:44:08.745210Z  INFO registered relay session port=64621",
+    "relay-out: 2026-10-08T17:44:08.745246Z  INFO host control stream active port=64621 resumed=false remote=127.0.0.1:55022",
+    "tunnel-err: BTA_LIFECYCLE registered 178223733705100",
+    "tunnel-out: Relay selection: static",
+    "tunnel-out: Public endpoint: localhost:64621",
+    "tunnel-out: Press Ctrl+C or type 'stop' to stop.",
+    "relay-out: 2026-10-08T17:44:12.411109Z  INFO host closed session port=64621 reason_length=15",
+    "relay-out: 2026-10-08T17:44:12.411199Z  INFO released relay session port=64621"
+  ]
+}

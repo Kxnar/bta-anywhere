@@ -1,0 +1,598 @@
+{
+  "archived_utc": "2026-10-08T18:10:23.945430+00:00",
+  "transformations": [
+    "parse JSON, redact user home paths, UTF-8/LF serialization; numerical values unchanged",
+    "JFR copies exclude initial environment, system properties and JVM command metadata; original recordings remain local"
+  ],
+  "files": [
+    {
+      "name": "before.json",
+      "original_sha256": "c04d929d2a2cea6de962000a7408aa52db7cc96bde5422b70c0a010fba6d5f2f",
+      "published_sha256": "eaa4fa69fedd3e485500f8b9af278a52ae5a5dba4f5097e91ffc4a6efd53f994",
+      "status": "PASS"
+    },
+    {
+      "name": "after.json",
+      "original_sha256": "19dd348203256c3801506c396d8943901f3885d0a7912797e20e6441abbfaf1a",
+      "published_sha256": "f7c41352aae72553ebdcfeb18039694910436ca14668a2746034c62bc7160602",
+      "status": "PASS"
+    },
+    {
+      "name": "before-recovery.json",
+      "original_sha256": "973aaefd2bbbad222045c22910b15818f38aecfc0ca273f6b0a76dae553e5bd6",
+      "published_sha256": "9acef13d89b7a911f4d44e79976481a75fcffab6807f138ad0244018d172c5ea",
+      "status": "PASS"
+    },
+    {
+      "name": "after-recovery.json",
+      "original_sha256": "134a05c946c541286cbd41f65fda1416647ee68bff19f191cee40747d67e314d",
+      "published_sha256": "853db4475bd380c01f9959805b2c45e4ce0e737a993299524eb239f08214d459",
+      "status": "PASS"
+    },
+    {
+      "name": "network-matrix.json",
+      "original_sha256": "49e4bf941849cd5463ea2a12212023e5f6c118b3792c9cb7aaebdd7ec663ef3a",
+      "published_sha256": "f44d5c26d531582c6b05274b94cdcd80eb282a44078ffbfba21e01a984f43f50",
+      "status": "COMPLETE"
+    },
+    {
+      "name": "after-profile.json",
+      "original_sha256": "ce0dee397ce1b2168012a3d11a5f5ad6abc3860ef931781af2ada78507471c20",
+      "published_sha256": "4510705e86cf4c717a5b42a217a76f226feaf938a7d303ab63203047d4972313",
+      "status": "PASS"
+    },
+    {
+      "name": "reset-auth.json",
+      "original_sha256": "4e64ff926c67affe52dd298a8b3448bf2d86604a18c469eb02193c1a879eb225",
+      "published_sha256": "2adb8bc2f041bb65e9b3c503ee5731e0b6ce8c178400dae81d0a2d2ef8a65c07",
+      "status": "PASS"
+    },
+    {
+      "name": "active-outages.json",
+      "original_sha256": "aa874f5a9dfaca2b7f8c59b6c56360deda3d100a999c472239c890290e58d106",
+      "published_sha256": "307d90556c775b74417cacc7a838de44eab431a2900cc0ca4dbeab7664d05113",
+      "status": "PASS"
+    },
+    {
+      "name": "intermediate-short-heartbeat-scaling.json",
+      "original_sha256": "42e28aa1fca415afaea9717fea92b83da1f61e22945845069a3bb2e038812aa7",
+      "published_sha256": "bda406036bb821fac98368b808fa3c15ee8f93cd5408f8f164aab007475d0bae",
+      "status": "PASS"
+    },
+    {
+      "name": "intermediate-short-heartbeat-recovery.json",
+      "original_sha256": "54d9099209aff78557fe33c66619a2115810df91df7204d757d2bacc29791332",
+      "published_sha256": "132d9f7eafbfd6a3424e61b05fd6dc2ae634f2749abda524cd9c09cf6a5fb4f7",
+      "status": "PASS"
+    },
+    {
+      "name": "failed-short-heartbeat-matrix.json",
+      "original_sha256": "6dc99e761e6c0729be3085eeed8de67d53799fcab4e6be93e119167922ba0a90",
+      "published_sha256": "6337f244f93df862de4f0a2fe3bb71dd789c8e252032b77b4d5cf07d9df93224",
+      "status": "FAILED"
+    },
+    {
+      "name": "failed-original-jitter-probe.json",
+      "original_sha256": "fa9fb75b45d853fa7da4d91e788a541f03b7b227783e12d58086714ef8f7c50f",
+      "published_sha256": "cde3701769661aa37426c2b9370c8f4991149b1745bc25e068e8fb871b8bae31",
+      "status": "FAILED"
+    },
+    {
+      "name": "ineffective-reset-with-normal-client-cid.json",
+      "original_sha256": "c50b819a9d9f78bb5dbc4733dd9249e59101b66987d3aedebb6edc41ee3f8c8b",
+      "published_sha256": "07c526bfc212cfe48788766f2170cf71edab61b030da9d102ebf3b548ea28855",
+      "status": "PASS"
+    },
+    {
+      "name": "before-profile.json",
+      "original_sha256": "3478d52cb634f25e2ba29d62fb3fbcc4592feceaa3956913a38e7685ebe6ca4e",
+      "published_sha256": "d3a773dbe405cb685c1192d1b64dc76018edbb5b605cd4db2c56cfe177d8e535",
+      "status": "PASS"
+    },
+    {
+      "name": "transport-profile.json",
+      "original_sha256": "5251d49fc194271056c89a20e7820ed393987a65a6d7047db09f8c58415760a1",
+      "published_sha256": "648ce28a82324d9247bf12b307647ed13f541ceff9cf11461b6cc91e76f2513a",
+      "status": "PASS"
+    },
+    {
+      "name": "python-client-process-ablation.json",
+      "original_sha256": "3c61f0e42108bd01829c98c2e8763b11e1d3f3e136bcf94741ae867462279ce6",
+      "published_sha256": "2103254a80db3d05e03fded1e7a59f9c2aa2d91a6e4555937800036c6fe83178",
+      "status": "PASS"
+    },
+    {
+      "name": "python-client-and-echo-process-ablation.json",
+      "original_sha256": "dc0dda1ce8a2410201a023d1dd7aee6f0d8001d19ed0082e27e20bb0f07067cc",
+      "published_sha256": "71eab05b84784d1fbbeaf0df2805925a906c949f196c28624c6f38464c54055c",
+      "status": "PASS"
+    },
+    {
+      "name": "python-client-and-echo-process-metadata.json",
+      "original_sha256": "803c0756c7cc85faee14bcfbb7231e2da8475b03df385ed1500b7b1b517e90ca",
+      "published_sha256": "cd790b9d1530bb0916556f9cc9f303e4ce42556057efa6fd19a9d9a345c016b8",
+      "status": "metadata"
+    },
+    {
+      "name": "single-java-loop-ablation.json",
+      "original_sha256": "97420ef789c333833667dc5fa58d4336f5561640e2864382948e34c1805bc5f1",
+      "published_sha256": "5d9d900e0fd94f9d1eaa86c9fd5c2059385da90f46b268693da081a0f3ef40df",
+      "status": "PASS"
+    },
+    {
+      "name": "ineffective-unshaded-property.json",
+      "original_sha256": "28f867690c8af9aa618063733110c7c0fc0ab3bfca9beec4fe9e43065c7a0dc8",
+      "published_sha256": "01b83b92023b85af139762345251f1176c343a5b49fe69df3123cb894da2aeef",
+      "status": "PASS"
+    },
+    {
+      "name": "single-relay-worker-ablation.json",
+      "original_sha256": "07a56b1c194f79cb3630cf07a4c7b51806e036394913baf5a46e80669bd94351",
+      "published_sha256": "22521d472aabef3bddd132d97d29646ce4a7bc72109c72b15f2b82a20ae29d7a",
+      "status": "PASS"
+    },
+    {
+      "name": "flush-batching-ablation.json",
+      "original_sha256": "318cfee348716ae2d5eb00794b60f0aed4d43c8ed282d8f2c4f7579aaaf52318",
+      "published_sha256": "f412c427c54c5a0bc8a5c125cb028620bfcf37f2009c7def42a1146047d32b0b",
+      "status": "PASS"
+    },
+    {
+      "name": "failed-default-eight-connection-limit.json",
+      "original_sha256": "43bdd65595fb9c2336d9c1616d5fdd4355687bca1516cd87411832ae49e039e5",
+      "published_sha256": "16a0137cae9147e6d97cdad2306aa5cdcb0e2d6fcbd548fc635a50526915bbca",
+      "status": "FAILED"
+    },
+    {
+      "name": "failed-python-profiler.json",
+      "original_sha256": "0d674a0f1c1bcc805b63037b1d60881145af08a87235e4fce21ddc05caa86ee6",
+      "published_sha256": "aff02ffc96be0c940e4e76b91c9c66e5939a141c96017c59500db6e05982724b",
+      "status": "FAILED"
+    },
+    {
+      "name": "failed-udp-bridge-restart.json",
+      "original_sha256": "77e350a13f83ff4f9ca850cf334b1bbbea79a16c89479e7cf0993dc4dd66c689",
+      "published_sha256": "42cc673c14b219c44b1ecf0f6b4d709931defbf143b93d0dc084afdf2f656288",
+      "status": "FAILED"
+    },
+    {
+      "name": "failed-onedrive-checkpoint.json",
+      "original_sha256": "cd7f4ed051e29c92755324cb3e1eba620f8a8995b27507567954526b0e2579b3",
+      "published_sha256": "4d3cba108a1d580bc3bb9e5bff8c38bb3873757f804f1d157b13abb62784be31",
+      "status": "FAILED"
+    },
+    {
+      "name": "machine.json",
+      "original_sha256": "34f6e1bbf6e60d09757295e5e12f01f8eb9eefcfee400912de827d2c8fe4bc96",
+      "published_sha256": "cfd33a022709b776c0f4db20b5f7672679b16061a671d055e2c78d0e163b732e",
+      "status": "metadata"
+    },
+    {
+      "name": "candidate-smoke.json",
+      "original_sha256": "a84c418c56823409776aea2dae58e7b9892e68bfc6b4f2471c5af5be68f94d33",
+      "published_sha256": "f61a1cc055d5e757be75aec94068904f616e3142936b6495cb6d6ef482ee32e7",
+      "status": "PASS"
+    },
+    {
+      "name": "before.jfr",
+      "original_sha256": "2c7f56b7e6c2b4033082f75f3ac48822f95ff2c28943bd47176a354f446a9e4c",
+      "published_sha256": "0b834d788c3662e2b9629e4f039bb03be4c6a09c611f3a60ee01eaa4b44abc52",
+      "status": "profile"
+    },
+    {
+      "name": "before.pstats",
+      "original_sha256": "3df95dfb593a4e6ead812fb211d3598333f0b1c8b88e86e015ed2b2bce966b63",
+      "published_sha256": "3df95dfb593a4e6ead812fb211d3598333f0b1c8b88e86e015ed2b2bce966b63",
+      "status": "profile"
+    },
+    {
+      "name": "after.jfr",
+      "original_sha256": "affaf9d14c5e4949bd4f4cdad17adbb65c6bc4f2594982600770775ef1d5a9df",
+      "published_sha256": "0924d58ae745cd4a6d87f434241ea1b0ec03c712ab05aa8c527b3893e483fec9",
+      "status": "profile"
+    },
+    {
+      "name": "after.pstats",
+      "original_sha256": "0131680b85d12a60b569a76c5d8b58ff9685b143b7bba834cdf0985c0daa82e5",
+      "published_sha256": "0131680b85d12a60b569a76c5d8b58ff9685b143b7bba834cdf0985c0daa82e5",
+      "status": "profile"
+    },
+    {
+      "name": "cross-language.txt",
+      "original_sha256": "a2d54b5ac10ed4ae05a91a84cae3780b223d541aa84ca98ed968428490ae075d",
+      "published_sha256": "bb631187f7b62de449e082488a8df283c3b1f04e7e99a34c57efb87e2a425a83",
+      "status": "PASS"
+    },
+    {
+      "name": "encrypted-join.txt",
+      "original_sha256": "9a68ebeab195fb398c3f989d5b99aaab0d9a9e1cc38f04c4d64cea11e0016e5c",
+      "published_sha256": "ea9795d53b509f156087a5677967bc24270d926b62aeb2b6ca9ab8f22f707757",
+      "status": "PASS"
+    },
+    {
+      "name": "half-close.txt",
+      "original_sha256": "20f4dbfae7fe8cdfeb18803b20d9b639f93554af1f38455d6b598a36e16ed505",
+      "published_sha256": "38e3bab5e906cf2778ce9d4397f6c177864d0bf28d700936b0761ede1708e78d",
+      "status": "PASS"
+    },
+    {
+      "name": "java-check-build.txt",
+      "original_sha256": "3daa24ed3de2b169f269050ffeea9b00944ff178004cc32be3cdfb43c1eeb333",
+      "published_sha256": "af5cd6e67c382f8787523c64f7fbf164322dcd963a6679674296c486b83094f9",
+      "status": "PASS"
+    },
+    {
+      "name": "java-doctor.txt",
+      "original_sha256": "fd5804f44e52c4c026b72f918552e408bbd44e1f16b197960dd1055288d80ea7",
+      "published_sha256": "705ca50e303a6e4007d7ae65b5124bd5b9282f70dfb2b63a13b54bae0f0f5a30",
+      "status": "PASS"
+    },
+    {
+      "name": "python-tests.txt",
+      "original_sha256": "9237862e0d6f5c2399ce3fb68cb27caa86cce63fdee5a63ba6909c6fce77a426",
+      "published_sha256": "406589621930bf8a59355c0855a4b6c9402ae787a48ff65d389f252277dd3f3d",
+      "status": "retained initial assertion failure"
+    },
+    {
+      "name": "python-tests-final.txt",
+      "original_sha256": "2a068ca5338fd732a49b66a2036b054caaf05b180b82b1e6e9c34f07176e1fa5",
+      "published_sha256": "cc9534caedbeb2487321948c4eb4d87eef370ce1f2b8963bd5c18523c1c3c65e",
+      "status": "PASS"
+    },
+    {
+      "name": "rust-clippy.txt",
+      "original_sha256": "d1bbf0805e9aa24eeec3811b812677e5929af4a02aa1b547f7cddd58e5993212",
+      "published_sha256": "43aa77301964138068956f34987932f5799068a39c75178c0a54181a56c00cf2",
+      "status": "PASS"
+    },
+    {
+      "name": "rust-format.txt",
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "published_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "PASS"
+    },
+    {
+      "name": "rust-licenses.txt",
+      "original_sha256": "90eb1177e558f402f3bb3514801dbb2c7533d9954566c86d69a9c329a4178187",
+      "published_sha256": "d57fe7b63688c353424f94deb09bc1246d9c8a15b5c1597f4a0c9533f3e38ff3",
+      "status": "PASS"
+    },
+    {
+      "name": "rust-tests.txt",
+      "original_sha256": "5120bb75342064c790004adfbf9b2ec349b120c7b1c3fb85058e9182627fc2ee",
+      "published_sha256": "de1e0fc930a0efea14aadc74de14ab0e152752bd5a62915e04d25a2af27a120e",
+      "status": "PASS"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.mod.hosting.CrashFaultCampaignTest.xml",
+      "original_sha256": "85bb2ece42a6b32576255c286fe6d7ca04a12eaf0a6edee11b7cb7521b3ac622",
+      "published_sha256": "44187a94a5709f9fdd471e4b4b55679705a231ad203e82a4918bc421965803d1",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.mod.hosting.GameDirectoryLeaseTest.xml",
+      "original_sha256": "dfb403f0cd05e70e3c3abe2271da42a522914737b26a0a40d265e1beb905d970",
+      "published_sha256": "90e4163d6b3b0a75510efca32d4eb4b72905bb77c2024f1012b9d367684025e9",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.mod.hosting.HardCrashRecoveryTest.xml",
+      "original_sha256": "0233ac59b2f559d37c86d5a8d57929fb42d815713288e1fea4f3fad63459d2f3",
+      "published_sha256": "ab25820b93afa3d598827c35aa7ec281d2479efa5d967e763e85ae705354ff04",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.mod.hosting.HostControllerFaultCampaignTest.xml",
+      "original_sha256": "2459240ba9ddafbff0e8099bf57dbe12edefe78c4248ffd68194611f44b36b0f",
+      "published_sha256": "ab28dbc85cff5730c53a0d370d4c71b8c849912533ccaa0a41b79a30a0325535",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.mod.hosting.HostControllerFaultTest.xml",
+      "original_sha256": "e231492066f8af8f2fa16d11bbcb7ba0ef5698e4a47f1aee55c861cc5276a4c8",
+      "published_sha256": "49472f943e586a574cded899f4fc94b332ed783d22749c141609b8023218a821",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.mod.hosting.HostControllerHardCrashTest.xml",
+      "original_sha256": "b3adce93a8b32ec639da27f6ae639163144a3c6765ab300c57094a5711ec3712",
+      "published_sha256": "4e0f49530dc0faf2b91ef18eca8ea9582fdd6781b069355c87a4f34bcf88366e",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.mod.hosting.HostControllerWorldOpenGuardTest.xml",
+      "original_sha256": "11bb20d84336e84efc3d5a623c32dad9c14e0f5f9cd705b1afc932b3aee3ac3a",
+      "published_sha256": "7087db9311b4b0ab5eef01d68584c099b3b03e05f9e325a5a4adc065ee369072",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.mod.hosting.ManagedServerRecoveryTest.xml",
+      "original_sha256": "4f8ef5aa6746e03aee9b87b1de3800652dd95e41d7b6ec1ce9f3777782329b18",
+      "published_sha256": "7fa3592117f3750f8d90bc9a1cfdba1ee4fa444c744c39a5d40831775ae088aa",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.mod.hosting.ModMirrorServiceTest.xml",
+      "original_sha256": "30cda310f9d9e47fbf16df7986b430f19f2010ca8ad896c4849158f16d5babeb",
+      "published_sha256": "5fa47d27b3506436289732ab4c0f03b5520eddc4c0abca48910ef05f9f03851a",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.mod.hosting.PrelaunchTimingTest.xml",
+      "original_sha256": "8a3429458a0bad8324aa8c43e5f92ae91061817684e8c6ef69e9c6ad7e298217",
+      "published_sha256": "755c003c064cc9d6b387cc8940581127147e4633e9576af919ba6d0f8bcc90ed",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.mod.hosting.RecoveryFailClosedTest.xml",
+      "original_sha256": "27010bede1d62a1d32de5468a181058b27b177de868c50d8bd0fe0e8644ac08f",
+      "published_sha256": "feb9477c0ae14f8d61cf2ad7d27cb14ac1281952555c5c05ed45a3e92702ba32",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.mod.hosting.ServerDistributionManagerTest.xml",
+      "original_sha256": "1c12bb0dd6695cb6c15f8676be3854a5d1b4558e16ba47a8c217c88766a75d93",
+      "published_sha256": "e9d799635593eb163fc030ed5337d8bdeffba37f1107cedb0e6dea20dcd1571d",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.mod.hosting.WorldBackupServiceTest.xml",
+      "original_sha256": "ccc4d5b1414ebb3c9e1704a57f630766ef115cca720506afc00e63fdbf0422fd",
+      "published_sha256": "c0cca1b764d81f9f0d1786425e9bb09cbed3b9c2e96520e4776c39aebc988a17",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.mod.hosting.WorldOpenGuardTest.xml",
+      "original_sha256": "28316f5340aa757468ef7ba8655e214e390906ecbf22eff49284a9593293c09f",
+      "published_sha256": "48876a9953af638662124b76c306bb3541e1fc1578ea1cc00fa961e4b6a060a6",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.CoordinatorRelayResolverTest.xml",
+      "original_sha256": "49a221635cdb4ed56cd07cea90197555292d02b51cccc88a020804aa57116873",
+      "published_sha256": "b037c03774b420c0f1c5eefe62deac975357c198716aa58880f698a9f1d9d99b",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.DefaultPortMappingServiceTest.xml",
+      "original_sha256": "d5d5231c852e11cb866658075e7916e6c1005e121ae2c14bedcbd6b421722ca8",
+      "published_sha256": "c0d22ae2cc4830e027fe001cbecd4fbcd3a2d60cab02ef68aedbc17a5ba22edf",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.encrypted.BtaeInvitationTest.xml",
+      "original_sha256": "840be71651fb3b970f2d0c944697981be1d2c1a598851936b4636fbb9b9f2f30",
+      "published_sha256": "8453b56df11cd2cd59601ab70272e875b109d74e89f34238523910bf465d6830",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.encrypted.EncryptedProtocolTest.xml",
+      "original_sha256": "33644fc4af7772c63d568fdcf995a380175ecb55f5f905bfd45679c7c7f63090",
+      "published_sha256": "05b85be1d5581fd4024edbe6a3e04ac3426b7015c0f9bde5003ef4be223a6e57",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.encrypted.EncryptedV2VectorTest.xml",
+      "original_sha256": "fd1b4519700b425527f35cdb290b5ae4d23c0a9560f3d3e5cd784cfffe2f654f",
+      "published_sha256": "d330fe758ea549d4d7415a1b228abf09a8ff3249ddc8e9e201a32da67dc00afd",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.encrypted.InvitationRegistryTest.xml",
+      "original_sha256": "9195c57a3d4c4f09f2ce1e4c7740437a9f4cb2ba9c3e2b953a15adfb61f2625c",
+      "published_sha256": "1606c374da4fc5e45825e6090d75fc46b64ca4a60daa775d45b1bdcc7cf463de",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.internal.ControlFrameDecoderTest.xml",
+      "original_sha256": "eb949ca241728aa02da218a5066600d46a3ae5a49d9fe9ce2a1199abe8550d96",
+      "published_sha256": "ae9a3391b12f9db77fbd1894acfbd2bbded6e0e1a6e6d1901963bfa5fb0aa1ad",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.internal.CoordinatorRegistrationTest.xml",
+      "original_sha256": "0dbe0460335c5e59d247bbcea592a614ab1093978b5862a4d5467d442eb3f454",
+      "published_sha256": "26ccbb9537936cef8dfaf9b559e2cd1209fe9c86cf1ff83c5394a93db5f9876b",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.internal.EofTraceTest.xml",
+      "original_sha256": "8418fa008b1ca633e703b5c6cb68ccb8e568b1cfa00ce75604d77d12e0c2642a",
+      "published_sha256": "95ea8df65f29a030182a4b0ab12b24920790e97a27530485dd6addf43c8f43d7",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.internal.HeartbeatDeadlineTest.xml",
+      "original_sha256": "52892ddf8e3f277cfbfd8e4203ec10a59ce873e9b7d88db06cbbb08b5bead8cd",
+      "published_sha256": "2aaceb65e8d0dc06836e82b5ae46e69d7f55374884320f90d703b88724fad3f3",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.internal.IncomingTunnelHandlerTest.xml",
+      "original_sha256": "6d063f49c5c9eec50f3f351f7f1efa5d78d3dbc2d3218301b01a0d826940d6b6",
+      "published_sha256": "031d7a60ef0e13d96bb3c6a9339b2dc3ee16419eed38714f0090e065f27fbeb7",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.internal.NettyTunnelSessionNoticeTest.xml",
+      "original_sha256": "032efb76e42075c480d8a9ed38c184979092dd025768621fdadd126e1446b28c",
+      "published_sha256": "34b46d3fdfbd4690b841521966c951d544599c39b76730595d0936f1b0df2d6e",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.internal.ProtocolVectorTest.xml",
+      "original_sha256": "c09197ed475d04930de301cd4e49965b1dba50c8143a745d802c715eb4a7ab49",
+      "published_sha256": "9c47be9cd316ac63c9d4b83887da6b19bfcff4692a28daea68292249a73f8a5f",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.internal.StreamEofProtocolTest.xml",
+      "original_sha256": "d2e6eb75dd45570a060de1068aaccbf950cedde1b61fc63620d8e16672ce713a",
+      "published_sha256": "6a8722ab4a6a6f6572818add75f804421a6fc3e353ac10d65a346030d0e9f806",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.internal.TlsHostnameVerifierTest.xml",
+      "original_sha256": "0bd3d9095a3a683d9f69f38687eb7cf22a0d3f1204d7b0b7bc6a3a7d69f385be",
+      "published_sha256": "7569d3fe9fbe73bc7123bcedd478d459ac1a291008367f75f2b543b39324db7f",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.PublicAddressTest.xml",
+      "original_sha256": "4faa3d458f3534703d6b5b1f99585e661c0d3dc40b966176c78abe58f562aa3b",
+      "published_sha256": "54de5da8e7778d14e06fc3f4cee2ed9aa0580245caa275b932dc406c7d080e2b",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.PublicEndpointTest.xml",
+      "original_sha256": "cfb1bc4c52c01eed40f0466462a8e58d30283ca01c61755bd31954bd586bba8b",
+      "published_sha256": "302472384ad161c470f0002825cbd2836bd577db3794582bd646802a84210e8c",
+      "status": "test results"
+    },
+    {
+      "name": "java-tests/TEST-io.github.kxnar.btaanywhere.SecretTest.xml",
+      "original_sha256": "19e1d365aa90ddc009385aaef51beaf8b103202105bfd18e7a47114c5447dae3",
+      "published_sha256": "a2b97f25dc5b918718e27ecb7e4fd29764d5cceb700cc7db2f8c0733a7efdb4d",
+      "status": "test results"
+    }
+  ],
+  "validation": [
+    {
+      "name": "python-tests-final",
+      "exit_code": 0
+    },
+    {
+      "name": "rust-format",
+      "exit_code": 0
+    },
+    {
+      "name": "rust-licenses",
+      "exit_code": 0
+    },
+    {
+      "name": "rust-clippy",
+      "exit_code": 0
+    },
+    {
+      "name": "rust-tests",
+      "exit_code": 0
+    },
+    {
+      "name": "java-check-build",
+      "exit_code": 0
+    },
+    {
+      "name": "java-doctor",
+      "exit_code": 0
+    },
+    {
+      "name": "cross-language",
+      "exit_code": 0
+    },
+    {
+      "name": "half-close",
+      "exit_code": 0
+    },
+    {
+      "name": "encrypted-join",
+      "exit_code": 0
+    }
+  ],
+  "java_tests": {
+    "tests": 126,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 4
+  },
+  "source": {
+    "base_commit": "97cbdd43f1e549c2300084489b67d0b49ad74217",
+    "tracked_patch_sha256": "19d79ec10c04c9d478e9f26e32530b391cc3dc6e8ea32977e9083af4c381fe80",
+    "files": [
+      {
+        "path": "relay/src/reset.rs",
+        "sha256": "8b9f10363e2b6497abd900d38fe24ac55fd0c1ed2ba46f0a56b4ef2e80e48442"
+      },
+      {
+        "path": "scripts/benchmark_scaling.py",
+        "sha256": "74c4d2c5f79c40038912d972448b835442ef991220fb291f21277abb9b327966"
+      },
+      {
+        "path": "scripts/benchmark_network.py",
+        "sha256": "c70025b64284d802c55e90c0a328e7c8640c7937bdf751c1ad004da55d18dc4f"
+      },
+      {
+        "path": "scripts/benchmark_network_matrix.py",
+        "sha256": "0ae21eb315180bc2af1888536f7d9362d4d96d0313d4588e64d649a4030e4238"
+      },
+      {
+        "path": "scripts/benchmark_reset_auth.py",
+        "sha256": "6700bebb710ceabd5ed989b9acbb301e65a5e1b2b8dde41655559ecd981f3afd"
+      },
+      {
+        "path": "scripts/benchmark_active_outages.py",
+        "sha256": "8913c489a17d67c04ce00fce492295ae859de4933f6ce54738d118284530cba7"
+      },
+      {
+        "path": "scripts/local_impairment.py",
+        "sha256": "e5a7b9cf11b620cc7ee92bfe6aa75e57773ce1b458030bdcc20c9a2888dccf9d"
+      },
+      {
+        "path": "scripts/benchmark_echo_process_ablation.py",
+        "sha256": "3fb55ebe7a3a1c6c1e1429e12e0c48410d46ae86b09b5f1c73d9d92b4e844821"
+      },
+      {
+        "path": "scripts/benchmark_relay.py",
+        "sha256": "bc466903c1fc9645ab454f7ce213bbd4c3264bb7a366df6e971bb1ebcf38600f"
+      },
+      {
+        "path": "scripts/test_benchmark_network.py",
+        "sha256": "86911f8184ee4d5ff879846a40eb0847d031e8a4cd61389ce722b79c2c0e49ce"
+      },
+      {
+        "path": "tunnel-client/src/test/java/io/github/kxnar/btaanywhere/internal/HeartbeatDeadlineTest.java",
+        "sha256": "301a73ab050615ca63b4a2ac66c04a1a4ef2c7c914674d6784bc41cdfe052686"
+      }
+    ]
+  },
+  "historical_sources": [
+    {
+      "path": "historical/benchmark_network-before-matrix-isolation.py",
+      "sha256": "242bc5a2ae94137d10c297c52c4c0126bbb8bdf9d3ec45e7d811692dbba57cdc"
+    },
+    {
+      "path": "historical/benchmark_network.py",
+      "sha256": "242bc5a2ae94137d10c297c52c4c0126bbb8bdf9d3ec45e7d811692dbba57cdc"
+    },
+    {
+      "path": "historical/benchmark_relay.py",
+      "sha256": "bc466903c1fc9645ab454f7ce213bbd4c3264bb7a366df6e971bb1ebcf38600f"
+    },
+    {
+      "path": "historical/benchmark_scaling.py",
+      "sha256": "74c4d2c5f79c40038912d972448b835442ef991220fb291f21277abb9b327966"
+    },
+    {
+      "path": "historical/local_impairment.py",
+      "sha256": "e5a7b9cf11b620cc7ee92bfe6aa75e57773ce1b458030bdcc20c9a2888dccf9d"
+    }
+  ],
+  "final_runtime_source_sha256": {
+    "Cargo.toml": "d3f626b827b1258175642d0df3ef4385df7170ebde06dc5bdd4209364113f80a",
+    "Cargo.lock": "2e8f61b6be20b71d728b33139334f6457ee34a47b91b8f183973626011984785",
+    "relay/Cargo.toml": "8fd42714bc905c74c43a043afc37d0aaa93783e816bd11425046f71e6296e614",
+    "relay/src/main.rs": "0d596b8e0c68c1202cd70e4fe6e557a54558fc190dad182899e4fc897564a333",
+    "relay/src/state.rs": "b468b393a98f2d9c60f0e5ed81163f9d37bc7135616307c85024e316b2c80fb7",
+    "relay/src/reset.rs": "8b9f10363e2b6497abd900d38fe24ac55fd0c1ed2ba46f0a56b4ef2e80e48442",
+    "tunnel-client/build.gradle.kts": "0e2609bf00125dea68c21e5e9cfc194f463d8c901618b6e5191068dbf1fd7ca0",
+    "tunnel-client/src/main/java/io/github/kxnar/btaanywhere/internal/IncomingTunnelHandler.java": "422ad82e3e1f91bb2c39be98c79599162f8ed4d9a95cd94892229515d9f73fc7",
+    "tunnel-client/src/main/java/io/github/kxnar/btaanywhere/internal/NettyTunnelSession.java": "3ee61c52926df42bbc0830b5dbdc28d4c8421d8f4c836637fb9cfecd8a74f414"
+  },
+  "final_artifacts": {
+    "relay.exe": "cce961da6b301e75fed661127a2e5af2fc967042edb38b4ab1c52b79d5e4ff6e",
+    "tunnel.jar": "0680b2eb67efc10a72dfd11bd34cc24ab79157c8778ce8ddbb87cacbb84bfcdf"
+  },
+  "build_commands": [
+    "cargo build --locked --release --package bta-anywhere-relay",
+    "./gradlew.bat --no-daemon :tunnel-client:shadowJar"
+  ]
+}

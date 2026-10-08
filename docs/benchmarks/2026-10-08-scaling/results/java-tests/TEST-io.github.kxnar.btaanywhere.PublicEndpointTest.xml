@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kxnar.btaanywhere.PublicEndpointTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-08T18:07:19.957Z" hostname="KENARALIENWARE" time="0.003">
+  <properties/>
+  <testcase name="rendersIpv4AndIpv6Addresses()" classname="io.github.kxnar.btaanywhere.PublicEndpointTest" time="0.001"/>
+  <testcase name="rejectsHostsThatCouldInjectLogLines()" classname="io.github.kxnar.btaanywhere.PublicEndpointTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

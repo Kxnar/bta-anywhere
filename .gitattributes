@@ -3,3 +3,6 @@ gradlew text eol=lf
 *.bat text eol=crlf
 *.cmd text eol=crlf
 gradle-wrapper.jar -text -diff -merge -filter
+docs/benchmarks/2026-10-08-scaling/source/** -text -filter
+docs/benchmarks/2026-10-08-scaling/results/*.jfr -text -diff -merge -filter
+docs/benchmarks/2026-10-08-scaling/results/*.pstats -text -diff -merge -filter

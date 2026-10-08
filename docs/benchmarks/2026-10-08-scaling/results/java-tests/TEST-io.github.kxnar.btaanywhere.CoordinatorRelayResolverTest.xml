@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kxnar.btaanywhere.CoordinatorRelayResolverTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-08T18:07:19.414Z" hostname="KENARALIENWARE" time="0.168">
+  <properties/>
+  <testcase name="unknownRelayOrBadLeaseExpiryFailsClosedInsteadOfUsingFallback()" classname="io.github.kxnar.btaanywhere.CoordinatorRelayResolverTest" time="0.05"/>
+  <testcase name="onlyExplicitStaticFallbackHandlesCoordinatorUnavailabilityAndKeepsMode()" classname="io.github.kxnar.btaanywhere.CoordinatorRelayResolverTest" time="0.03"/>
+  <testcase name="probesAllowlistedRelaysAndMapsAllocationBackToLocalTrustConfiguration()" classname="io.github.kxnar.btaanywhere.CoordinatorRelayResolverTest" time="0.028"/>
+  <testcase name="ticketSecretsAreDestroyedWhenSelectionCloses()" classname="io.github.kxnar.btaanywhere.CoordinatorRelayResolverTest" time="0.007"/>
+  <testcase name="coordinatorAuthorizationFailureDoesNotSilentlyUseFallback()" classname="io.github.kxnar.btaanywhere.CoordinatorRelayResolverTest" time="0.012"/>
+  <testcase name="failedVerifiedProbesRequireExplicitFallback()" classname="io.github.kxnar.btaanywhere.CoordinatorRelayResolverTest" time="0.011"/>
+  <testcase name="nestedCoordinatorTlsFailureDoesNotUseStaticFallback()" classname="io.github.kxnar.btaanywhere.CoordinatorRelayResolverTest" time="0.01"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

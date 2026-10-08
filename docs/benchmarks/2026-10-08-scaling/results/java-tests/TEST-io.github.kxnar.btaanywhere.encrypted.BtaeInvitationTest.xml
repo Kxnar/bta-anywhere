@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kxnar.btaanywhere.encrypted.BtaeInvitationTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-08T18:07:19.963Z" hostname="KENARALIENWARE" time="0.034">
+  <properties/>
+  <testcase name="roundTripsCanonicalInvitation()" classname="io.github.kxnar.btaanywhere.encrypted.BtaeInvitationTest" time="0.024"/>
+  <testcase name="rejectsDuplicateUnknownMissingAndNonCanonicalFields()" classname="io.github.kxnar.btaanywhere.encrypted.BtaeInvitationTest" time="0.003"/>
+  <testcase name="rejectsMalformedAndOversizedEncodingsWithoutEchoingInput()" classname="io.github.kxnar.btaanywhere.encrypted.BtaeInvitationTest" time="0.001"/>
+  <testcase name="redactsBothCapabilitiesFromToString()" classname="io.github.kxnar.btaanywhere.encrypted.BtaeInvitationTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

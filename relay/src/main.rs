@@ -1,6 +1,7 @@
 mod config;
 mod metrics;
 mod protocol;
+mod reset;
 mod state;
 mod token;
 
@@ -135,9 +136,16 @@ fn read_token(path: Option<&Path>) -> Result<String> {
 
 async fn run(config_path: PathBuf) -> Result<()> {
     let config = RelayConfig::load(&config_path).await?;
-    let (server_config, guest_tls) = load_server_config(&config).await?;
-    let endpoint = Endpoint::server(server_config, config.quic_listen)
-        .with_context(|| format!("failed to bind QUIC endpoint at {}", config.quic_listen))?;
+    let (server_config, endpoint_config, guest_tls) = load_server_config(&config).await?;
+    let socket = std::net::UdpSocket::bind(config.quic_listen)
+        .with_context(|| format!("failed to bind QUIC socket at {}", config.quic_listen))?;
+    let endpoint = Endpoint::new(
+        endpoint_config,
+        Some(server_config),
+        socket,
+        Arc::new(quinn::TokioRuntime),
+    )
+    .with_context(|| format!("failed to bind QUIC endpoint at {}", config.quic_listen))?;
     let state = RelayState::new(config.clone(), guest_tls)?;
     let admin_listener = TcpListener::bind(config.admin_listen)
         .await
@@ -573,7 +581,9 @@ async fn metrics(State(state): State<RelayState>) -> Response {
     }
 }
 
-async fn load_server_config(config: &RelayConfig) -> Result<(quinn::ServerConfig, TlsAcceptor)> {
+async fn load_server_config(
+    config: &RelayConfig,
+) -> Result<(quinn::ServerConfig, quinn::EndpointConfig, TlsAcceptor)> {
     let certificate_bytes = tokio::fs::read(&config.certificate_path)
         .await
         .with_context(|| format!("failed to read {}", config.certificate_path.display()))?;
@@ -585,6 +595,7 @@ async fn load_server_config(config: &RelayConfig) -> Result<(quinn::ServerConfig
     let private_key: PrivateKeyDer<'static> =
         rustls_pemfile::private_key(&mut key_bytes.as_slice())?
             .ok_or_else(|| anyhow!("private key file contains no supported key"))?;
+    let endpoint_config = reset::endpoint_config(private_key.secret_der())?;
     let mut tls = rustls::ServerConfig::builder_with_protocol_versions(&[&rustls::version::TLS13])
         .with_no_client_auth()
         .with_single_cert(certificates, private_key)?;
@@ -598,7 +609,7 @@ async fn load_server_config(config: &RelayConfig) -> Result<(quinn::ServerConfig
     transport.max_concurrent_bidi_streams(VarInt::from_u32(64));
     transport.keep_alive_interval(Some(Duration::from_secs(config.heartbeat_seconds)));
     server.transport_config(Arc::new(transport));
-    Ok((server, guest_tls))
+    Ok((server, endpoint_config, guest_tls))
 }
 
 async fn init_dev(output: &Path) -> Result<()> {

@@ -299,6 +299,7 @@ def throughput_stream(port: int, block: bytes, seconds: float, timeout: float,
         progress._check_index(stream_index)
     sent = 0
     received = 0
+    receive_calls = 0
     send_error: list[BaseException] = []
     started = time.perf_counter()
     doubled_block = block + block
@@ -350,6 +351,7 @@ def throughput_stream(port: int, block: bytes, seconds: float, timeout: float,
                             raise TimeoutError("absolute throughput drain deadline exceeded")
                         sock.settimeout(min(timeout, remaining))
                         chunk = sock.recv(CHUNK)
+                        receive_calls += 1
                         if not chunk:
                             break
                         if progress is not None:
@@ -379,7 +381,7 @@ def throughput_stream(port: int, block: bytes, seconds: float, timeout: float,
                 sender.join(timeout=1)
         elapsed = time.perf_counter() - started
         return {"seconds": elapsed, "guest_to_host_bytes": sent,
-                "host_to_guest_bytes": received}
+                "host_to_guest_bytes": received, "receive_calls_including_eof": receive_calls}
     except BaseException as error:
         if progress is not None:
             progress.error(stream_index, "guest", error)

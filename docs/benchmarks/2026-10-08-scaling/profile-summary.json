@@ -1,0 +1,671 @@
+{
+  "caveats": [
+    "JFR leaf samples include native waits and are not process CPU percentages.",
+    "cProfile elapsed attribution includes waits and overlapping Python 3.14 thread activity; cumulative call trees are not CPU attribution.",
+    "Profiler runs are separate from unprofiled throughput comparisons."
+  ],
+  "builds": {
+    "before": {
+      "sample_kinds": {
+        "jdk.ObjectAllocationSample": 1267,
+        "jdk.NativeMethodSample": 1553,
+        "jdk.ExecutionSample": 23
+      },
+      "leaf_samples": [
+        [
+          "sun/nio/ch/WEPoll.wait",
+          1161
+        ],
+        [
+          "java/io/FileInputStream.readBytes",
+          192
+        ],
+        [
+          "sun/nio/ch/DatagramChannelImpl.send0",
+          98
+        ],
+        [
+          "sun/nio/ch/SocketDispatcher.write0",
+          22
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/incubator/codec/quic/Quiche.quiche_conn_send",
+          19
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/incubator/codec/quic/Quiche.quiche_conn_recv",
+          14
+        ],
+        [
+          "sun/nio/ch/IOUtil.write1",
+          11
+        ],
+        [
+          "jdk/jfr/internal/JVM.emitEvent",
+          7
+        ],
+        [
+          "sun/nio/ch/IOUtil.drain",
+          6
+        ],
+        [
+          "sun/nio/ch/DatagramChannelImpl.receive0",
+          6
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/util/internal/shaded/org/jctools/queues/BaseMpscLinkedArrayQueue.offer",
+          4
+        ],
+        [
+          "sun/nio/ch/WEPoll.ctl",
+          3
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/util/Recycler$LocalPool.claim",
+          3
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/incubator/codec/quic/Quiche.quiche_conn_stream_send",
+          3
+        ],
+        [
+          "java/util/zip/Inflater.inflateBytesBytes",
+          2
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/util/internal/shaded/org/jctools/queues/unpadded/MpscUnpaddedArrayQueue.offer",
+          2
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/incubator/codec/quic/Quiche.quiche_stream_iter_free",
+          2
+        ],
+        [
+          "java/io/WinNTFileSystem.canonicalize0",
+          1
+        ],
+        [
+          "java/lang/ClassLoader.defineClass1",
+          1
+        ],
+        [
+          "jdk/internal/loader/NativeLibraries.load",
+          1
+        ]
+      ],
+      "thread_samples": [
+        [
+          "bta-anywhere-tunnel",
+          1371
+        ],
+        [
+          "bta-anywhere-cli-console",
+          192
+        ],
+        [
+          "JFR Periodic Tasks",
+          8
+        ],
+        [
+          "main",
+          5
+        ]
+      ],
+      "python_calls": [
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'recv' of '_socket.socket' objects>",
+          "calls": 1153100,
+          "profiled_self_elapsed_seconds": 30.253938500000004
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'sendall' of '_socket.socket' objects>",
+          "calls": 488032,
+          "profiled_self_elapsed_seconds": 6.446392000000001
+        },
+        {
+          "file": "selectors.py",
+          "line": 304,
+          "function": "_select",
+          "calls": 112,
+          "profiled_self_elapsed_seconds": 5.101819600000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'settimeout' of '_socket.socket' objects>",
+          "calls": 686634,
+          "profiled_self_elapsed_seconds": 2.6090081
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.len>",
+          "calls": 2081484,
+          "profiled_self_elapsed_seconds": 0.4395597
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.min>",
+          "calls": 686580,
+          "profiled_self_elapsed_seconds": 0.22278810000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method time.perf_counter>",
+          "calls": 708108,
+          "profiled_self_elapsed_seconds": 0.1765133
+        },
+        {
+          "file": "benchmark_relay.py",
+          "line": 317,
+          "function": "send",
+          "calls": 30,
+          "profiled_self_elapsed_seconds": 0.1040211
+        },
+        {
+          "file": "benchmark_relay.py",
+          "line": 187,
+          "function": "handle",
+          "calls": 10,
+          "profiled_self_elapsed_seconds": 0.026080600000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'connect' of '_socket.socket' objects>",
+          "calls": 29,
+          "profiled_self_elapsed_seconds": 0.0104782
+        },
+        {
+          "file": "benchmark_relay.py",
+          "line": 123,
+          "function": "read_exact",
+          "calls": 27,
+          "profiled_self_elapsed_seconds": 0.0090062
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method select.select>",
+          "calls": 111,
+          "profiled_self_elapsed_seconds": 0.0042092
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method _thread.start_joinable_thread>",
+          "calls": 72,
+          "profiled_self_elapsed_seconds": 0.0038841
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'run' of '_contextvars.Context' objects>",
+          "calls": 63,
+          "profiled_self_elapsed_seconds": 0.0031090000000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'acquire' of '_thread.lock' objects>",
+          "calls": 485,
+          "profiled_self_elapsed_seconds": 0.0015596
+        },
+        {
+          "file": "benchmark_relay.py",
+          "line": 295,
+          "function": "throughput_stream",
+          "calls": 11,
+          "profiled_self_elapsed_seconds": 0.0013326000000000002
+        },
+        {
+          "file": "threading.py",
+          "line": 337,
+          "function": "wait",
+          "calls": 107,
+          "profiled_self_elapsed_seconds": 0.0012592
+        },
+        {
+          "file": "selectors.py",
+          "line": 310,
+          "function": "select",
+          "calls": 112,
+          "profiled_self_elapsed_seconds": 0.0012471000000000001
+        },
+        {
+          "file": "threading.py",
+          "line": 651,
+          "function": "wait",
+          "calls": 120,
+          "profiled_self_elapsed_seconds": 0.0009680000000000001
+        },
+        {
+          "file": "threading.py",
+          "line": 975,
+          "function": "start",
+          "calls": 102,
+          "profiled_self_elapsed_seconds": 0.0009643
+        }
+      ],
+      "sampled_allocation_weights_bytes": [
+        [
+          "java/nio/DirectByteBuffer",
+          134741576
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/channel/DefaultChannelPromise",
+          115002168
+        ],
+        [
+          "[B",
+          69862272
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/channel/socket/DatagramPacket",
+          58878712
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/buffer/UnpooledSlicedByteBuf",
+          32484984
+        ],
+        [
+          "[Ljava/util/concurrent/ConcurrentHashMap$Node;",
+          23129080
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/incubator/codec/quic/ConnectionIdChannelMap$ConnectionIdKey",
+          23127640
+        ],
+        [
+          "java/lang/Integer",
+          21403808
+        ],
+        [
+          "[J",
+          19218240
+        ],
+        [
+          "io.github.kxnar.btaanywhere.internal.IncomingTunnelHandler$$Lambda/0x00000252811a4a28",
+          16545360
+        ],
+        [
+          "io.github.kxnar.btaanywhere.internal.IncomingTunnelHandler$$Lambda/0x00000252811a5098",
+          16421288
+        ],
+        [
+          "[I",
+          15085824
+        ],
+        [
+          "io.github.kxnar.btaanywhere.internal.IncomingTunnelHandler$LocalToQuicHandler$$Lambda/0x00000252811a5a30",
+          11564480
+        ],
+        [
+          "[Ljava/lang/Object;",
+          6768952
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/util/ResourceLeakDetector$TraceRecord",
+          4435920
+        ],
+        [
+          "java/util/ArrayList",
+          1276576
+        ],
+        [
+          "java/util/concurrent/ConcurrentHashMap$Node",
+          1074528
+        ],
+        [
+          "java/lang/String",
+          772352
+        ],
+        [
+          "[S",
+          596416
+        ],
+        [
+          "[Ljava/lang/String;",
+          397160
+        ]
+      ]
+    },
+    "after": {
+      "sample_kinds": {
+        "jdk.ObjectAllocationSample": 1102,
+        "jdk.NativeMethodSample": 1509,
+        "jdk.ExecutionSample": 2
+      },
+      "leaf_samples": [
+        [
+          "sun/nio/ch/WEPoll.wait",
+          552
+        ],
+        [
+          "java/io/FileInputStream.readBytes",
+          523
+        ],
+        [
+          "sun/nio/ch/DatagramChannelImpl.send0",
+          208
+        ],
+        [
+          "sun/nio/ch/SocketDispatcher.write0",
+          110
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/incubator/codec/quic/Quiche.quiche_conn_send",
+          44
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/incubator/codec/quic/Quiche.quiche_conn_recv",
+          28
+        ],
+        [
+          "sun/nio/ch/DatagramChannelImpl.receive0",
+          12
+        ],
+        [
+          "sun/nio/ch/SocketDispatcher.read0",
+          7
+        ],
+        [
+          "jdk/jfr/internal/JVM.emitEvent",
+          6
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/incubator/codec/quic/Quiche.quiche_conn_stream_send",
+          3
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/incubator/codec/quic/Quiche.quiche_conn_stream_recv",
+          2
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/incubator/codec/quic/Quiche.sockaddr_cmp",
+          2
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/incubator/codec/quic/Quiche.quiche_conn_timeout_as_nanos",
+          2
+        ],
+        [
+          "java/io/WinNTFileSystem.getBooleanAttributes0",
+          1
+        ],
+        [
+          "java/io/FileOutputStream.writeBytes",
+          1
+        ],
+        [
+          "sun/nio/ch/UnixDomainSockets.init",
+          1
+        ],
+        [
+          "sun/nio/ch/UnixDomainSockets.connect0",
+          1
+        ],
+        [
+          "java/net/NetworkInterface.getAll",
+          1
+        ],
+        [
+          "sun/nio/ch/SocketChannelImpl.write",
+          1
+        ],
+        [
+          "jdk/jfr/internal/JVM.shouldRotateDisk",
+          1
+        ]
+      ],
+      "thread_samples": [
+        [
+          "bta-anywhere-tunnel",
+          977
+        ],
+        [
+          "bta-anywhere-cli-console",
+          523
+        ],
+        [
+          "JFR Periodic Tasks",
+          7
+        ],
+        [
+          "main",
+          4
+        ]
+      ],
+      "python_calls": [
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'recv' of '_socket.socket' objects>",
+          "calls": 1274696,
+          "profiled_self_elapsed_seconds": 28.899073300000005
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'sendall' of '_socket.socket' objects>",
+          "calls": 614705,
+          "profiled_self_elapsed_seconds": 8.518214100000002
+        },
+        {
+          "file": "selectors.py",
+          "line": 304,
+          "function": "_select",
+          "calls": 110,
+          "profiled_self_elapsed_seconds": 4.745642
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'settimeout' of '_socket.socket' objects>",
+          "calls": 683795,
+          "profiled_self_elapsed_seconds": 2.3012794000000003
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.len>",
+          "calls": 2075195,
+          "profiled_self_elapsed_seconds": 0.3988013
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.min>",
+          "calls": 683739,
+          "profiled_self_elapsed_seconds": 0.20028
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method time.perf_counter>",
+          "calls": 707501,
+          "profiled_self_elapsed_seconds": 0.1686916
+        },
+        {
+          "file": "benchmark_relay.py",
+          "line": 318,
+          "function": "send",
+          "calls": 29,
+          "profiled_self_elapsed_seconds": 0.0992259
+        },
+        {
+          "file": "benchmark_relay.py",
+          "line": 187,
+          "function": "handle",
+          "calls": 11,
+          "profiled_self_elapsed_seconds": 0.025764600000000006
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'run' of '_contextvars.Context' objects>",
+          "calls": 63,
+          "profiled_self_elapsed_seconds": 0.0125549
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method _thread.start_joinable_thread>",
+          "calls": 72,
+          "profiled_self_elapsed_seconds": 0.0039334
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method select.select>",
+          "calls": 110,
+          "profiled_self_elapsed_seconds": 0.0037599
+        },
+        {
+          "file": "benchmark_relay.py",
+          "line": 123,
+          "function": "read_exact",
+          "calls": 26,
+          "profiled_self_elapsed_seconds": 0.0028729
+        },
+        {
+          "file": "selectors.py",
+          "line": 310,
+          "function": "select",
+          "calls": 110,
+          "profiled_self_elapsed_seconds": 0.0013263
+        },
+        {
+          "file": "threading.py",
+          "line": 337,
+          "function": "wait",
+          "calls": 104,
+          "profiled_self_elapsed_seconds": 0.0013118000000000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'acquire' of '_thread.lock' objects>",
+          "calls": 487,
+          "profiled_self_elapsed_seconds": 0.0012574
+        },
+        {
+          "file": "benchmark_relay.py",
+          "line": 295,
+          "function": "throughput_stream",
+          "calls": 14,
+          "profiled_self_elapsed_seconds": 0.0011697
+        },
+        {
+          "file": "threading.py",
+          "line": 975,
+          "function": "start",
+          "calls": 100,
+          "profiled_self_elapsed_seconds": 0.0010357
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method '_accept' of '_socket.socket' objects>",
+          "calls": 27,
+          "profiled_self_elapsed_seconds": 0.0008868000000000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'disable' of '_lsprof.Profiler' objects>",
+          "calls": 3,
+          "profiled_self_elapsed_seconds": 0.0008535000000000001
+        }
+      ],
+      "sampled_allocation_weights_bytes": [
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/channel/DefaultChannelPromise",
+          129084936
+        ],
+        [
+          "java/nio/DirectByteBuffer",
+          117633504
+        ],
+        [
+          "[B",
+          88956296
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/channel/socket/DatagramPacket",
+          59997880
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/buffer/UnpooledSlicedByteBuf",
+          48090744
+        ],
+        [
+          "[Ljava/lang/Object;",
+          32171256
+        ],
+        [
+          "java/lang/Integer",
+          25881624
+        ],
+        [
+          "io.github.kxnar.btaanywhere.internal.IncomingTunnelHandler$$Lambda/0x000001b3261a38a8",
+          25466712
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/incubator/codec/quic/ConnectionIdChannelMap$ConnectionIdKey",
+          23245072
+        ],
+        [
+          "[J",
+          19361688
+        ],
+        [
+          "io.github.kxnar.btaanywhere.internal.IncomingTunnelHandler$$Lambda/0x000001b3261a3ad0",
+          12776112
+        ],
+        [
+          "[I",
+          8572848
+        ],
+        [
+          "io.github.kxnar.btaanywhere.internal.IncomingTunnelHandler$LocalToQuicHandler$$Lambda/0x000001b3261a3cf8",
+          7580496
+        ],
+        [
+          "[S",
+          4680896
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/util/ResourceLeakDetector$TraceRecord",
+          3900496
+        ],
+        [
+          "java/util/concurrent/ConcurrentHashMap$Node",
+          2764416
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/buffer/SimpleLeakAwareByteBuf",
+          2717464
+        ],
+        [
+          "java/lang/String",
+          1631776
+        ],
+        [
+          "io/github/kxnar/btaanywhere/shadow/io/netty/util/concurrent/ScheduledFutureTask",
+          1292768
+        ],
+        [
+          "jdk/internal/org/objectweb/asm/Frame",
+          1047976
+        ]
+      ]
+    }
+  }
+}

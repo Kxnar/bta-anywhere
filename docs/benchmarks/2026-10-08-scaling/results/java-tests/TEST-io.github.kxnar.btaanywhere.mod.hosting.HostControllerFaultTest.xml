@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kxnar.btaanywhere.mod.hosting.HostControllerFaultTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-08T18:07:26.099Z" hostname="KENARALIENWARE" time="3.027">
+  <properties/>
+  <testcase name="disposableControllerExercisesRealHostingBoundaries()" classname="io.github.kxnar.btaanywhere.mod.hosting.HostControllerFaultTest" time="3.027"/>
+  <system-out><![CDATA[Disposable HostController fixture: 10 production-path scenarios
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

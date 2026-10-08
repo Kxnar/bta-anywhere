@@ -1,0 +1,1 @@
+Cross-language QUIC test passed: authentication, port exhaustion, slow-client quota, 100 wave(s) of 8 byte-exact streams, clean shutdown, and relay restart recovery.

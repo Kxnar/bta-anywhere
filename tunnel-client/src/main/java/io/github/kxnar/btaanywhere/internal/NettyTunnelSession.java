@@ -71,7 +71,7 @@ public final class NettyTunnelSession implements TunnelSession {
 	private volatile String sessionId;
 	private volatile String resumeToken;
 	private volatile boolean allocationTicketPendingAck;
-	private volatile Instant lastPong = Instant.now();
+	private volatile long lastPongNanos = System.nanoTime();
 	private volatile Channel datagramChannel;
 	private volatile QuicChannel quicChannel;
 	private volatile QuicStreamChannel controlChannel;
@@ -111,6 +111,7 @@ public final class NettyTunnelSession implements TunnelSession {
 		if (closeRequested.get()) {
 			return;
 		}
+		traceLifecycle("connect_start");
 		long currentGeneration = generation.incrementAndGet();
 		RelaySelection pinned = relaySelection;
 		CompletionStage<RelaySelection> resolution = pinned == null
@@ -153,6 +154,12 @@ public final class NettyTunnelSession implements TunnelSession {
 				.build();
 			ChannelHandler codec = new QuicClientCodecBuilder()
 				.sslContext(sslContext)
+				// Each UDP socket owns exactly one connection. With an empty local CID,
+				// Netty also dispatches short-header stateless resets to quiche, which
+				// authenticates their token. Nonempty CIDs made the codec discard those
+				// random-looking packets before native reset verification could run.
+				.localConnectionIdLength(0)
+				.activeMigration(false)
 				.sslEngineProvider(channel -> sslContext.newEngine(
 					channel.alloc(),
 					descriptor.host(),
@@ -335,7 +342,7 @@ public final class NettyTunnelSession implements TunnelSession {
 				case "registered" -> handleRegistered(message);
 				case "pong" -> {
 					ProtocolFrames.requiredUnsignedLong(message, "sequence");
-					lastPong = Instant.now();
+					lastPongNanos = System.nanoTime();
 				}
 				case "error" -> {
 					String code = ProtocolFrames.requiredString(message, "code");
@@ -392,7 +399,8 @@ public final class NettyTunnelSession implements TunnelSession {
 			encrypted.onRegistered(sessionId, endpoint, relay, quicChannel);
 		}
 		reconnectAttempt.set(0);
-		lastPong = Instant.now();
+		lastPongNanos = System.nanoTime();
+		traceLifecycle("registered");
 		emit(TunnelState.ACTIVE, "Tunnel active at " + endpoint);
 		opened.complete(this);
 		scheduleHeartbeat();
@@ -412,7 +420,8 @@ public final class NettyTunnelSession implements TunnelSession {
 			if (closeRequested.get() || !control.isActive()) {
 				return;
 			}
-			if (Duration.between(lastPong, Instant.now()).compareTo(config.heartbeatInterval().multipliedBy(3)) > 0) {
+			if (heartbeatExpired(lastPongNanos, System.nanoTime(), config.heartbeatInterval())) {
+				traceLifecycle("heartbeat_expired");
 				control.close();
 				return;
 			}
@@ -421,6 +430,11 @@ public final class NettyTunnelSession implements TunnelSession {
 			ping.addProperty("sequence", pingSequence.incrementAndGet());
 			ProtocolFrames.write(control, ping);
 		}, intervalMillis, intervalMillis, TimeUnit.MILLISECONDS);
+	}
+
+	static boolean heartbeatExpired(long lastPongNanos, long nowNanos, Duration interval) {
+		// Wall-clock adjustments must not trigger or defer failure detection.
+		return Duration.ofNanos(nowNanos - lastPongNanos).compareTo(interval.multipliedBy(3)) >= 0;
 	}
 
 	void onDisconnected(long disconnectedGeneration, Throwable failure) {
@@ -439,6 +453,7 @@ public final class NettyTunnelSession implements TunnelSession {
 			|| failedGeneration != generation.get()) {
 			return;
 		}
+		traceLifecycle("failure_detected");
 		generation.incrementAndGet();
 		closeChannels();
 		ScheduledFuture<?> previousReconnect = reconnectTask;
@@ -455,6 +470,13 @@ public final class NettyTunnelSession implements TunnelSession {
 		long delay = Math.min(maximum, Math.max(initial, jittered));
 		emit(TunnelState.RECONNECTING, "Relay unavailable; retrying in " + delay + " ms", failure);
 		reconnectTask = group.next().schedule(this::resolveAndConnect, delay, TimeUnit.MILLISECONDS);
+	}
+
+	private static void traceLifecycle(String phase) {
+		if (Boolean.getBoolean("bta.lifecycleTrace")) {
+			// Diagnostic only: monotonic timestamps and phase names, no addresses or credentials.
+			System.err.println("BTA_LIFECYCLE " + phase + " " + System.nanoTime());
+		}
 	}
 
 	private void fail(Throwable failure) {

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kxnar.btaanywhere.mod.hosting.HostControllerHardCrashTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-08T18:07:29.127Z" hostname="KENARALIENWARE" time="8.086">
+  <properties/>
+  <testcase name="realControllerHaltsAcrossLaunchIdentityWindowAndRecoversConservatively()" classname="io.github.kxnar.btaanywhere.mod.hosting.HostControllerHardCrashTest" time="5.966"/>
+  <testcase name="failedLaunchAfterVerifiedProcessStartCannotClearUnownedJournal()" classname="io.github.kxnar.btaanywhere.mod.hosting.HostControllerHardCrashTest" time="0.692"/>
+  <testcase name="failedCleanupKeepsControllerOwnedLeaseUntilDisposableChildExits()" classname="io.github.kxnar.btaanywhere.mod.hosting.HostControllerHardCrashTest" time="1.428"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

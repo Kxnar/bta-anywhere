@@ -1,0 +1,124 @@
+{
+  "schema": 1,
+  "status": "FAILED",
+  "workload": {
+    "streams": [
+      1,
+      2,
+      4,
+      8,
+      16
+    ],
+    "paths": [
+      "direct",
+      "relay"
+    ],
+    "seconds": 10.0,
+    "runs": 3,
+    "seed": 1701,
+    "block_bytes": 65536,
+    "java_options": [],
+    "python_profile": false,
+    "jfr": false,
+    "workers": "threads",
+    "transport_profile": false,
+    "relay_workers": null,
+    "benchmark_max_connections_per_session": 32
+  },
+  "sha256": {
+    "relay": "ac9f10a8ab606a5aa24c8f3586fb31765bf818af86b7aece1fcba9d8e210e105",
+    "tunnel": "72ec7fc49f010e53ea2fb638cb7a7c6932b07684974d44f0f973203666aaf48a",
+    "harness": "74c4d2c5f79c40038912d972448b835442ef991220fb291f21277abb9b327966",
+    "workload": "bc466903c1fc9645ab454f7ce213bbd4c3264bb7a366df6e971bb1ebcf38600f"
+  },
+  "source": {
+    "status": "available",
+    "commit": "97cbdd43f1e549c2300084489b67d0b49ad74217",
+    "dirty": true
+  },
+  "rows": [
+    {
+      "repeat": 0,
+      "streams": 1,
+      "path": "direct",
+      "wall_seconds": 10.004722000012407,
+      "verified_bytes_per_direction": 5999689728,
+      "mib_s": 571.9049464835609,
+      "legacy_mib_s": 572.0483027411387,
+      "cpu_seconds": {
+        "relay": 0.0,
+        "tunnel": 0.0,
+        "python": 10.75
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 0.203125,
+          "working_set_bytes": 9519104,
+          "peak_working_set_bytes": 9535488
+        },
+        "tunnel": {
+          "cpu_seconds": 1.09375,
+          "working_set_bytes": 99495936,
+          "peak_working_set_bytes": 101662720
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 10.002214800013462,
+          "guest_to_host_bytes": 5999689728,
+          "host_to_guest_bytes": 5999689728,
+          "receive_calls_including_eof": 91550
+        }
+      ]
+    },
+    {
+      "repeat": 0,
+      "streams": 1,
+      "path": "relay",
+      "wall_seconds": 10.02297630000976,
+      "verified_bytes_per_direction": 522715136,
+      "mib_s": 49.73572570450103,
+      "legacy_mib_s": 49.737819828889194,
+      "cpu_seconds": {
+        "relay": 8.1875,
+        "tunnel": 12.828125,
+        "python": 3.640625
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 8.390625,
+          "working_set_bytes": 10788864,
+          "peak_working_set_bytes": 11968512
+        },
+        "tunnel": {
+          "cpu_seconds": 13.921875,
+          "working_set_bytes": 184303616,
+          "peak_working_set_bytes": 187142144
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 10.022554300026968,
+          "guest_to_host_bytes": 522715136,
+          "host_to_guest_bytes": 522715136,
+          "receive_calls_including_eof": 110148
+        }
+      ]
+    }
+  ],
+  "current_case": {
+    "repeat": 0,
+    "streams": 2,
+    "path": "direct"
+  },
+  "error": {
+    "type": "PermissionError",
+    "message": "[WinError 5] Access is denied: 'benchmark-results\\\\scaling-2026-10-08\\\\after.checkpoint.json.tmp' -> 'benchmark-results\\\\scaling-2026-10-08\\\\after.checkpoint.json'"
+  },
+  "traceback": "Traceback (most recent call last):\n  File \"<user>\\OneDrive\\Documents\\ChatGPT\\bta anywhere\\scripts\\benchmark_scaling.py\", line 95, in main\n    b.checkpoint_result(result, args.output)\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^\n  File \"<user>\\OneDrive\\Documents\\ChatGPT\\bta anywhere\\scripts\\benchmark_relay.py\", line 1119, in checkpoint_result\n    pending.replace(target)\n    ~~~~~~~~~~~~~~~^^^^^^^^\n  File \"<user>\\AppData\\Local\\Programs\\Python\\Python314\\Lib\\pathlib\\__init__.py\", line 1091, in replace\n    os.replace(self, target)\n    ~~~~~~~~~~^^^^^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: 'benchmark-results\\\\scaling-2026-10-08\\\\after.checkpoint.json.tmp' -> 'benchmark-results\\\\scaling-2026-10-08\\\\after.checkpoint.json'\n",
+  "logs": [
+    "tunnel-out: Relay selection: static",
+    "tunnel-out: Public endpoint: localhost:56168",
+    "tunnel-out: Press Ctrl+C or type 'stop' to stop."
+  ]
+}

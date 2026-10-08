@@ -1,0 +1,96 @@
+{
+  "schema": 1,
+  "status": "FAILED",
+  "workload": {
+    "streams": [
+      1,
+      8,
+      16
+    ],
+    "paths": [
+      "relay"
+    ],
+    "seconds": 15.0,
+    "runs": 1,
+    "seed": 1701,
+    "block_bytes": 65536,
+    "java_options": [],
+    "python_profile": true,
+    "jfr": true,
+    "benchmark_max_connections_per_session": 32
+  },
+  "sha256": {
+    "relay": "ac9f10a8ab606a5aa24c8f3586fb31765bf818af86b7aece1fcba9d8e210e105",
+    "tunnel": "7c9160947275629778a5a3a18e820bea9991474c01f7dee20daa7b2a5de10303",
+    "harness": "2c707b7d7e25639db134472830236df0bc011e2e96e65a1af577a142f7223bbc",
+    "workload": "0829f0efb47825f71416279e788ae556a78b1ca0d070cdd8efbd21cb3c29bdae"
+  },
+  "source": {
+    "status": "available",
+    "commit": "97cbdd43f1e549c2300084489b67d0b49ad74217",
+    "dirty": true
+  },
+  "rows": [
+    {
+      "repeat": 0,
+      "streams": 1,
+      "path": "relay",
+      "wall_seconds": 15.02855630000704,
+      "verified_bytes_per_direction": 801112064,
+      "mib_s": 50.83655307593599,
+      "legacy_mib_s": 50.85160971136306,
+      "cpu_seconds": {
+        "relay": 13.390625,
+        "tunnel": 22.671875,
+        "python": 6.5
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 13.609375,
+          "working_set_bytes": 11128832,
+          "peak_working_set_bytes": 12050432
+        },
+        "tunnel": {
+          "cpu_seconds": 25.6875,
+          "working_set_bytes": 271446016,
+          "peak_working_set_bytes": 275968000
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 15.024106500000926,
+          "guest_to_host_bytes": 801112064,
+          "host_to_guest_bytes": 801112064
+        }
+      ]
+    }
+  ],
+  "current_case": {
+    "repeat": 0,
+    "streams": 8,
+    "path": "relay"
+  },
+  "error": {
+    "type": "ConcurrentTransferError",
+    "message": "parallel transfer: stream=1 ValueError: Another profiling tool is already active; stream=2 ValueError: Another profiling tool is already active; stream=3 ValueError: Another profiling tool is already active; stream=4 ValueError: Another profiling tool is already active; stream=5 ValueError: Another profiling tool is already active; stream=6 ValueError: Another profiling tool is already active; stream=7 ValueError: Another profiling tool is already active"
+  },
+  "traceback": "Traceback (most recent call last):\n  File \"<user>\\OneDrive\\Documents\\ChatGPT\\bta anywhere\\scripts\\benchmark_relay.py\", line 397, in run_concurrent\n    results[index] = future.result()\n                     ~~~~~~~~~~~~~^^\n  File \"<user>\\AppData\\Local\\Programs\\Python\\Python314\\Lib\\concurrent\\futures\\_base.py\", line 447, in result\n    return self.__get_result()\n           ~~~~~~~~~~~~~~~~~^^\n  File \"<user>\\AppData\\Local\\Programs\\Python\\Python314\\Lib\\concurrent\\futures\\_base.py\", line 396, in __get_result\n    raise self._exception\n  File \"<user>\\AppData\\Local\\Programs\\Python\\Python314\\Lib\\concurrent\\futures\\thread.py\", line 86, in run\n    result = ctx.run(self.task)\n  File \"<user>\\AppData\\Local\\Programs\\Python\\Python314\\Lib\\concurrent\\futures\\thread.py\", line 73, in run\n    return fn(*args, **kwargs)\n  File \"<user>\\OneDrive\\Documents\\ChatGPT\\bta anywhere\\scripts\\benchmark_scaling.py\", line 87, in transfer\n    return profiler.runcall(b.throughput_stream, port, block, args.seconds, 30)\n           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<user>\\AppData\\Local\\Programs\\Python\\Python314\\Lib\\cProfile.py\", line 110, in runcall\n    self.enable()\n    ~~~~~~~~~~~^^\nValueError: Another profiling tool is already active\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"<user>\\OneDrive\\Documents\\ChatGPT\\bta anywhere\\scripts\\benchmark_scaling.py\", line 91, in main\n    samples = b.run_concurrent(transfer, count)\n  File \"<user>\\OneDrive\\Documents\\ChatGPT\\bta anywhere\\scripts\\benchmark_relay.py\", line 403, in run_concurrent\n    raise ConcurrentTransferError(label, failures, successes) from failures[0][1]\nbenchmark_relay.ConcurrentTransferError: parallel transfer: stream=1 ValueError: Another profiling tool is already active; stream=2 ValueError: Another profiling tool is already active; stream=3 ValueError: Another profiling tool is already active; stream=4 ValueError: Another profiling tool is already active; stream=5 ValueError: Another profiling tool is already active; stream=6 ValueError: Another profiling tool is already active; stream=7 ValueError: Another profiling tool is already active\n",
+  "partial_successes": [
+    {
+      "stream": 0,
+      "result": {
+        "seconds": 15.034981600008905,
+        "guest_to_host_bytes": 788791296,
+        "host_to_guest_bytes": 788791296
+      }
+    }
+  ],
+  "logs": [
+    "tunnel-out: [0.523s][info][jfr,startup] Started recording 1. No limit specified, using maxsize=250MB as default.",
+    "tunnel-out: [0.523s][info][jfr,startup] ",
+    "tunnel-out: [0.523s][info][jfr,startup] Use jcmd 29608 JFR.dump name=1 to copy recording data to file.",
+    "tunnel-out: Relay selection: static",
+    "tunnel-out: Public endpoint: localhost:64310",
+    "tunnel-out: Press Ctrl+C or type 'stop' to stop."
+  ]
+}

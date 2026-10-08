@@ -1,0 +1,515 @@
+{
+  "schema": 1,
+  "status": "PASS",
+  "workload": {
+    "streams": [
+      1,
+      8,
+      16
+    ],
+    "paths": [
+      "relay"
+    ],
+    "seconds": 10.0,
+    "runs": 2,
+    "seed": 1701,
+    "block_bytes": 65536,
+    "java_options": [],
+    "python_profile": false,
+    "jfr": false,
+    "workers": "threads",
+    "transport_profile": false,
+    "benchmark_max_connections_per_session": 32
+  },
+  "sha256": {
+    "relay": "ac9f10a8ab606a5aa24c8f3586fb31765bf818af86b7aece1fcba9d8e210e105",
+    "tunnel": "c793306b9f431c2226779594658d9261dab50d59303f3bb24100e2b755f9f500",
+    "harness": "108271c99ef965e2a979a7dd4cc798a88cc8136f018fd6a14503cd1d1846ea6d",
+    "workload": "bc466903c1fc9645ab454f7ce213bbd4c3264bb7a366df6e971bb1ebcf38600f"
+  },
+  "source": {
+    "status": "available",
+    "commit": "97cbdd43f1e549c2300084489b67d0b49ad74217",
+    "dirty": true
+  },
+  "rows": [
+    {
+      "repeat": 0,
+      "streams": 1,
+      "path": "relay",
+      "wall_seconds": 10.03668670001207,
+      "verified_bytes_per_direction": 534577152,
+      "mib_s": 50.79490027315359,
+      "legacy_mib_s": 50.804955787365635,
+      "cpu_seconds": {
+        "relay": 8.234375,
+        "tunnel": 12.453125,
+        "python": 3.9375
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 8.4375,
+          "working_set_bytes": 11255808,
+          "peak_working_set_bytes": 11927552
+        },
+        "tunnel": {
+          "cpu_seconds": 13.703125,
+          "working_set_bytes": 187310080,
+          "peak_working_set_bytes": 192331776
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 10.034700199990766,
+          "guest_to_host_bytes": 534577152,
+          "host_to_guest_bytes": 534577152,
+          "receive_calls_including_eof": 111029
+        }
+      ]
+    },
+    {
+      "repeat": 0,
+      "streams": 8,
+      "path": "relay",
+      "wall_seconds": 10.13796499997261,
+      "verified_bytes_per_direction": 260964352,
+      "mib_s": 24.548812311018278,
+      "legacy_mib_s": 24.551127457817568,
+      "cpu_seconds": {
+        "relay": 9.703125,
+        "tunnel": 10.421875,
+        "python": 9.921875
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 18.140625,
+          "working_set_bytes": 11853824,
+          "peak_working_set_bytes": 13488128
+        },
+        "tunnel": {
+          "cpu_seconds": 24.125,
+          "working_set_bytes": 227864576,
+          "peak_working_set_bytes": 227864576
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 10.129727899999125,
+          "guest_to_host_bytes": 32833536,
+          "host_to_guest_bytes": 32833536,
+          "receive_calls_including_eof": 20535
+        },
+        {
+          "seconds": 10.137008999998216,
+          "guest_to_host_bytes": 32899072,
+          "host_to_guest_bytes": 32899072,
+          "receive_calls_including_eof": 20475
+        },
+        {
+          "seconds": 10.130264499981422,
+          "guest_to_host_bytes": 32833536,
+          "host_to_guest_bytes": 32833536,
+          "receive_calls_including_eof": 20501
+        },
+        {
+          "seconds": 10.132168199983425,
+          "guest_to_host_bytes": 32636928,
+          "host_to_guest_bytes": 32636928,
+          "receive_calls_including_eof": 20306
+        },
+        {
+          "seconds": 10.13569880000432,
+          "guest_to_host_bytes": 32374784,
+          "host_to_guest_bytes": 32374784,
+          "receive_calls_including_eof": 20258
+        },
+        {
+          "seconds": 10.134713399980683,
+          "guest_to_host_bytes": 32702464,
+          "host_to_guest_bytes": 32702464,
+          "receive_calls_including_eof": 20278
+        },
+        {
+          "seconds": 10.134789100004127,
+          "guest_to_host_bytes": 32309248,
+          "host_to_guest_bytes": 32309248,
+          "receive_calls_including_eof": 20292
+        },
+        {
+          "seconds": 10.131389199988917,
+          "guest_to_host_bytes": 32374784,
+          "host_to_guest_bytes": 32374784,
+          "receive_calls_including_eof": 20289
+        }
+      ]
+    },
+    {
+      "repeat": 0,
+      "streams": 16,
+      "path": "relay",
+      "wall_seconds": 10.318227100011427,
+      "verified_bytes_per_direction": 209649664,
+      "mib_s": 19.377117605773435,
+      "legacy_mib_s": 19.383435399605755,
+      "cpu_seconds": {
+        "relay": 9.828125,
+        "tunnel": 10.46875,
+        "python": 10.796875
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 27.96875,
+          "working_set_bytes": 14319616,
+          "peak_working_set_bytes": 26210304
+        },
+        "tunnel": {
+          "cpu_seconds": 34.59375,
+          "working_set_bytes": 243048448,
+          "peak_working_set_bytes": 247758848
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 10.300472000002628,
+          "guest_to_host_bytes": 13172736,
+          "host_to_guest_bytes": 13172736,
+          "receive_calls_including_eof": 11686
+        },
+        {
+          "seconds": 10.292373600008432,
+          "guest_to_host_bytes": 13107200,
+          "host_to_guest_bytes": 13107200,
+          "receive_calls_including_eof": 11666
+        },
+        {
+          "seconds": 10.312469700002111,
+          "guest_to_host_bytes": 13172736,
+          "host_to_guest_bytes": 13172736,
+          "receive_calls_including_eof": 11026
+        },
+        {
+          "seconds": 10.293098599999212,
+          "guest_to_host_bytes": 13107200,
+          "host_to_guest_bytes": 13107200,
+          "receive_calls_including_eof": 11628
+        },
+        {
+          "seconds": 10.311952499992913,
+          "guest_to_host_bytes": 13172736,
+          "host_to_guest_bytes": 13172736,
+          "receive_calls_including_eof": 11336
+        },
+        {
+          "seconds": 10.311576800013427,
+          "guest_to_host_bytes": 13172736,
+          "host_to_guest_bytes": 13172736,
+          "receive_calls_including_eof": 11564
+        },
+        {
+          "seconds": 10.293221600004472,
+          "guest_to_host_bytes": 13107200,
+          "host_to_guest_bytes": 13107200,
+          "receive_calls_including_eof": 11691
+        },
+        {
+          "seconds": 10.314864000014495,
+          "guest_to_host_bytes": 13369344,
+          "host_to_guest_bytes": 13369344,
+          "receive_calls_including_eof": 11755
+        },
+        {
+          "seconds": 10.300032700004522,
+          "guest_to_host_bytes": 13107200,
+          "host_to_guest_bytes": 13107200,
+          "receive_calls_including_eof": 11678
+        },
+        {
+          "seconds": 10.300599699985469,
+          "guest_to_host_bytes": 13107200,
+          "host_to_guest_bytes": 13107200,
+          "receive_calls_including_eof": 11635
+        },
+        {
+          "seconds": 10.309512599982554,
+          "guest_to_host_bytes": 13172736,
+          "host_to_guest_bytes": 13172736,
+          "receive_calls_including_eof": 11667
+        },
+        {
+          "seconds": 10.300193200004287,
+          "guest_to_host_bytes": 13107200,
+          "host_to_guest_bytes": 13107200,
+          "receive_calls_including_eof": 10830
+        },
+        {
+          "seconds": 10.2973168999888,
+          "guest_to_host_bytes": 13107200,
+          "host_to_guest_bytes": 13107200,
+          "receive_calls_including_eof": 11595
+        },
+        {
+          "seconds": 10.29972040001303,
+          "guest_to_host_bytes": 12845056,
+          "host_to_guest_bytes": 12845056,
+          "receive_calls_including_eof": 11276
+        },
+        {
+          "seconds": 10.290282300004037,
+          "guest_to_host_bytes": 12910592,
+          "host_to_guest_bytes": 12910592,
+          "receive_calls_including_eof": 11289
+        },
+        {
+          "seconds": 10.277829500002554,
+          "guest_to_host_bytes": 12910592,
+          "host_to_guest_bytes": 12910592,
+          "receive_calls_including_eof": 11485
+        }
+      ]
+    },
+    {
+      "repeat": 1,
+      "streams": 16,
+      "path": "relay",
+      "wall_seconds": 10.312771900004009,
+      "verified_bytes_per_direction": 210305024,
+      "mib_s": 19.44797208206671,
+      "legacy_mib_s": 19.45031624305757,
+      "cpu_seconds": {
+        "relay": 11.0,
+        "tunnel": 10.28125,
+        "python": 10.890625
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 38.96875,
+          "working_set_bytes": 14630912,
+          "peak_working_set_bytes": 27435008
+        },
+        "tunnel": {
+          "cpu_seconds": 44.875,
+          "working_set_bytes": 244445184,
+          "peak_working_set_bytes": 249597952
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 10.298556699999608,
+          "guest_to_host_bytes": 13172736,
+          "host_to_guest_bytes": 13172736,
+          "receive_calls_including_eof": 11591
+        },
+        {
+          "seconds": 10.311529000027804,
+          "guest_to_host_bytes": 13303808,
+          "host_to_guest_bytes": 13303808,
+          "receive_calls_including_eof": 11683
+        },
+        {
+          "seconds": 10.296788500010734,
+          "guest_to_host_bytes": 13172736,
+          "host_to_guest_bytes": 13172736,
+          "receive_calls_including_eof": 11645
+        },
+        {
+          "seconds": 10.310645999998087,
+          "guest_to_host_bytes": 13238272,
+          "host_to_guest_bytes": 13238272,
+          "receive_calls_including_eof": 11584
+        },
+        {
+          "seconds": 10.30037309997715,
+          "guest_to_host_bytes": 13172736,
+          "host_to_guest_bytes": 13172736,
+          "receive_calls_including_eof": 11846
+        },
+        {
+          "seconds": 10.302280800009612,
+          "guest_to_host_bytes": 13172736,
+          "host_to_guest_bytes": 13172736,
+          "receive_calls_including_eof": 11771
+        },
+        {
+          "seconds": 10.301872000010917,
+          "guest_to_host_bytes": 13172736,
+          "host_to_guest_bytes": 13172736,
+          "receive_calls_including_eof": 11649
+        },
+        {
+          "seconds": 10.304103899979964,
+          "guest_to_host_bytes": 13172736,
+          "host_to_guest_bytes": 13172736,
+          "receive_calls_including_eof": 11522
+        },
+        {
+          "seconds": 10.301609899994219,
+          "guest_to_host_bytes": 13172736,
+          "host_to_guest_bytes": 13172736,
+          "receive_calls_including_eof": 11650
+        },
+        {
+          "seconds": 10.282507700001588,
+          "guest_to_host_bytes": 12910592,
+          "host_to_guest_bytes": 12910592,
+          "receive_calls_including_eof": 11456
+        },
+        {
+          "seconds": 10.300783199985744,
+          "guest_to_host_bytes": 13172736,
+          "host_to_guest_bytes": 13172736,
+          "receive_calls_including_eof": 11737
+        },
+        {
+          "seconds": 10.300383599998895,
+          "guest_to_host_bytes": 13172736,
+          "host_to_guest_bytes": 13172736,
+          "receive_calls_including_eof": 11708
+        },
+        {
+          "seconds": 10.304226700012805,
+          "guest_to_host_bytes": 13238272,
+          "host_to_guest_bytes": 13238272,
+          "receive_calls_including_eof": 11601
+        },
+        {
+          "seconds": 10.300177400000393,
+          "guest_to_host_bytes": 13172736,
+          "host_to_guest_bytes": 13172736,
+          "receive_calls_including_eof": 11775
+        },
+        {
+          "seconds": 10.256549200013978,
+          "guest_to_host_bytes": 12779520,
+          "host_to_guest_bytes": 12779520,
+          "receive_calls_including_eof": 11358
+        },
+        {
+          "seconds": 10.296589299978223,
+          "guest_to_host_bytes": 13107200,
+          "host_to_guest_bytes": 13107200,
+          "receive_calls_including_eof": 11700
+        }
+      ]
+    },
+    {
+      "repeat": 1,
+      "streams": 8,
+      "path": "relay",
+      "wall_seconds": 10.159398499992676,
+      "verified_bytes_per_direction": 258867200,
+      "mib_s": 24.30015910884665,
+      "legacy_mib_s": 24.304257585104736,
+      "cpu_seconds": {
+        "relay": 8.546875,
+        "tunnel": 10.09375,
+        "python": 10.015625
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 47.515625,
+          "working_set_bytes": 14782464,
+          "peak_working_set_bytes": 27435008
+        },
+        "tunnel": {
+          "cpu_seconds": 54.96875,
+          "working_set_bytes": 244928512,
+          "peak_working_set_bytes": 249597952
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 10.136723400006304,
+          "guest_to_host_bytes": 32309248,
+          "host_to_guest_bytes": 32309248,
+          "receive_calls_including_eof": 20017
+        },
+        {
+          "seconds": 10.157685300015146,
+          "guest_to_host_bytes": 32505856,
+          "host_to_guest_bytes": 32505856,
+          "receive_calls_including_eof": 20128
+        },
+        {
+          "seconds": 10.116035199986072,
+          "guest_to_host_bytes": 32178176,
+          "host_to_guest_bytes": 32178176,
+          "receive_calls_including_eof": 19927
+        },
+        {
+          "seconds": 10.157653899979778,
+          "guest_to_host_bytes": 32505856,
+          "host_to_guest_bytes": 32505856,
+          "receive_calls_including_eof": 20088
+        },
+        {
+          "seconds": 10.150450100016315,
+          "guest_to_host_bytes": 32374784,
+          "host_to_guest_bytes": 32374784,
+          "receive_calls_including_eof": 20041
+        },
+        {
+          "seconds": 10.154488500003936,
+          "guest_to_host_bytes": 32440320,
+          "host_to_guest_bytes": 32440320,
+          "receive_calls_including_eof": 20053
+        },
+        {
+          "seconds": 10.149099200003548,
+          "guest_to_host_bytes": 32374784,
+          "host_to_guest_bytes": 32374784,
+          "receive_calls_including_eof": 20061
+        },
+        {
+          "seconds": 10.114859900000738,
+          "guest_to_host_bytes": 32178176,
+          "host_to_guest_bytes": 32178176,
+          "receive_calls_including_eof": 19929
+        }
+      ]
+    },
+    {
+      "repeat": 1,
+      "streams": 1,
+      "path": "relay",
+      "wall_seconds": 10.038908300019102,
+      "verified_bytes_per_direction": 533397504,
+      "mib_s": 50.67159543623205,
+      "legacy_mib_s": 50.67364026944653,
+      "cpu_seconds": {
+        "relay": 8.078125,
+        "tunnel": 9.953125,
+        "python": 3.9375
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 55.59375,
+          "working_set_bytes": 14901248,
+          "peak_working_set_bytes": 27435008
+        },
+        "tunnel": {
+          "cpu_seconds": 64.921875,
+          "working_set_bytes": 245084160,
+          "peak_working_set_bytes": 257609728
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 10.038503199990373,
+          "guest_to_host_bytes": 533397504,
+          "host_to_guest_bytes": 533397504,
+          "receive_calls_including_eof": 101564
+        }
+      ]
+    }
+  ],
+  "current_case": {
+    "repeat": 1,
+    "streams": 1,
+    "path": "relay"
+  },
+  "logs": [
+    "tunnel-out: Relay selection: static",
+    "tunnel-out: Public endpoint: localhost:60293",
+    "tunnel-out: Press Ctrl+C or type 'stop' to stop."
+  ]
+}

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kxnar.btaanywhere.internal.NettyTunnelSessionNoticeTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-08T18:07:20.370Z" hostname="KENARALIENWARE" time="6.179">
+  <properties/>
+  <testcase name="failedNoticeWriteClosesItsOwnConnection()" classname="io.github.kxnar.btaanywhere.internal.NettyTunnelSessionNoticeTest" time="2.104"/>
+  <testcase name="repeatedLocalEofEmitsOneNoticeWithTheSuccessfulByteCount()" classname="io.github.kxnar.btaanywhere.internal.NettyTunnelSessionNoticeTest" time="2.041"/>
+  <testcase name="lateCompletionClosesOnlyItsOldConnection()" classname="io.github.kxnar.btaanywhere.internal.NettyTunnelSessionNoticeTest" time="2.034"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

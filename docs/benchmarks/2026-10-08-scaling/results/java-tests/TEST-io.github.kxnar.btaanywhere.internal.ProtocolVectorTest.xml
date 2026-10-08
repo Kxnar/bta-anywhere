@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kxnar.btaanywhere.internal.ProtocolVectorTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-08T18:07:26.549Z" hostname="KENARALIENWARE" time="0.023">
+  <properties/>
+  <testcase name="rejectsSharedStringSequenceAtTypedControlBoundary()" classname="io.github.kxnar.btaanywhere.internal.ProtocolVectorTest" time="0.002"/>
+  <testcase name="unsignedProtocolCountRejectsLongDigitsBeforeConversion()" classname="io.github.kxnar.btaanywhere.internal.ProtocolVectorTest" time="0.0"/>
+  <testcase name="sharedTypedBoundariesMatchV1FieldTypes()" classname="io.github.kxnar.btaanywhere.internal.ProtocolVectorTest" time="0.004"/>
+  <testcase name="rejectsSharedInvalidUtf8ConnectionHeader()" classname="io.github.kxnar.btaanywhere.internal.ProtocolVectorTest" time="0.001"/>
+  <testcase name="decodesAndEncodesSharedProtocolVectorsByteExactly()" classname="io.github.kxnar.btaanywhere.internal.ProtocolVectorTest" time="0.005"/>
+  <testcase name="rejectsSharedMalformedUtf8AndNonObjectVectors()" classname="io.github.kxnar.btaanywhere.internal.ProtocolVectorTest" time="0.002"/>
+  <testcase name="relayRetryabilityRequiresAJsonBoolean()" classname="io.github.kxnar.btaanywhere.internal.ProtocolVectorTest" time="0.001"/>
+  <testcase name="sharedEncryptedV2ConnectionOpenVectorsRejectDowngradeAndWrongSession()" classname="io.github.kxnar.btaanywhere.internal.ProtocolVectorTest" time="0.002"/>
+  <testcase name="sharedStructuralVectorsMatchV1Boundaries()" classname="io.github.kxnar.btaanywhere.internal.ProtocolVectorTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

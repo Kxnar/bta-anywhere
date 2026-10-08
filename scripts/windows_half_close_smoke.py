@@ -249,6 +249,7 @@ def main() -> int:
             wait_ready(20)
             tunnel = subprocess.Popen(
                 [arguments.java, f"-Dio.netty.eventLoopThreads={arguments.event_loop_threads}",
+                 f"-Dio.github.kxnar.btaanywhere.shadow.io.netty.eventLoopThreads={arguments.event_loop_threads}",
                  "-jar", str(tunnel_jar), "expose", "--relay", "127.0.0.1:25575", "--ca", str(development / "trust.pem"),
                  "--token-file", str(development / "access.token"), "--local", f"127.0.0.1:{echo.server_address[1]}",
                  "--client-id", "cross-impl-half-close-repro"],

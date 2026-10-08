@@ -1,5 +1,9 @@
 # Relay benchmark procedure
 
+The [scaling and recovery follow-up](benchmarks/2026-10-08-scaling/README.md)
+contains the 1/2/4/8/16-stream comparison, isolated local impairment matrix,
+restart phase timings, profiler artifacts and reproduction commands.
+
 Run on Windows x86-64 with JDK 21 and Rust 1.85 or later. The workload uses
 synthetic bytes on loopback. It does not measure internet reliability or game
 capacity. Keep the machine plugged in, its power scheme stable, and other load

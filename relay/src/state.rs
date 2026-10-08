@@ -1019,6 +1019,23 @@ impl RelayState {
             trace_eof(&trace_id, "relay_forward_error", None, None);
         }
         let (guest_bytes, host_bytes) = result?;
+        if std::env::var_os("BTA_TRANSPORT_PROFILE").is_some() {
+            let stats = connection.stats();
+            eprintln!(
+                "BTA_TRANSPORT_PROFILE {{\"rtt_us\":{},\"cwnd\":{},\"sent\":{},\"lost\":{},\"congestion\":{},\"tx_blocked\":{},\"rx_blocked\":{},\"tx_stream_blocked\":{},\"rx_stream_blocked\":{},\"udp_tx\":{},\"udp_rx\":{}}}",
+                stats.path.rtt.as_micros(),
+                stats.path.cwnd,
+                stats.path.sent_packets,
+                stats.path.lost_packets,
+                stats.path.congestion_events,
+                stats.frame_tx.data_blocked,
+                stats.frame_rx.data_blocked,
+                stats.frame_tx.stream_data_blocked,
+                stats.frame_rx.stream_data_blocked,
+                stats.udp_tx.bytes,
+                stats.udp_rx.bytes
+            );
+        }
         trace_eof(&trace_id, "relay_complete", None, None);
         self.inner.metrics.bytes_guest_to_host.inc_by(guest_bytes);
         self.inner.metrics.bytes_host_to_guest.inc_by(host_bytes);

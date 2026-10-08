@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kxnar.btaanywhere.mod.hosting.GameDirectoryLeaseTest" tests="6" skipped="1" failures="0" errors="0" timestamp="2026-10-08T18:07:22.521Z" hostname="KENARALIENWARE" time="0.392">
+  <properties/>
+  <testcase name="rawLeaseDoesNotCoverAnotherProfileOrRemainValidAfterClose()" classname="io.github.kxnar.btaanywhere.mod.hosting.GameDirectoryLeaseTest" time="0.015"/>
+  <testcase name="controllerFactoryOwnsLeaseAndClosedControllerCannotRestart()" classname="io.github.kxnar.btaanywhere.mod.hosting.GameDirectoryLeaseTest" time="0.157"/>
+  <testcase name="onlyOneClientCanOwnTheGameDirectoryAndLockFileRemains()" classname="io.github.kxnar.btaanywhere.mod.hosting.GameDirectoryLeaseTest" time="0.019"/>
+  <testcase name="abruptChildExitReleasesOperatingSystemLock()" classname="io.github.kxnar.btaanywhere.mod.hosting.GameDirectoryLeaseTest" time="0.166"/>
+  <testcase name="unsafeManagedDirectoryAndLockFileFailClosed()" classname="io.github.kxnar.btaanywhere.mod.hosting.GameDirectoryLeaseTest" time="0.017"/>
+  <testcase name="symbolicLockFileIsRejectedWhenWindowsAllowsCreatingIt()" classname="io.github.kxnar.btaanywhere.mod.hosting.GameDirectoryLeaseTest" time="0.014">
+    <skipped message="org.opentest4j.TestAbortedException: Assumption failed: this Windows account cannot create a symbolic link" type="org.opentest4j.TestAbortedException">org.opentest4j.TestAbortedException: Assumption failed: this Windows account cannot create a symbolic link
+	at org.junit.jupiter.api.Assumptions.throwAssumptionFailed(Assumptions.java:321)
+	at org.junit.jupiter.api.Assumptions.assumeTrue(Assumptions.java:120)
+	at io.github.kxnar.btaanywhere.mod.hosting.GameDirectoryLeaseTest.symbolicLockFileIsRejectedWhenWindowsAllowsCreatingIt(GameDirectoryLeaseTest.java:101)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+</skipped>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

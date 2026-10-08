@@ -13,6 +13,9 @@ JDK 21 and Rust 1.85+ are needed. See [setup](docs/setup.md) for build commands.
 See the [benchmark procedure](docs/benchmarking.md) and the
 [Windows loopback reliability report](docs/benchmarks/2026-10-08/README.md)
 for measured results, retained failures and reproduction details.
+The [scaling and recovery follow-up](docs/benchmarks/2026-10-08-scaling/README.md)
+investigates event-loop scheduling, local delay/jitter/loss, and authenticated
+restart detection, including failed experiments and remaining limits.
 
 ## License
 

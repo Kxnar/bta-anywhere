@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kxnar.btaanywhere.mod.hosting.RecoveryFailClosedTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-08T18:07:37.794Z" hostname="KENARALIENWARE" time="0.079">
+  <properties/>
+  <testcase name="legacyPreparedJournalWithoutIdentityAlsoBlocksOpen()" classname="io.github.kxnar.btaanywhere.mod.hosting.RecoveryFailClosedTest" time="0.014"/>
+  <testcase name="reusedPidIsNeverStoppedAndBlocksOpen()" classname="io.github.kxnar.btaanywhere.mod.hosting.RecoveryFailClosedTest" time="0.014"/>
+  <testcase name="unrecordedLaunchIntentBlocksOpenAndRestore()" classname="io.github.kxnar.btaanywhere.mod.hosting.RecoveryFailClosedTest" time="0.014"/>
+  <testcase name="malformedProcessExecutableFailsClosed()" classname="io.github.kxnar.btaanywhere.mod.hosting.RecoveryFailClosedTest" time="0.017"/>
+  <testcase name="malformedAndInterruptedJournalWritesRemainVisibleAndBlockHosting()" classname="io.github.kxnar.btaanywhere.mod.hosting.RecoveryFailClosedTest" time="0.017"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

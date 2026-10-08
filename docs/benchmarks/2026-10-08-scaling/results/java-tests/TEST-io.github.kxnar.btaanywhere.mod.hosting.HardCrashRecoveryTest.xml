@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kxnar.btaanywhere.mod.hosting.HardCrashRecoveryTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-08T18:07:22.913Z" hostname="KENARALIENWARE" time="3.184">
+  <properties/>
+  <testcase name="terminatedChildLeavesOriginalIntactAndRecoveryConservative()" classname="io.github.kxnar.btaanywhere.mod.hosting.HardCrashRecoveryTest" time="3.183"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

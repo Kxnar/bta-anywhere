@@ -1,0 +1,282 @@
+{
+  "schema": 1,
+  "status": "PASS",
+  "workload": {
+    "streams": [
+      1,
+      8,
+      16
+    ],
+    "paths": [
+      "relay"
+    ],
+    "seconds": 10.0,
+    "runs": 1,
+    "seed": 1701,
+    "block_bytes": 65536,
+    "java_options": [],
+    "python_profile": false,
+    "jfr": false,
+    "workers": "processes",
+    "transport_profile": false,
+    "relay_workers": null,
+    "benchmark_max_connections_per_session": 32
+  },
+  "sha256": {
+    "relay": "ac9f10a8ab606a5aa24c8f3586fb31765bf818af86b7aece1fcba9d8e210e105",
+    "tunnel": "7c9160947275629778a5a3a18e820bea9991474c01f7dee20daa7b2a5de10303",
+    "harness": "74c4d2c5f79c40038912d972448b835442ef991220fb291f21277abb9b327966",
+    "workload": "bc466903c1fc9645ab454f7ce213bbd4c3264bb7a366df6e971bb1ebcf38600f"
+  },
+  "source": {
+    "status": "available",
+    "commit": "97cbdd43f1e549c2300084489b67d0b49ad74217",
+    "dirty": true
+  },
+  "rows": [
+    {
+      "repeat": 0,
+      "streams": 1,
+      "path": "relay",
+      "wall_seconds": 10.38034040000639,
+      "verified_bytes_per_direction": 604176384,
+      "mib_s": 55.50757275740643,
+      "legacy_mib_s": 57.49379585890741,
+      "cpu_seconds": {
+        "relay": 8.3125,
+        "tunnel": 14.34375,
+        "python": 0.046875
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 8.515625,
+          "working_set_bytes": 11386880,
+          "peak_working_set_bytes": 12656640
+        },
+        "tunnel": {
+          "cpu_seconds": 15.234375,
+          "working_set_bytes": 189943808,
+          "peak_working_set_bytes": 195379200
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 10.021733499976108,
+          "guest_to_host_bytes": 604176384,
+          "host_to_guest_bytes": 604176384,
+          "receive_calls_including_eof": 107252
+        }
+      ]
+    },
+    {
+      "repeat": 0,
+      "streams": 8,
+      "path": "relay",
+      "wall_seconds": 10.61704449998797,
+      "verified_bytes_per_direction": 210042880,
+      "mib_s": 18.867067949110226,
+      "legacy_mib_s": 19.654069151943826,
+      "cpu_seconds": {
+        "relay": 10.234375,
+        "tunnel": 22.203125,
+        "python": 0.078125
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 18.765625,
+          "working_set_bytes": 12242944,
+          "peak_working_set_bytes": 22388736
+        },
+        "tunnel": {
+          "cpu_seconds": 37.4375,
+          "working_set_bytes": 281165824,
+          "peak_working_set_bytes": 281165824
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 10.191909800021676,
+          "guest_to_host_bytes": 27328512,
+          "host_to_guest_bytes": 27328512,
+          "receive_calls_including_eof": 24429
+        },
+        {
+          "seconds": 10.176990099978866,
+          "guest_to_host_bytes": 26345472,
+          "host_to_guest_bytes": 26345472,
+          "receive_calls_including_eof": 24115
+        },
+        {
+          "seconds": 10.160671199992066,
+          "guest_to_host_bytes": 25952256,
+          "host_to_guest_bytes": 25952256,
+          "receive_calls_including_eof": 23832
+        },
+        {
+          "seconds": 10.127790900005493,
+          "guest_to_host_bytes": 25952256,
+          "host_to_guest_bytes": 25952256,
+          "receive_calls_including_eof": 23987
+        },
+        {
+          "seconds": 10.12579670001287,
+          "guest_to_host_bytes": 26017792,
+          "host_to_guest_bytes": 26017792,
+          "receive_calls_including_eof": 23775
+        },
+        {
+          "seconds": 10.132075299974531,
+          "guest_to_host_bytes": 26083328,
+          "host_to_guest_bytes": 26083328,
+          "receive_calls_including_eof": 23799
+        },
+        {
+          "seconds": 10.120516199996928,
+          "guest_to_host_bytes": 26083328,
+          "host_to_guest_bytes": 26083328,
+          "receive_calls_including_eof": 23850
+        },
+        {
+          "seconds": 10.122582699987106,
+          "guest_to_host_bytes": 26279936,
+          "host_to_guest_bytes": 26279936,
+          "receive_calls_including_eof": 23948
+        }
+      ]
+    },
+    {
+      "repeat": 0,
+      "streams": 16,
+      "path": "relay",
+      "wall_seconds": 11.315685499983374,
+      "verified_bytes_per_direction": 238354432,
+      "mib_s": 20.088265973840823,
+      "legacy_mib_s": 21.696473369675783,
+      "cpu_seconds": {
+        "relay": 11.609375,
+        "tunnel": 20.796875,
+        "python": 0.109375
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 30.375,
+          "working_set_bytes": 12984320,
+          "peak_working_set_bytes": 22953984
+        },
+        "tunnel": {
+          "cpu_seconds": 58.234375,
+          "working_set_bytes": 352825344,
+          "peak_working_set_bytes": 368480256
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 10.447826199990232,
+          "guest_to_host_bytes": 15335424,
+          "host_to_guest_bytes": 15335424,
+          "receive_calls_including_eof": 12806
+        },
+        {
+          "seconds": 10.444526100007351,
+          "guest_to_host_bytes": 15335424,
+          "host_to_guest_bytes": 15335424,
+          "receive_calls_including_eof": 13123
+        },
+        {
+          "seconds": 10.47693309999886,
+          "guest_to_host_bytes": 15400960,
+          "host_to_guest_bytes": 15400960,
+          "receive_calls_including_eof": 13301
+        },
+        {
+          "seconds": 10.455991700000595,
+          "guest_to_host_bytes": 15400960,
+          "host_to_guest_bytes": 15400960,
+          "receive_calls_including_eof": 13718
+        },
+        {
+          "seconds": 10.356487600016408,
+          "guest_to_host_bytes": 15269888,
+          "host_to_guest_bytes": 15269888,
+          "receive_calls_including_eof": 13406
+        },
+        {
+          "seconds": 10.445754799991846,
+          "guest_to_host_bytes": 15466496,
+          "host_to_guest_bytes": 15466496,
+          "receive_calls_including_eof": 13620
+        },
+        {
+          "seconds": 10.404572700004792,
+          "guest_to_host_bytes": 15400960,
+          "host_to_guest_bytes": 15400960,
+          "receive_calls_including_eof": 13641
+        },
+        {
+          "seconds": 10.36042740000994,
+          "guest_to_host_bytes": 15335424,
+          "host_to_guest_bytes": 15335424,
+          "receive_calls_including_eof": 13644
+        },
+        {
+          "seconds": 10.349728100001812,
+          "guest_to_host_bytes": 15335424,
+          "host_to_guest_bytes": 15335424,
+          "receive_calls_including_eof": 13603
+        },
+        {
+          "seconds": 10.399988799996208,
+          "guest_to_host_bytes": 15466496,
+          "host_to_guest_bytes": 15466496,
+          "receive_calls_including_eof": 13762
+        },
+        {
+          "seconds": 10.378547200001776,
+          "guest_to_host_bytes": 15466496,
+          "host_to_guest_bytes": 15466496,
+          "receive_calls_including_eof": 13615
+        },
+        {
+          "seconds": 10.345348499977263,
+          "guest_to_host_bytes": 15269888,
+          "host_to_guest_bytes": 15269888,
+          "receive_calls_including_eof": 13518
+        },
+        {
+          "seconds": 10.344231399998534,
+          "guest_to_host_bytes": 13434880,
+          "host_to_guest_bytes": 13434880,
+          "receive_calls_including_eof": 11991
+        },
+        {
+          "seconds": 10.366431300004479,
+          "guest_to_host_bytes": 13500416,
+          "host_to_guest_bytes": 13500416,
+          "receive_calls_including_eof": 11988
+        },
+        {
+          "seconds": 10.350222800014308,
+          "guest_to_host_bytes": 13434880,
+          "host_to_guest_bytes": 13434880,
+          "receive_calls_including_eof": 12055
+        },
+        {
+          "seconds": 10.344247000000905,
+          "guest_to_host_bytes": 13500416,
+          "host_to_guest_bytes": 13500416,
+          "receive_calls_including_eof": 12097
+        }
+      ]
+    }
+  ],
+  "current_case": {
+    "repeat": 0,
+    "streams": 16,
+    "path": "relay"
+  },
+  "logs": [
+    "tunnel-out: Relay selection: static",
+    "tunnel-out: Public endpoint: localhost:62440",
+    "tunnel-out: Press Ctrl+C or type 'stop' to stop."
+  ]
+}

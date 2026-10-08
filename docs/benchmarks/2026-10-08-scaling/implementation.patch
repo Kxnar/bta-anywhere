@@ -1,0 +1,279 @@
+diff --git a/relay/Cargo.toml b/relay/Cargo.toml
+index 61cae2c..e59f401 100644
+--- a/relay/Cargo.toml
++++ b/relay/Cargo.toml
+@@ -19,6 +19,7 @@ hex = "=0.4.3"
+ prometheus-client = "=0.25.0"
+ quinn = { version = "=0.11.11", default-features = false, features = ["runtime-tokio", "rustls-ring"] }
+ rand = "=0.9.5"
++ring = "=0.17.14"
+ rcgen = { version = "=0.14.7", features = ["pem"] }
+ reqwest = { version = "=0.12.23", default-features = false, features = ["rustls-tls", "json"] }
+ rustls = { version = "=0.23.43", default-features = false, features = ["ring", "std"] }
+@@ -39,5 +40,4 @@ tracing-subscriber = { version = "=0.3.23", features = ["env-filter", "fmt"] }
+ url = "=2.5.0"
+ 
+ [dev-dependencies]
+-ring = "=0.17.14"
+ tempfile = "=3.27.0"
+diff --git a/relay/src/main.rs b/relay/src/main.rs
+index 1733a63..df4348d 100644
+--- a/relay/src/main.rs
++++ b/relay/src/main.rs
+@@ -1,6 +1,7 @@
+ mod config;
+ mod metrics;
+ mod protocol;
++mod reset;
+ mod state;
+ mod token;
+ 
+@@ -135,9 +136,16 @@ fn read_token(path: Option<&Path>) -> Result<String> {
+ 
+ async fn run(config_path: PathBuf) -> Result<()> {
+     let config = RelayConfig::load(&config_path).await?;
+-    let (server_config, guest_tls) = load_server_config(&config).await?;
+-    let endpoint = Endpoint::server(server_config, config.quic_listen)
+-        .with_context(|| format!("failed to bind QUIC endpoint at {}", config.quic_listen))?;
++    let (server_config, endpoint_config, guest_tls) = load_server_config(&config).await?;
++    let socket = std::net::UdpSocket::bind(config.quic_listen)
++        .with_context(|| format!("failed to bind QUIC socket at {}", config.quic_listen))?;
++    let endpoint = Endpoint::new(
++        endpoint_config,
++        Some(server_config),
++        socket,
++        Arc::new(quinn::TokioRuntime),
++    )
++    .with_context(|| format!("failed to bind QUIC endpoint at {}", config.quic_listen))?;
+     let state = RelayState::new(config.clone(), guest_tls)?;
+     let admin_listener = TcpListener::bind(config.admin_listen)
+         .await
+@@ -573,7 +581,9 @@ async fn metrics(State(state): State<RelayState>) -> Response {
+     }
+ }
+ 
+-async fn load_server_config(config: &RelayConfig) -> Result<(quinn::ServerConfig, TlsAcceptor)> {
++async fn load_server_config(
++    config: &RelayConfig,
++) -> Result<(quinn::ServerConfig, quinn::EndpointConfig, TlsAcceptor)> {
+     let certificate_bytes = tokio::fs::read(&config.certificate_path)
+         .await
+         .with_context(|| format!("failed to read {}", config.certificate_path.display()))?;
+@@ -585,6 +595,7 @@ async fn load_server_config(config: &RelayConfig) -> Result<(quinn::ServerConfig
+     let private_key: PrivateKeyDer<'static> =
+         rustls_pemfile::private_key(&mut key_bytes.as_slice())?
+             .ok_or_else(|| anyhow!("private key file contains no supported key"))?;
++    let endpoint_config = reset::endpoint_config(private_key.secret_der())?;
+     let mut tls = rustls::ServerConfig::builder_with_protocol_versions(&[&rustls::version::TLS13])
+         .with_no_client_auth()
+         .with_single_cert(certificates, private_key)?;
+@@ -598,7 +609,7 @@ async fn load_server_config(config: &RelayConfig) -> Result<(quinn::ServerConfig
+     transport.max_concurrent_bidi_streams(VarInt::from_u32(64));
+     transport.keep_alive_interval(Some(Duration::from_secs(config.heartbeat_seconds)));
+     server.transport_config(Arc::new(transport));
+-    Ok((server, guest_tls))
++    Ok((server, endpoint_config, guest_tls))
+ }
+ 
+ async fn init_dev(output: &Path) -> Result<()> {
+diff --git a/relay/src/state.rs b/relay/src/state.rs
+index f14715a..a6424f5 100644
+--- a/relay/src/state.rs
++++ b/relay/src/state.rs
+@@ -1019,6 +1019,23 @@ impl RelayState {
+             trace_eof(&trace_id, "relay_forward_error", None, None);
+         }
+         let (guest_bytes, host_bytes) = result?;
++        if std::env::var_os("BTA_TRANSPORT_PROFILE").is_some() {
++            let stats = connection.stats();
++            eprintln!(
++                "BTA_TRANSPORT_PROFILE {{\"rtt_us\":{},\"cwnd\":{},\"sent\":{},\"lost\":{},\"congestion\":{},\"tx_blocked\":{},\"rx_blocked\":{},\"tx_stream_blocked\":{},\"rx_stream_blocked\":{},\"udp_tx\":{},\"udp_rx\":{}}}",
++                stats.path.rtt.as_micros(),
++                stats.path.cwnd,
++                stats.path.sent_packets,
++                stats.path.lost_packets,
++                stats.path.congestion_events,
++                stats.frame_tx.data_blocked,
++                stats.frame_rx.data_blocked,
++                stats.frame_tx.stream_data_blocked,
++                stats.frame_rx.stream_data_blocked,
++                stats.udp_tx.bytes,
++                stats.udp_rx.bytes
++            );
++        }
+         trace_eof(&trace_id, "relay_complete", None, None);
+         self.inner.metrics.bytes_guest_to_host.inc_by(guest_bytes);
+         self.inner.metrics.bytes_host_to_guest.inc_by(host_bytes);
+diff --git a/scripts/benchmark_relay.py b/scripts/benchmark_relay.py
+index 2f19897..b24324b 100644
+--- a/scripts/benchmark_relay.py
++++ b/scripts/benchmark_relay.py
+@@ -299,6 +299,7 @@ def throughput_stream(port: int, block: bytes, seconds: float, timeout: float,
+         progress._check_index(stream_index)
+     sent = 0
+     received = 0
++    receive_calls = 0
+     send_error: list[BaseException] = []
+     started = time.perf_counter()
+     doubled_block = block + block
+@@ -350,6 +351,7 @@ def throughput_stream(port: int, block: bytes, seconds: float, timeout: float,
+                             raise TimeoutError("absolute throughput drain deadline exceeded")
+                         sock.settimeout(min(timeout, remaining))
+                         chunk = sock.recv(CHUNK)
++                        receive_calls += 1
+                         if not chunk:
+                             break
+                         if progress is not None:
+@@ -379,7 +381,7 @@ def throughput_stream(port: int, block: bytes, seconds: float, timeout: float,
+                 sender.join(timeout=1)
+         elapsed = time.perf_counter() - started
+         return {"seconds": elapsed, "guest_to_host_bytes": sent,
+-                "host_to_guest_bytes": received}
++                "host_to_guest_bytes": received, "receive_calls_including_eof": receive_calls}
+     except BaseException as error:
+         if progress is not None:
+             progress.error(stream_index, "guest", error)
+diff --git a/scripts/test_benchmark_relay.py b/scripts/test_benchmark_relay.py
+index e1213e9..1d96c51 100644
+--- a/scripts/test_benchmark_relay.py
++++ b/scripts/test_benchmark_relay.py
+@@ -439,9 +439,13 @@ class BenchmarkTests(unittest.TestCase):
+             thread.start()
+             started = benchmark.time.monotonic()
+             try:
+-                with self.assertRaisesRegex(RuntimeError, "absolute throughput drain deadline"):
++                # The remaining absolute budget also bounds recv(). Depending on
++                # scheduling, either recv times out or the explicit clock check
++                # runs first. Both must end the otherwise endless valid reply.
++                with self.assertRaisesRegex(RuntimeError, "TimeoutError: (absolute throughput drain deadline|timed out)"):
+                     benchmark.throughput_stream(server.server_address[1], b"x" * benchmark.CHUNK,
+                                                 0.02, 0.5)
++                self.assertGreaterEqual(benchmark.time.monotonic() - started, 0.45)
+                 self.assertLess(benchmark.time.monotonic() - started, 3)
+             finally:
+                 server.shutdown()
+diff --git a/scripts/windows_half_close_smoke.py b/scripts/windows_half_close_smoke.py
+index 4f831f1..a7f3d7c 100644
+--- a/scripts/windows_half_close_smoke.py
++++ b/scripts/windows_half_close_smoke.py
+@@ -249,6 +249,7 @@ def main() -> int:
+             wait_ready(20)
+             tunnel = subprocess.Popen(
+                 [arguments.java, f"-Dio.netty.eventLoopThreads={arguments.event_loop_threads}",
++                 f"-Dio.github.kxnar.btaanywhere.shadow.io.netty.eventLoopThreads={arguments.event_loop_threads}",
+                  "-jar", str(tunnel_jar), "expose", "--relay", "127.0.0.1:25575", "--ca", str(development / "trust.pem"),
+                  "--token-file", str(development / "access.token"), "--local", f"127.0.0.1:{echo.server_address[1]}",
+                  "--client-id", "cross-impl-half-close-repro"],
+diff --git a/tunnel-client/src/main/java/io/github/kxnar/btaanywhere/internal/IncomingTunnelHandler.java b/tunnel-client/src/main/java/io/github/kxnar/btaanywhere/internal/IncomingTunnelHandler.java
+index 270bed1..10a3e91 100644
+--- a/tunnel-client/src/main/java/io/github/kxnar/btaanywhere/internal/IncomingTunnelHandler.java
++++ b/tunnel-client/src/main/java/io/github/kxnar/btaanywhere/internal/IncomingTunnelHandler.java
+@@ -190,7 +190,10 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
+ 
+ 	private void connectLocal(ChannelHandlerContext quicContext) {
+ 		ChannelFuture future = new Bootstrap()
+-			.group(session.eventLoopGroup())
++			// A QUIC connection already serializes all its streams on this loop.
++			// Keep each paired TCP socket there too, avoiding a cross-thread wakeup
++			// for every payload write and the next manual read.
++			.group(quicContext.channel().eventLoop())
+ 			.channel(NioSocketChannel.class)
+ 			.handler(new LocalToQuicHandler(session, connectionGeneration, quicContext.channel(), connectionId, traceId))
+ 			.option(ChannelOption.AUTO_READ, false)
+diff --git a/tunnel-client/src/main/java/io/github/kxnar/btaanywhere/internal/NettyTunnelSession.java b/tunnel-client/src/main/java/io/github/kxnar/btaanywhere/internal/NettyTunnelSession.java
+index 4a22810..2bb81d6 100644
+--- a/tunnel-client/src/main/java/io/github/kxnar/btaanywhere/internal/NettyTunnelSession.java
++++ b/tunnel-client/src/main/java/io/github/kxnar/btaanywhere/internal/NettyTunnelSession.java
+@@ -71,7 +71,7 @@ public final class NettyTunnelSession implements TunnelSession {
+ 	private volatile String sessionId;
+ 	private volatile String resumeToken;
+ 	private volatile boolean allocationTicketPendingAck;
+-	private volatile Instant lastPong = Instant.now();
++	private volatile long lastPongNanos = System.nanoTime();
+ 	private volatile Channel datagramChannel;
+ 	private volatile QuicChannel quicChannel;
+ 	private volatile QuicStreamChannel controlChannel;
+@@ -111,6 +111,7 @@ public final class NettyTunnelSession implements TunnelSession {
+ 		if (closeRequested.get()) {
+ 			return;
+ 		}
++		traceLifecycle("connect_start");
+ 		long currentGeneration = generation.incrementAndGet();
+ 		RelaySelection pinned = relaySelection;
+ 		CompletionStage<RelaySelection> resolution = pinned == null
+@@ -153,6 +154,12 @@ public final class NettyTunnelSession implements TunnelSession {
+ 				.build();
+ 			ChannelHandler codec = new QuicClientCodecBuilder()
+ 				.sslContext(sslContext)
++				// Each UDP socket owns exactly one connection. With an empty local CID,
++				// Netty also dispatches short-header stateless resets to quiche, which
++				// authenticates their token. Nonempty CIDs made the codec discard those
++				// random-looking packets before native reset verification could run.
++				.localConnectionIdLength(0)
++				.activeMigration(false)
+ 				.sslEngineProvider(channel -> sslContext.newEngine(
+ 					channel.alloc(),
+ 					descriptor.host(),
+@@ -335,7 +342,7 @@ public final class NettyTunnelSession implements TunnelSession {
+ 				case "registered" -> handleRegistered(message);
+ 				case "pong" -> {
+ 					ProtocolFrames.requiredUnsignedLong(message, "sequence");
+-					lastPong = Instant.now();
++					lastPongNanos = System.nanoTime();
+ 				}
+ 				case "error" -> {
+ 					String code = ProtocolFrames.requiredString(message, "code");
+@@ -392,7 +399,8 @@ public final class NettyTunnelSession implements TunnelSession {
+ 			encrypted.onRegistered(sessionId, endpoint, relay, quicChannel);
+ 		}
+ 		reconnectAttempt.set(0);
+-		lastPong = Instant.now();
++		lastPongNanos = System.nanoTime();
++		traceLifecycle("registered");
+ 		emit(TunnelState.ACTIVE, "Tunnel active at " + endpoint);
+ 		opened.complete(this);
+ 		scheduleHeartbeat();
+@@ -412,7 +420,8 @@ public final class NettyTunnelSession implements TunnelSession {
+ 			if (closeRequested.get() || !control.isActive()) {
+ 				return;
+ 			}
+-			if (Duration.between(lastPong, Instant.now()).compareTo(config.heartbeatInterval().multipliedBy(3)) > 0) {
++			if (heartbeatExpired(lastPongNanos, System.nanoTime(), config.heartbeatInterval())) {
++				traceLifecycle("heartbeat_expired");
+ 				control.close();
+ 				return;
+ 			}
+@@ -423,6 +432,11 @@ public final class NettyTunnelSession implements TunnelSession {
+ 		}, intervalMillis, intervalMillis, TimeUnit.MILLISECONDS);
+ 	}
+ 
++	static boolean heartbeatExpired(long lastPongNanos, long nowNanos, Duration interval) {
++		// Wall-clock adjustments must not trigger or defer failure detection.
++		return Duration.ofNanos(nowNanos - lastPongNanos).compareTo(interval.multipliedBy(3)) >= 0;
++	}
++
+ 	void onDisconnected(long disconnectedGeneration, Throwable failure) {
+ 		if (disconnectedGeneration != generation.get() || closeRequested.get()) {
+ 			return;
+@@ -439,6 +453,7 @@ public final class NettyTunnelSession implements TunnelSession {
+ 			|| failedGeneration != generation.get()) {
+ 			return;
+ 		}
++		traceLifecycle("failure_detected");
+ 		generation.incrementAndGet();
+ 		closeChannels();
+ 		ScheduledFuture<?> previousReconnect = reconnectTask;
+@@ -457,6 +472,13 @@ public final class NettyTunnelSession implements TunnelSession {
+ 		reconnectTask = group.next().schedule(this::resolveAndConnect, delay, TimeUnit.MILLISECONDS);
+ 	}
+ 
++	private static void traceLifecycle(String phase) {
++		if (Boolean.getBoolean("bta.lifecycleTrace")) {
++			// Diagnostic only: monotonic timestamps and phase names, no addresses or credentials.
++			System.err.println("BTA_LIFECYCLE " + phase + " " + System.nanoTime());
++		}
++	}
++
+ 	private void fail(Throwable failure) {
+ 		if (closeRequested.getAndSet(true)) {
+ 			return;
