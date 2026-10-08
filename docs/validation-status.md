@@ -1,12 +1,13 @@
 # BTA Anywhere validation status
 
-The CV-readiness goal is active. Transport benchmarks already exist, but the
-two-client multiplayer demonstration is incomplete. Keep these two claims
-separate until the game journey succeeds.
+The CV-readiness goal is incomplete and awaits two-client game validation.
+Transport benchmarks and a logged authenticated host join are complete; the
+shared multiplayer demonstration still needs user-provided authenticated guest
+access and dismissal of the Windows security prompt.
 
 | Requirement | Current evidence | Remaining work |
 | --- | --- | --- |
-| Host, join, play, disconnect and reconnect | [First game journey attempt](validation/2026-10-08-journey/README.md): two isolated clients launched; disposable world handed off to a server; unauthenticated host rejected | Two authenticated BTA 8.0.1 sessions; successful host and guest join; shared world action; guest disconnect/reconnect; short recorded demo; clean stop and world reopen |
+| Host, join, play, disconnect and reconnect | [First failed attempt](validation/2026-10-08-journey/README.md) retained. [Packaged authenticated host attempt](validation/2026-10-08-authenticated-host/README.md): new world, managed server startup, logged host login and clean supervisor shutdown | Second authenticated BTA 8.0.1 session; guest join; shared world action; disconnect/reconnect; relay gameplay; short recorded demo; in-game stop and world reopen. Windows security prompt needs user intervention |
 | Bounded failure and transport integrity | [Packet investigation](benchmarks/2026-10-08-packets/README.md): dependency upgrade passed 6/6 matched candidate sessions and 48/48 streams; old version passed 1/6 sessions. Native-log RTT correlation, standalone timestamp reproducer, failures and exact source/binary hashes retained | No further speculative fix search is needed for this reproduced defect. Limits remain: small synthetic sample, native logs rather than wire capture, and an older unrelated direct-path reset remains unexplained |
 | Independent network validation | [Linux netem report](benchmarks/2026-10-08-linux/README.md): 9/9 fresh sessions, 540 transactions, 72 throughput streams and 9/9 verified restart recoveries; latency, throughput, CPU and RSS retained | Physical two-machine/WAN/NAT validation is unperformed. Hosted kernel-netem infrastructure was available and successfully used despite the local WSL failure |
 | Reproducible project package | [Setup](setup.md), [architecture and trade-offs](architecture.md), [CV bullets with claim audit](cv-material.md), Windows CI, Linux workflow, hash verifiers and versioned failure/fix archives | Complete the real game journey, record its demo, and update setup/report with its actual observed outcome |

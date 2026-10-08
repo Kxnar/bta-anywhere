@@ -1,0 +1,3 @@
+STOPPED clean=true
+supervisor_alive=false
+server_alive=false

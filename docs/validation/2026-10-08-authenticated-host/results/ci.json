@@ -1,0 +1,348 @@
+{
+  "conclusion": "success",
+  "headSha": "f4af6393a817c07774a2fec452a0219f2ed16875",
+  "jobs": [
+    {
+      "completedAt": "2026-10-08T20:46:27Z",
+      "conclusion": "success",
+      "databaseId": 113533074992,
+      "name": "Attribution audit",
+      "startedAt": "2026-10-08T20:46:10Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-08T20:46:12Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-08T20:46:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:46:21Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-10-08T20:46:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:46:23Z",
+          "conclusion": "success",
+          "name": "Reject agent authorship trailers",
+          "number": 3,
+          "startedAt": "2026-10-08T20:46:21Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:46:26Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 6,
+          "startedAt": "2026-10-08T20:46:23Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:46:26Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 7,
+          "startedAt": "2026-10-08T20:46:26Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37841902013/job/113533074992"
+    },
+    {
+      "completedAt": "2026-10-08T20:48:06Z",
+      "conclusion": "success",
+      "databaseId": 113533075221,
+      "name": "Rust relay (Windows x86-64)",
+      "startedAt": "2026-10-08T20:46:07Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-08T20:46:09Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-08T20:46:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:46:14Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-10-08T20:46:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:46:22Z",
+          "conclusion": "success",
+          "name": "Install Rust 1.85",
+          "number": 3,
+          "startedAt": "2026-10-08T20:46:14Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:46:24Z",
+          "conclusion": "success",
+          "name": "Check formatting",
+          "number": 4,
+          "startedAt": "2026-10-08T20:46:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:46:42Z",
+          "conclusion": "success",
+          "name": "Check dependency licences",
+          "number": 5,
+          "startedAt": "2026-10-08T20:46:24Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:47:12Z",
+          "conclusion": "success",
+          "name": "Lint",
+          "number": 6,
+          "startedAt": "2026-10-08T20:46:42Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:48:03Z",
+          "conclusion": "success",
+          "name": "Test",
+          "number": 7,
+          "startedAt": "2026-10-08T20:47:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:48:04Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 14,
+          "startedAt": "2026-10-08T20:48:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:48:04Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 15,
+          "startedAt": "2026-10-08T20:48:04Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37841902013/job/113533075221"
+    },
+    {
+      "completedAt": "2026-10-08T20:47:43Z",
+      "conclusion": "success",
+      "databaseId": 113533075446,
+      "name": "Java and native QUIC (Windows x86-64)",
+      "startedAt": "2026-10-08T20:46:10Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-08T20:46:16Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-08T20:46:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:46:22Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-10-08T20:46:16Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:46:57Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c",
+          "number": 3,
+          "startedAt": "2026-10-08T20:46:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:46:58Z",
+          "conclusion": "success",
+          "name": "Validate Gradle wrapper",
+          "number": 4,
+          "startedAt": "2026-10-08T20:46:57Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:47:39Z",
+          "conclusion": "success",
+          "name": "Build and test",
+          "number": 5,
+          "startedAt": "2026-10-08T20:46:58Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:47:39Z",
+          "conclusion": "success",
+          "name": "Load shaded native QUIC transport",
+          "number": 6,
+          "startedAt": "2026-10-08T20:47:39Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:47:40Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c",
+          "number": 11,
+          "startedAt": "2026-10-08T20:47:39Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:47:41Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 12,
+          "startedAt": "2026-10-08T20:47:40Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:47:41Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 13,
+          "startedAt": "2026-10-08T20:47:41Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37841902013/job/113533075446"
+    },
+    {
+      "completedAt": "2026-10-08T20:54:11Z",
+      "conclusion": "success",
+      "databaseId": 113533075460,
+      "name": "Windows relay-to-tunnel integration",
+      "startedAt": "2026-10-08T20:46:08Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-08T20:46:10Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-08T20:46:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:46:16Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-10-08T20:46:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:47:12Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c",
+          "number": 3,
+          "startedAt": "2026-10-08T20:46:16Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:47:21Z",
+          "conclusion": "success",
+          "name": "Install Rust 1.85",
+          "number": 4,
+          "startedAt": "2026-10-08T20:47:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:51:13Z",
+          "conclusion": "success",
+          "name": "Build integration artifacts",
+          "number": 5,
+          "startedAt": "2026-10-08T20:47:21Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:51:55Z",
+          "conclusion": "success",
+          "name": "Seeded protocol corpus smoke",
+          "number": 6,
+          "startedAt": "2026-10-08T20:51:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:52:20Z",
+          "conclusion": "success",
+          "name": "Run concurrent byte-exact integration test",
+          "number": 7,
+          "startedAt": "2026-10-08T20:51:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:52:25Z",
+          "conclusion": "success",
+          "name": "Run serial Windows half-close smoke test",
+          "number": 8,
+          "startedAt": "2026-10-08T20:52:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:52:39Z",
+          "conclusion": "success",
+          "name": "Test benchmark reporting",
+          "number": 9,
+          "startedAt": "2026-10-08T20:52:25Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:54:05Z",
+          "conclusion": "success",
+          "name": "Run short direct and relay benchmark smoke",
+          "number": 10,
+          "startedAt": "2026-10-08T20:52:39Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:54:06Z",
+          "conclusion": "success",
+          "name": "Retain benchmark evidence, including failures",
+          "number": 11,
+          "startedAt": "2026-10-08T20:54:05Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:54:06Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c",
+          "number": 21,
+          "startedAt": "2026-10-08T20:54:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:54:09Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 22,
+          "startedAt": "2026-10-08T20:54:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-08T20:54:09Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 23,
+          "startedAt": "2026-10-08T20:54:09Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37841902013/job/113533075460"
+    }
+  ],
+  "status": "completed",
+  "url": "https://github.com/Kxnar/bta-anywhere/actions/runs/37841902013"
+}

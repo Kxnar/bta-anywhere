@@ -22,3 +22,5 @@ docs/benchmarks/2026-10-08-packets/results/** linguist-generated=true
 docs/benchmarks/2026-10-08-packets/source/** linguist-generated=true
 docs/benchmarks/2026-10-08-linux/results/** linguist-generated=true
 docs/benchmarks/2026-10-08-linux/source/** linguist-generated=true
+docs/validation/2026-10-08-authenticated-host/results/** -text -filter -whitespace
+docs/validation/2026-10-08-authenticated-host/source/** -text -filter -whitespace

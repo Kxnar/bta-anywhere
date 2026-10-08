@@ -35,9 +35,18 @@ Prepare two separate launcher instances with BTA 8.0.1, Babric Loader
 `0.18.4-bta.11`, HalpLibe `6.2.0+8.0.1` and JDK 21. The mod artifact is
 `bta-mod/build/libs/bta-anywhere-0.1.0+bta8.0.1.jar`; put that bundled JAR in the
 instance's `mods` directory. The `-thin.jar` is not the self-contained mod.
+For Prism/MultiMC, import the [official modded 8.0.1 instance ZIP](https://github.com/Turnip-Labs/bta-fabric-instance-repo/releases/download/v8.0.1/bta_fabric_instance_8.0.1.zip).
+It already includes the matching Babric loader and HalpLibe. Select JDK 21 in the
+new instance's Java settings, then add the bundled mod JAR. If Prism's version
+compatibility check rejects Java 21, include 21 alongside 17 in this instance's
+`patches/net.minecraft.json` `compatibleJavaMajors` array. The packaged mod
+was launched with this configuration in a fresh profile; its managed server
+accepted the signed-in host. See the [retained host attempt](validation/2026-10-08-authenticated-host/README.md)
+for the remaining demonstration limits.
+
 The [official BTA installation guide](https://www.betterthanadventure.net/installation-guide/)
-describes the base Prism/MultiMC installation. A plain BTA instance still needs
-the compatible loader before it can load this mod.
+also describes base installation. A plain BTA instance still needs the compatible
+loader before it can load this mod.
 
 Sign in through the launcher with two distinct Minecraft accounts. Launch each
 instance once and exit so its own configuration is created. Use fresh game
