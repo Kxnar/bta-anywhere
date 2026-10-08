@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kxnar.btaanywhere.encrypted.InvitationRegistryTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-08T19:43:42.235Z" hostname="KENARALIENWARE" time="0.031">
+  <properties/>
+  <testcase name="concurrentJoinRedemptionHasExactlyOneWinner()" classname="io.github.kxnar.btaanywhere.encrypted.InvitationRegistryTest" time="0.013"/>
+  <testcase name="revokeAllInvalidatesEveryOutstandingInvitation()" classname="io.github.kxnar.btaanywhere.encrypted.InvitationRegistryTest" time="0.001"/>
+  <testcase name="expiresFromMonotonicClockAndRevokesCapabilities()" classname="io.github.kxnar.btaanywhere.encrypted.InvitationRegistryTest" time="0.001"/>
+  <testcase name="createsIndependentCapabilitiesAndEnforcesMaximumLifetimeAndCapacity()" classname="io.github.kxnar.btaanywhere.encrypted.InvitationRegistryTest" time="0.012"/>
+  <testcase name="enforcesCapabilityScopeAndSlidingStatusLimit()" classname="io.github.kxnar.btaanywhere.encrypted.InvitationRegistryTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -115,7 +115,20 @@ jobs:
             --event-loop-threads 1
       - name: Test benchmark reporting
         shell: pwsh
-        run: python -m unittest discover -s scripts -p "test_benchmark*.py"
+        run: |
+          python -m unittest discover -s scripts -p "test_benchmark*.py"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m unittest discover -s scripts -p test_analyze_qlog.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          New-Item -ItemType Directory -Force .dev -ErrorAction Stop | Out-Null
+          rustc scripts/reproduce_pacer_timestamp.rs -o .dev/pacer-timestamp.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          .dev/pacer-timestamp.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python scripts/verify_packet_evidence.py docs/benchmarks/2026-10-08-packets
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python scripts/verify_netem_archive.py docs/benchmarks/2026-10-08-linux
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Run short direct and relay benchmark smoke
         shell: pwsh
         run: |

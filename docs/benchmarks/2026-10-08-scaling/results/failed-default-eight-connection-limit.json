@@ -1,0 +1,600 @@
+{
+  "schema": 1,
+  "status": "FAILED",
+  "workload": {
+    "streams": [
+      1,
+      2,
+      4,
+      8,
+      16
+    ],
+    "paths": [
+      "direct",
+      "relay"
+    ],
+    "seconds": 10.0,
+    "runs": 3,
+    "seed": 1701,
+    "block_bytes": 65536,
+    "java_options": [],
+    "python_profile": false,
+    "jfr": false
+  },
+  "sha256": {
+    "relay": "ac9f10a8ab606a5aa24c8f3586fb31765bf818af86b7aece1fcba9d8e210e105",
+    "tunnel": "7c9160947275629778a5a3a18e820bea9991474c01f7dee20daa7b2a5de10303",
+    "harness": "60c4f4d85a6ec4fec9abef1ea43bf8cc72e9dfd074561b34e1e6704c114fab41",
+    "workload": "0829f0efb47825f71416279e788ae556a78b1ca0d070cdd8efbd21cb3c29bdae"
+  },
+  "source": {
+    "status": "available",
+    "commit": "97cbdd43f1e549c2300084489b67d0b49ad74217",
+    "dirty": true
+  },
+  "rows": [
+    {
+      "repeat": 0,
+      "streams": 1,
+      "path": "direct",
+      "wall_seconds": 10.025116799981333,
+      "verified_bytes_per_direction": 6075449344,
+      "mib_s": 577.9483786174729,
+      "legacy_mib_s": 578.0841302187165,
+      "cpu_seconds": {
+        "relay": 0.0,
+        "tunnel": 0.0,
+        "python": 10.875
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 0.21875,
+          "working_set_bytes": 9523200,
+          "peak_working_set_bytes": 9539584
+        },
+        "tunnel": {
+          "cpu_seconds": 1.1875,
+          "working_set_bytes": 99590144,
+          "peak_working_set_bytes": 102137856
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 10.022762599983253,
+          "guest_to_host_bytes": 6075449344,
+          "host_to_guest_bytes": 6075449344
+        }
+      ]
+    },
+    {
+      "repeat": 0,
+      "streams": 1,
+      "path": "relay",
+      "wall_seconds": 10.047921099991072,
+      "verified_bytes_per_direction": 571277312,
+      "mib_s": 54.22141501494116,
+      "legacy_mib_s": 54.224491070157754,
+      "cpu_seconds": {
+        "relay": 8.5,
+        "tunnel": 14.171875,
+        "python": 3.71875
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 8.71875,
+          "working_set_bytes": 10928128,
+          "peak_working_set_bytes": 12132352
+        },
+        "tunnel": {
+          "cpu_seconds": 15.359375,
+          "working_set_bytes": 213553152,
+          "peak_working_set_bytes": 216178688
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 10.047351099987281,
+          "guest_to_host_bytes": 571277312,
+          "host_to_guest_bytes": 571277312
+        }
+      ]
+    },
+    {
+      "repeat": 0,
+      "streams": 2,
+      "path": "direct",
+      "wall_seconds": 10.01261850001174,
+      "verified_bytes_per_direction": 9514123264,
+      "mib_s": 906.1940190759651,
+      "legacy_mib_s": 906.2796812937382,
+      "cpu_seconds": {
+        "relay": 0.0,
+        "tunnel": 0.03125,
+        "python": 20.46875
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 8.71875,
+          "working_set_bytes": 10907648,
+          "peak_working_set_bytes": 12132352
+        },
+        "tunnel": {
+          "cpu_seconds": 15.421875,
+          "working_set_bytes": 210309120,
+          "peak_working_set_bytes": 216178688
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 10.01167209999403,
+          "guest_to_host_bytes": 3818389504,
+          "host_to_guest_bytes": 3818389504
+        },
+        {
+          "seconds": 10.004793900006916,
+          "guest_to_host_bytes": 5695733760,
+          "host_to_guest_bytes": 5695733760
+        }
+      ]
+    },
+    {
+      "repeat": 0,
+      "streams": 2,
+      "path": "relay",
+      "wall_seconds": 10.028063000005204,
+      "verified_bytes_per_direction": 471334912,
+      "mib_s": 44.824209819958924,
+      "legacy_mib_s": 44.82644352885055,
+      "cpu_seconds": {
+        "relay": 10.6875,
+        "tunnel": 16.1875,
+        "python": 6.734375
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 19.40625,
+          "working_set_bytes": 11837440,
+          "peak_working_set_bytes": 12599296
+        },
+        "tunnel": {
+          "cpu_seconds": 31.609375,
+          "working_set_bytes": 254885888,
+          "peak_working_set_bytes": 257359872
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 10.027563300012844,
+          "guest_to_host_bytes": 235536384,
+          "host_to_guest_bytes": 235536384
+        },
+        {
+          "seconds": 10.024814100004733,
+          "guest_to_host_bytes": 235798528,
+          "host_to_guest_bytes": 235798528
+        }
+      ]
+    },
+    {
+      "repeat": 0,
+      "streams": 4,
+      "path": "direct",
+      "wall_seconds": 10.005037000024458,
+      "verified_bytes_per_direction": 11874598912,
+      "mib_s": 1131.8798721056519,
+      "legacy_mib_s": 1132.0274141640778,
+      "cpu_seconds": {
+        "relay": 0.0,
+        "tunnel": 0.0,
+        "python": 37.65625
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 19.40625,
+          "working_set_bytes": 11837440,
+          "peak_working_set_bytes": 12599296
+        },
+        "tunnel": {
+          "cpu_seconds": 31.609375,
+          "working_set_bytes": 254885888,
+          "peak_working_set_bytes": 257359872
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 10.003733000019565,
+          "guest_to_host_bytes": 3121741824,
+          "host_to_guest_bytes": 3121741824
+        },
+        {
+          "seconds": 10.002540499990573,
+          "guest_to_host_bytes": 3101818880,
+          "host_to_guest_bytes": 3101818880
+        },
+        {
+          "seconds": 10.003639200003818,
+          "guest_to_host_bytes": 3091726336,
+          "host_to_guest_bytes": 3091726336
+        },
+        {
+          "seconds": 10.003630799998064,
+          "guest_to_host_bytes": 2559311872,
+          "host_to_guest_bytes": 2559311872
+        }
+      ]
+    },
+    {
+      "repeat": 0,
+      "streams": 4,
+      "path": "relay",
+      "wall_seconds": 10.090810399997281,
+      "verified_bytes_per_direction": 287637504,
+      "mib_s": 27.184387489836684,
+      "legacy_mib_s": 27.18913671914555,
+      "cpu_seconds": {
+        "relay": 10.75,
+        "tunnel": 17.703125,
+        "python": 9.515625
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 30.15625,
+          "working_set_bytes": 12083200,
+          "peak_working_set_bytes": 19795968
+        },
+        "tunnel": {
+          "cpu_seconds": 49.3125,
+          "working_set_bytes": 273903616,
+          "peak_working_set_bytes": 286392320
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 10.087352100003045,
+          "guest_to_host_bytes": 71958528,
+          "host_to_guest_bytes": 71958528
+        },
+        {
+          "seconds": 10.085888800007524,
+          "guest_to_host_bytes": 71892992,
+          "host_to_guest_bytes": 71892992
+        },
+        {
+          "seconds": 10.08904779999284,
+          "guest_to_host_bytes": 71958528,
+          "host_to_guest_bytes": 71958528
+        },
+        {
+          "seconds": 10.076753100001952,
+          "guest_to_host_bytes": 71827456,
+          "host_to_guest_bytes": 71827456
+        }
+      ]
+    },
+    {
+      "repeat": 0,
+      "streams": 8,
+      "path": "direct",
+      "wall_seconds": 10.010006399999838,
+      "verified_bytes_per_direction": 11272388608,
+      "mib_s": 1073.9441185572243,
+      "legacy_mib_s": 1074.1734399535167,
+      "cpu_seconds": {
+        "relay": 0.0,
+        "tunnel": 0.0,
+        "python": 41.75
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 30.15625,
+          "working_set_bytes": 12083200,
+          "peak_working_set_bytes": 19795968
+        },
+        "tunnel": {
+          "cpu_seconds": 49.3125,
+          "working_set_bytes": 273903616,
+          "peak_working_set_bytes": 286392320
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 10.007182600005763,
+          "guest_to_host_bytes": 1407975424,
+          "host_to_guest_bytes": 1407975424
+        },
+        {
+          "seconds": 10.006080399994971,
+          "guest_to_host_bytes": 1415053312,
+          "host_to_guest_bytes": 1415053312
+        },
+        {
+          "seconds": 10.006884800008265,
+          "guest_to_host_bytes": 1400635392,
+          "host_to_guest_bytes": 1400635392
+        },
+        {
+          "seconds": 10.007869399996707,
+          "guest_to_host_bytes": 1385431040,
+          "host_to_guest_bytes": 1385431040
+        },
+        {
+          "seconds": 10.00682060001418,
+          "guest_to_host_bytes": 1416953856,
+          "host_to_guest_bytes": 1416953856
+        },
+        {
+          "seconds": 10.00613510000403,
+          "guest_to_host_bytes": 1416822784,
+          "host_to_guest_bytes": 1416822784
+        },
+        {
+          "seconds": 10.005835499992827,
+          "guest_to_host_bytes": 1413021696,
+          "host_to_guest_bytes": 1413021696
+        },
+        {
+          "seconds": 10.00557859998662,
+          "guest_to_host_bytes": 1416495104,
+          "host_to_guest_bytes": 1416495104
+        }
+      ]
+    },
+    {
+      "repeat": 0,
+      "streams": 8,
+      "path": "relay",
+      "wall_seconds": 10.226014599989867,
+      "verified_bytes_per_direction": 204931072,
+      "mib_s": 19.111795518089096,
+      "legacy_mib_s": 19.11303171411835,
+      "cpu_seconds": {
+        "relay": 10.625,
+        "tunnel": 19.78125,
+        "python": 12.546875
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 40.78125,
+          "working_set_bytes": 12763136,
+          "peak_working_set_bytes": 24915968
+        },
+        "tunnel": {
+          "cpu_seconds": 69.09375,
+          "working_set_bytes": 311345152,
+          "peak_working_set_bytes": 313331712
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 10.225353200017707,
+          "guest_to_host_bytes": 25690112,
+          "host_to_guest_bytes": 25690112
+        },
+        {
+          "seconds": 10.15902890000143,
+          "guest_to_host_bytes": 25493504,
+          "host_to_guest_bytes": 25493504
+        },
+        {
+          "seconds": 10.22471479998785,
+          "guest_to_host_bytes": 25690112,
+          "host_to_guest_bytes": 25690112
+        },
+        {
+          "seconds": 10.216299199993955,
+          "guest_to_host_bytes": 25624576,
+          "host_to_guest_bytes": 25624576
+        },
+        {
+          "seconds": 10.223817299993243,
+          "guest_to_host_bytes": 25690112,
+          "host_to_guest_bytes": 25690112
+        },
+        {
+          "seconds": 10.223003299994161,
+          "guest_to_host_bytes": 25690112,
+          "host_to_guest_bytes": 25690112
+        },
+        {
+          "seconds": 10.2030597999983,
+          "guest_to_host_bytes": 25559040,
+          "host_to_guest_bytes": 25559040
+        },
+        {
+          "seconds": 10.183784199994989,
+          "guest_to_host_bytes": 25493504,
+          "host_to_guest_bytes": 25493504
+        }
+      ]
+    },
+    {
+      "repeat": 0,
+      "streams": 16,
+      "path": "direct",
+      "wall_seconds": 10.016074800019851,
+      "verified_bytes_per_direction": 9895149568,
+      "mib_s": 942.16049584427,
+      "legacy_mib_s": 942.567652671098,
+      "cpu_seconds": {
+        "relay": 0.015625,
+        "tunnel": 0.03125,
+        "python": 42.703125
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 40.8125,
+          "working_set_bytes": 12136448,
+          "peak_working_set_bytes": 24915968
+        },
+        "tunnel": {
+          "cpu_seconds": 69.125,
+          "working_set_bytes": 309657600,
+          "peak_working_set_bytes": 313331712
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 10.009417199995369,
+          "guest_to_host_bytes": 619905024,
+          "host_to_guest_bytes": 619905024
+        },
+        {
+          "seconds": 10.010124299995368,
+          "guest_to_host_bytes": 624754688,
+          "host_to_guest_bytes": 624754688
+        },
+        {
+          "seconds": 10.007929499988677,
+          "guest_to_host_bytes": 629342208,
+          "host_to_guest_bytes": 629342208
+        },
+        {
+          "seconds": 10.010219000017969,
+          "guest_to_host_bytes": 616628224,
+          "host_to_guest_bytes": 616628224
+        },
+        {
+          "seconds": 10.011748199991416,
+          "guest_to_host_bytes": 623509504,
+          "host_to_guest_bytes": 623509504
+        },
+        {
+          "seconds": 10.008554500003811,
+          "guest_to_host_bytes": 610992128,
+          "host_to_guest_bytes": 610992128
+        },
+        {
+          "seconds": 10.008884999988368,
+          "guest_to_host_bytes": 615383040,
+          "host_to_guest_bytes": 615383040
+        },
+        {
+          "seconds": 10.009114499989664,
+          "guest_to_host_bytes": 624885760,
+          "host_to_guest_bytes": 624885760
+        },
+        {
+          "seconds": 10.009945099998731,
+          "guest_to_host_bytes": 618332160,
+          "host_to_guest_bytes": 618332160
+        },
+        {
+          "seconds": 10.009792500000913,
+          "guest_to_host_bytes": 588054528,
+          "host_to_guest_bytes": 588054528
+        },
+        {
+          "seconds": 10.010003900009906,
+          "guest_to_host_bytes": 619446272,
+          "host_to_guest_bytes": 619446272
+        },
+        {
+          "seconds": 10.008965299988631,
+          "guest_to_host_bytes": 623706112,
+          "host_to_guest_bytes": 623706112
+        },
+        {
+          "seconds": 10.007437899999786,
+          "guest_to_host_bytes": 628883456,
+          "host_to_guest_bytes": 628883456
+        },
+        {
+          "seconds": 10.007387399993604,
+          "guest_to_host_bytes": 612433920,
+          "host_to_guest_bytes": 612433920
+        },
+        {
+          "seconds": 10.00754400002188,
+          "guest_to_host_bytes": 616366080,
+          "host_to_guest_bytes": 616366080
+        },
+        {
+          "seconds": 10.005822599981911,
+          "guest_to_host_bytes": 622526464,
+          "host_to_guest_bytes": 622526464
+        }
+      ]
+    }
+  ],
+  "current_case": {
+    "repeat": 0,
+    "streams": 16,
+    "path": "relay"
+  },
+  "error": {
+    "type": "ConcurrentTransferError",
+    "message": "parallel transfer: stream=8 RuntimeError: throughput socket failed after 0.005s sent=0 received=0: ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine; stream=9 RuntimeError: throughput socket failed after 0.009s sent=0 received=0: ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine; stream=10 RuntimeError: throughput socket failed after 0.005s sent=0 received=0: Connec"
+  },
+  "traceback": "Traceback (most recent call last):\n  File \"<user>\\OneDrive\\Documents\\ChatGPT\\bta anywhere\\scripts\\benchmark_relay.py\", line 352, in throughput_stream\n    chunk = sock.recv(CHUNK)\nConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"<user>\\OneDrive\\Documents\\ChatGPT\\bta anywhere\\scripts\\benchmark_relay.py\", line 397, in run_concurrent\n    results[index] = future.result()\n                     ~~~~~~~~~~~~~^^\n  File \"<user>\\AppData\\Local\\Programs\\Python\\Python314\\Lib\\concurrent\\futures\\_base.py\", line 447, in result\n    return self.__get_result()\n           ~~~~~~~~~~~~~~~~~^^\n  File \"<user>\\AppData\\Local\\Programs\\Python\\Python314\\Lib\\concurrent\\futures\\_base.py\", line 396, in __get_result\n    raise self._exception\n  File \"<user>\\AppData\\Local\\Programs\\Python\\Python314\\Lib\\concurrent\\futures\\thread.py\", line 86, in run\n    result = ctx.run(self.task)\n  File \"<user>\\AppData\\Local\\Programs\\Python\\Python314\\Lib\\concurrent\\futures\\thread.py\", line 73, in run\n    return fn(*args, **kwargs)\n  File \"<user>\\OneDrive\\Documents\\ChatGPT\\bta anywhere\\scripts\\benchmark_scaling.py\", line 76, in transfer\n    return b.throughput_stream(port, block, args.seconds, 30)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<user>\\OneDrive\\Documents\\ChatGPT\\bta anywhere\\scripts\\benchmark_relay.py\", line 386, in throughput_stream\n    raise RuntimeError(f\"throughput socket failed after {time.perf_counter() - started:.3f}s \"\n                       f\"sent={sent} received={received}: {type(error).__name__}: {error}\") from error\nRuntimeError: throughput socket failed after 0.005s sent=0 received=0: ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"<user>\\OneDrive\\Documents\\ChatGPT\\bta anywhere\\scripts\\benchmark_scaling.py\", line 83, in main\n    samples = b.run_concurrent(transfer, count)\n  File \"<user>\\OneDrive\\Documents\\ChatGPT\\bta anywhere\\scripts\\benchmark_relay.py\", line 403, in run_concurrent\n    raise ConcurrentTransferError(label, failures, successes) from failures[0][1]\nbenchmark_relay.ConcurrentTransferError: parallel transfer: stream=8 RuntimeError: throughput socket failed after 0.005s sent=0 received=0: ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine; stream=9 RuntimeError: throughput socket failed after 0.009s sent=0 received=0: ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine; stream=10 RuntimeError: throughput socket failed after 0.005s sent=0 received=0: ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine; stream=11 RuntimeError: throughput socket failed after 0.006s sent=0 received=0: ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine; stream=12 RuntimeError: throughput socket failed after 0.009s sent=0 received=0: ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine; stream=13 RuntimeError: throughput socket failed after 0.006s sent=0 received=0: ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine; stream=14 RuntimeError: throughput socket failed after 0.005s sent=0 received=0: ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine; stream=15 RuntimeError: throughput socket failed after 0.003s sent=0 received=0: ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine\n",
+  "partial_successes": [
+    {
+      "stream": 0,
+      "result": {
+        "seconds": 10.14094459998887,
+        "guest_to_host_bytes": 27656192,
+        "host_to_guest_bytes": 27656192
+      }
+    },
+    {
+      "stream": 1,
+      "result": {
+        "seconds": 10.138257499987958,
+        "guest_to_host_bytes": 27721728,
+        "host_to_guest_bytes": 27721728
+      }
+    },
+    {
+      "stream": 2,
+      "result": {
+        "seconds": 10.16572969997651,
+        "guest_to_host_bytes": 27918336,
+        "host_to_guest_bytes": 27918336
+      }
+    },
+    {
+      "stream": 3,
+      "result": {
+        "seconds": 10.163440100004664,
+        "guest_to_host_bytes": 27787264,
+        "host_to_guest_bytes": 27787264
+      }
+    },
+    {
+      "stream": 4,
+      "result": {
+        "seconds": 10.13361730001634,
+        "guest_to_host_bytes": 27590656,
+        "host_to_guest_bytes": 27590656
+      }
+    },
+    {
+      "stream": 5,
+      "result": {
+        "seconds": 10.155562499974621,
+        "guest_to_host_bytes": 27721728,
+        "host_to_guest_bytes": 27721728
+      }
+    },
+    {
+      "stream": 6,
+      "result": {
+        "seconds": 10.159980500000529,
+        "guest_to_host_bytes": 27787264,
+        "host_to_guest_bytes": 27787264
+      }
+    },
+    {
+      "stream": 7,
+      "result": {
+        "seconds": 10.146688700013328,
+        "guest_to_host_bytes": 27656192,
+        "host_to_guest_bytes": 27656192
+      }
+    }
+  ],
+  "logs": [
+    "tunnel-out: Relay selection: static",
+    "tunnel-out: Public endpoint: localhost:60859",
+    "tunnel-out: Press Ctrl+C or type 'stop' to stop."
+  ]
+}

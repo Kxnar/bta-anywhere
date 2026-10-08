@@ -1,0 +1,116 @@
+{
+  "schema": 1,
+  "status": "FAILED",
+  "mode": "recovery",
+  "topology": "Windows loopback UDP userspace bridge; NOT Linux tc netem or a WAN",
+  "repeats": 3,
+  "throughput_seconds": 10,
+  "sha256": {
+    "relay": "ac9f10a8ab606a5aa24c8f3586fb31765bf818af86b7aece1fcba9d8e210e105",
+    "tunnel": "1cbca7e43d2ef0c28cb194ea865d5ad9ac54011278758e06fb07a851d575a981",
+    "harness": "a9e622830e8ba5e018abc20f381ad9c500125e6f4e2485bc4bb09cdd3c147e69",
+    "workload": "0829f0efb47825f71416279e788ae556a78b1ca0d070cdd8efbd21cb3c29bdae",
+    "bridge": "6f536ef8b0e4dd3cfb1ae5d46fe98ed6a2a86260bf8b0378500e74ce6fcbcd2b"
+  },
+  "rows": [
+    {
+      "condition": "bridge-zero",
+      "repeat": 0,
+      "kind": "restart",
+      "fault_to_verified_ms": 49185.25850001606,
+      "relay_ready_ms": 1520.5047000199556,
+      "attempts": 44,
+      "timeline": [
+        {
+          "phase": "failure_detected",
+          "java_nanos": 174914719721400,
+          "observed_at": 174914.7198015,
+          "observed_after_fault_ms": 45008.11630001408
+        },
+        {
+          "phase": "retry_notice",
+          "delay_ms": 1196,
+          "observed_at": 174914.7249701,
+          "observed_after_fault_ms": 45013.28490002197
+        },
+        {
+          "phase": "connect_start",
+          "java_nanos": 174915926101700,
+          "observed_at": 174915.926222,
+          "observed_after_fault_ms": 46214.53680002014
+        },
+        {
+          "phase": "failure_detected",
+          "java_nanos": 174915941646100,
+          "observed_at": 174915.9417726,
+          "observed_after_fault_ms": 46230.087400006596
+        },
+        {
+          "phase": "retry_notice",
+          "delay_ms": 2329,
+          "observed_at": 174915.942547,
+          "observed_after_fault_ms": 46230.861800024286
+        },
+        {
+          "phase": "connect_start",
+          "java_nanos": 174918277473900,
+          "observed_at": 174918.2776503,
+          "observed_after_fault_ms": 48565.96510001691
+        },
+        {
+          "phase": "registered",
+          "java_nanos": 174918491733400,
+          "observed_at": 174918.4917977,
+          "observed_after_fault_ms": 48780.112500011455
+        }
+      ],
+      "detection_observed_ms": 46230.087400006596,
+      "retry_delay_ms": 2335.8278,
+      "registration_ms": 214.2595
+    }
+  ],
+  "error": {
+    "type": "TimeoutError",
+    "message": "no verified recovery within observation window"
+  },
+  "traceback": "Traceback (most recent call last):\n  File \"<user>\\OneDrive\\Documents\\ChatGPT\\bta anywhere\\scripts\\benchmark_network.py\", line 142, in main\n    try:\n    \n  File \"<user>\\OneDrive\\Documents\\ChatGPT\\bta anywhere\\scripts\\benchmark_network.py\", line 81, in restart\n    recovered, attempts = probe_until(rig, started + 100)\n                          ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^\n  File \"<user>\\OneDrive\\Documents\\ChatGPT\\bta anywhere\\scripts\\benchmark_network.py\", line 69, in probe_until\n    raise TimeoutError('no verified recovery within observation window')\nTimeoutError: no verified recovery within observation window\n",
+  "logs": [
+    "relay-out: 2026-10-08T16:48:13.408199Z  INFO relay ready quic=127.0.0.1:59848 tcp_start=64569 tcp_end=64570",
+    "relay-out: 2026-10-08T16:48:13.408303Z  INFO admin endpoint listening address=127.0.0.1:64571",
+    "tunnel-err: BTA_LIFECYCLE connect_start 174869260622000",
+    "relay-out: 2026-10-08T16:48:14.719214Z  INFO registered relay session port=64569",
+    "relay-out: 2026-10-08T16:48:14.719312Z  INFO host control stream active port=64569 resumed=false remote=127.0.0.1:59850",
+    "tunnel-err: BTA_LIFECYCLE registered 174869708321000",
+    "tunnel-out: Relay selection: static",
+    "tunnel-out: Public endpoint: localhost:64569",
+    "tunnel-out: Press Ctrl+C or type 'stop' to stop.",
+    "relay-out: 2026-10-08T16:48:15.743633Z  INFO relay ready quic=127.0.0.1:59848 tcp_start=64569 tcp_end=64570",
+    "relay-out: 2026-10-08T16:48:15.743713Z  INFO admin endpoint listening address=127.0.0.1:64571",
+    "tunnel-err: BTA_LIFECYCLE failure_detected 174914719721400",
+    "tunnel-err: Relay unavailable; retrying in 1196 ms: relay control stream closed",
+    "tunnel-err: BTA_LIFECYCLE connect_start 174915926101700",
+    "tunnel-err: BTA_LIFECYCLE failure_detected 174915941646100",
+    "relay-out: 2026-10-08T16:49:00.958996Z  WARN host control connection rejected or closed error=resume token is invalid or expired",
+    "tunnel-err: Relay unavailable; retrying in 2329 ms: resume_rejected: resume token is invalid or expired",
+    "tunnel-err: BTA_LIFECYCLE connect_start 174918277473900",
+    "relay-out: 2026-10-08T16:49:03.507447Z  INFO registered relay session port=64569",
+    "relay-out: 2026-10-08T16:49:03.507565Z  INFO host control stream active port=64569 resumed=false remote=127.0.0.1:59850",
+    "tunnel-err: BTA_LIFECYCLE registered 174918491733400",
+    "relay-out: 2026-10-08T16:49:04.959194Z  INFO relay ready quic=127.0.0.1:59848 tcp_start=64569 tcp_end=64570",
+    "relay-out: 2026-10-08T16:49:04.959276Z  INFO admin endpoint listening address=127.0.0.1:64571",
+    "tunnel-err: BTA_LIFECYCLE failure_detected 174948947820900",
+    "tunnel-err: Relay unavailable; retrying in 1000 ms: relay control stream closed",
+    "tunnel-err: BTA_LIFECYCLE connect_start 174949957131000",
+    "tunnel-err: BTA_LIFECYCLE failure_detected 174959978702900",
+    "tunnel-err: Relay unavailable; retrying in 1634 ms: connection timed out: QuicConnectionAddress{EPHEMERAL}",
+    "tunnel-err: BTA_LIFECYCLE connect_start 174961626239400",
+    "tunnel-err: BTA_LIFECYCLE failure_detected 174971647966400",
+    "tunnel-err: Relay unavailable; retrying in 3935 ms: connection timed out: QuicConnectionAddress{EPHEMERAL}",
+    "tunnel-err: BTA_LIFECYCLE connect_start 174975585688700",
+    "tunnel-err: BTA_LIFECYCLE failure_detected 174985602232900",
+    "tunnel-err: Relay unavailable; retrying in 9731 ms: connection timed out: QuicConnectionAddress{EPHEMERAL}",
+    "tunnel-err: BTA_LIFECYCLE connect_start 174995334568000",
+    "tunnel-err: BTA_LIFECYCLE failure_detected 175005346714100",
+    "tunnel-err: Relay unavailable; retrying in 16441 ms: connection timed out: QuicConnectionAddress{EPHEMERAL}"
+  ]
+}

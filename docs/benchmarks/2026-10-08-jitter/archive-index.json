@@ -1,0 +1,123 @@
+{
+  "base_commit": "8bd81bfb9374b7a543edeac75943b6f718dd8bab",
+  "transformations": "User home paths redacted; JSON reserialized as UTF-8/LF; numerical values unchanged.",
+  "files": [
+    {
+      "path": "results/jitter-saturated.json",
+      "original_sha256": "2eacb6dc0e9dce621c227a2a19be340ee1d6d21645751d7c215a83d0fb780a61",
+      "sha256": "52892a75bc26abc58d840078492b216e7321a71a3fdcc907996a59734186e049",
+      "status": "FAILED"
+    },
+    {
+      "path": "results/jitter-paced.json",
+      "original_sha256": "f95c073f6fcc45191f76ddf89d30b8727778464adb3680aa3ea0f8e90e8af97f",
+      "sha256": "c06307cfb23931eee792feb5ca94718f5ad62087d775eb794ba776a70a99d584",
+      "status": "PASS"
+    },
+    {
+      "path": "results/jitter-ordered.json",
+      "original_sha256": "199b998385c8466120aa9a1541d417820a15b8947f3099238f2d6c08d17d7342",
+      "sha256": "a5cd124808315fa17771d77ed9b06582d28f7f8ccdb194d6e68926b977b5d961",
+      "status": "PASS"
+    },
+    {
+      "path": "results/loss-paced.json",
+      "original_sha256": "21939d5970a17a5ca81e2cc6f22ebb23aae959cf7857c122931c1d931b09b720",
+      "sha256": "fe878113b09f19b83cefaa689d0cbc441abea6fc99210ff82bef77fd342371db",
+      "status": "PASS"
+    },
+    {
+      "path": "results/jitter-saturated-180.json",
+      "original_sha256": "9fe414b4260efceb55cd6a6d63657261bb6147222ab3cccca5675cdea39799ab",
+      "sha256": "0d0b8e7eecf24e217f5da393a0ddc57bb1270b770473c6ff5ad2d9a48f3866d1",
+      "status": "PASS"
+    },
+    {
+      "path": "results/jitter-ordered-repeat.json",
+      "original_sha256": "3ca03b6d9a4392523950be499915ed66edb339dfe461cb5268b4f91ce69d5f4b",
+      "sha256": "de9de016fad0fe597c2842223a1405b6149d6de3cb615d52fb0e101822b8874d",
+      "status": "PASS"
+    },
+    {
+      "path": "results/loss-saturated.json",
+      "original_sha256": "c9d885208b9f0b84e1d4a2e453bea2af2e3884df499e4c57f175a0004914ea79",
+      "sha256": "c1380f5cbe02148c33bd1b73c991bd272eeeb360426742f77634eafc6c43cc48",
+      "status": "FAILED"
+    },
+    {
+      "path": "results/restarts-25.json",
+      "original_sha256": "3498b25ad720a762b67b21e3ccc7d784cc0491ed49d0e8eb8fd3f761ed791551",
+      "sha256": "07e60938487d890e11f189f956aa751dd5f30c246e106b8156ed4c2a2a790326",
+      "status": "PASS"
+    },
+    {
+      "path": "results/validation.txt",
+      "original_sha256": "f8a51c387376fb8d0d508f97dfeaf7b9b9280ce43319ca13fbb6e3353cbc812b",
+      "sha256": "90ff2067f6bf6519736c6c4f9f71b35ad56a0525a0101e6fb53e0f091216b2f7"
+    },
+    {
+      "path": "results/validation.json",
+      "original_sha256": "03ecca8ebaff2587465f46d859de72650ed15d81d361fecd9ca81b43796efa55",
+      "sha256": "d5685f24a9fdcd0c99fe52ea98716183a768959f5dae1e18ba125977ef58f0bf"
+    },
+    {
+      "path": "results/netem-availability.json",
+      "original_sha256": "57a6757507d87b79f436704dee7cbce92a90b0104c638e09f479c8d8eb0d8c3b",
+      "sha256": "be9f2516921214849f5ee3eb39c58251f515c55610fd722eb4b33036af49f8a7"
+    }
+  ],
+  "sources": [
+    {
+      "path": "source/scripts/benchmark_jitter_diagnostics.py",
+      "sha256": "fd918da7e541c7dac5c5355b4dedde5eb6de0e0acbcc4b455a1d68d21158ae24"
+    },
+    {
+      "path": "source/scripts/benchmark_restart_distribution.py",
+      "sha256": "ad056417316312e92991f42eada54f3a2531c288fb682386fbf9337dc07e74a9"
+    },
+    {
+      "path": "source/scripts/summarize_jitter_diagnostics.py",
+      "sha256": "b3f8472622adb4d7a18c6f7927c2d3b31eac7e9603e66406ade14413a4d6475f"
+    },
+    {
+      "path": "source/scripts/benchmark_relay.py",
+      "sha256": "70ff313519d088d4a3c6ee8788b34b5cca4b46faf828b3bbf94d03dc16760652"
+    },
+    {
+      "path": "source/scripts/benchmark_network.py",
+      "sha256": "c70025b64284d802c55e90c0a328e7c8640c7937bdf751c1ad004da55d18dc4f"
+    },
+    {
+      "path": "source/scripts/local_impairment.py",
+      "sha256": "b4688cf24459548015adaa5d733be12b29227ffea43c06d3da7eaf1a9f8b959f"
+    },
+    {
+      "path": "source/scripts/test_benchmark_network.py",
+      "sha256": "c2732a2e33a5fe35ed7ac4f841151792c3510842e8f7979f53ee69359c4de762"
+    },
+    {
+      "path": "source/relay/src/main.rs",
+      "sha256": "48397861dd1b93c4ee5191390cea4438b389741d610cd3ef37fff29d55898a8f"
+    },
+    {
+      "path": "source/relay/src/diagnostics.rs",
+      "sha256": "999546eecdaab9980326a1d9fdab32ba15deff4a70892207e8a29746fdb8af1c"
+    },
+    {
+      "path": "source/tunnel-client/src/main/java/io/github/kxnar/btaanywhere/internal/NettyTunnelSession.java",
+      "sha256": "334f55450332b5d248176a37f0840db728868bfcb56ae1522485824b785d0966"
+    },
+    {
+      "path": "source/tunnel-client/src/main/java/io/github/kxnar/btaanywhere/internal/TransportDiagnostics.java",
+      "sha256": "8c5134518a678d61e59fad705b259954ddd0d9e83cf2b04de683fd96d9344601"
+    },
+    {
+      "path": "source/historical/diagnostic-first.py",
+      "sha256": "dca6a3dcba9f98530e09e0ef1a036c87a0219c4491a5c2f2170cf5e7435da6a0"
+    },
+    {
+      "path": "source/historical/bridge-first.py",
+      "sha256": "e5a7b9cf11b620cc7ee92bfe6aa75e57773ce1b458030bdcc20c9a2888dccf9d"
+    }
+  ]
+}

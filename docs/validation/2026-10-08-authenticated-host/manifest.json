@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "journey_outcome": "PARTIAL: authenticated host login; two-client gameplay and demo pending",
+  "files_sha256": {
+    "README.md": "9edca64aeed5921daec524c0b6fc4c3931027a7604394998f224e367176384a3",
+    "results/ci.json": "6f9fd271b9705b60cce251a7f647ef8b0d20519037073164befdf01823159f0c",
+    "results/cleanup.txt": "5e60bf9e74a88e030a18a4ca67bc3d8e90dde3fd25c8d4adab8bd4cf1eff3621",
+    "results/client-login-excerpt.txt": "f758f0e887849c18d54a875a62ffe84dc1672a27e918e8b18d3794c06bd35984",
+    "results/managed-server.txt": "ba92bb7f350df9bddc415a538c8b042e6defbe1859db74c667d33f2cfbbc1f4c",
+    "results/preparation.json": "a5059c81b500efd2a5d7593cda022501bccbde570d9ad7406c9ed0ea86bfa3be",
+    "results/server-distribution.json": "0c14225b8745be060a62ff9de709a979c2d5e29b6e296957170870a0cfa33212",
+    "results/server.properties": "604c5efdd8c5a176bbef456184a8a47f4c74e6667b3815f6755c5311dbc7b2b3",
+    "source/prepare-authenticated-host.py": "26d61ba385a632e6e610f2ce54f9dcb4b0c7d2c0303c3c09200fe02e5f7d9a1e",
+    "source/StopValidationHost.java": "4b6ce9b622879a880aa59913db17c3ace85560a2165b8d4f631ee3ccc7d17142",
+    "verify_archive.py": "f85656c7d5a05044df18253c1d741ec54ef6a0aeb971f672f9aa2d6a31c0aa52"
+  }
+}

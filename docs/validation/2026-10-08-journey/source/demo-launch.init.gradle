@@ -1,0 +1,17 @@
+gradle.projectsEvaluated {
+    def mod = gradle.rootProject.project(':bta-mod')
+    def run = mod.tasks.named('runClient').get()
+    run.onlyIf { false }
+    mod.tasks.register('exportDemoLaunch') {
+        dependsOn run
+        doLast {
+            def dest = gradle.rootProject.file('.local/demo-launch.json')
+            dest.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson([
+                executable: run.executable, jvmArgs: run.allJvmArgs,
+                classpath: run.classpath.asPath, main: run.mainClass.get(),
+                args: run.args, workingDir: run.workingDir.absolutePath
+            ]))
+            println 'Wrote isolated demo launch specification'
+        }
+    }
+}

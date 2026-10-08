@@ -1,0 +1,102 @@
+{
+  "schema": 1,
+  "status": "PASS",
+  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+  "condition": "clean",
+  "netem": [],
+  "sessions": 3,
+  "commands": [
+    [
+      "ip",
+      "netns",
+      "add",
+      "bta-netem-5025-r"
+    ],
+    [
+      "ip",
+      "-n",
+      "bta-netem-5025-r",
+      "link",
+      "set",
+      "lo",
+      "up"
+    ],
+    [
+      "ip",
+      "netns",
+      "add",
+      "bta-netem-5025-h"
+    ],
+    [
+      "ip",
+      "-n",
+      "bta-netem-5025-h",
+      "link",
+      "set",
+      "lo",
+      "up"
+    ],
+    [
+      "ip",
+      "-n",
+      "bta-netem-5025-r",
+      "link",
+      "add",
+      "bta0",
+      "type",
+      "veth",
+      "peer",
+      "name",
+      "bta0",
+      "netns",
+      "bta-netem-5025-h"
+    ],
+    [
+      "ip",
+      "-n",
+      "bta-netem-5025-r",
+      "addr",
+      "add",
+      "10.203.0.1/24",
+      "dev",
+      "bta0"
+    ],
+    [
+      "ip",
+      "-n",
+      "bta-netem-5025-r",
+      "link",
+      "set",
+      "bta0",
+      "up"
+    ],
+    [
+      "ip",
+      "-n",
+      "bta-netem-5025-h",
+      "addr",
+      "add",
+      "10.203.0.2/24",
+      "dev",
+      "bta0"
+    ],
+    [
+      "ip",
+      "-n",
+      "bta-netem-5025-h",
+      "link",
+      "set",
+      "bta0",
+      "up"
+    ]
+  ],
+  "cleanup_errors": [],
+  "java": "openjdk version \"21.0.12.1\" 2026-08-18 LTS\nOpenJDK Runtime Environment Temurin-21.0.12.1+1 (build 21.0.12.1+1-LTS)\nOpenJDK 64-Bit Server VM Temurin-21.0.12.1+1 (build 21.0.12.1+1-LTS, mixed mode, sharing)\n",
+  "iproute2": "tc utility, iproute2-6.1.0, libbpf 1.3.0",
+  "worker_returncode": 0,
+  "qdisc_statistics": {
+    "bta-netem-5025-r": "[{\"kind\":\"noqueue\",\"handle\":\"0:\",\"root\":true,\"refcnt\":2,\"options\":{},\"bytes\":0,\"packets\":0,\"drops\":0,\"overlimits\":0,\"requeues\":0,\"backlog\":0,\"qlen\":0}]",
+    "bta-netem-5025-h": "[{\"kind\":\"noqueue\",\"handle\":\"0:\",\"root\":true,\"refcnt\":2,\"options\":{},\"bytes\":0,\"packets\":0,\"drops\":0,\"overlimits\":0,\"requeues\":0,\"backlog\":0,\"qlen\":0}]"
+  }
+}

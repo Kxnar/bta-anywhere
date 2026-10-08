@@ -74,6 +74,21 @@ tasks.withType<Test>().configureEach {
 	useJUnitPlatform()
 }
 
+// Loom's compile/test configurations do not resolve the development client's
+// runtimeClasspath. Check it explicitly so `check build` catches launch-only
+// dependency-lock omissions before someone tries to open a world.
+val checkClientRuntime by tasks.registering {
+	group = "verification"
+	description = "Resolve the locked development client runtime dependencies"
+	doLast {
+		configurations.getByName("runtimeClasspath").files
+	}
+}
+
+tasks.named("check") {
+	dependsOn(checkClientRuntime)
+}
+
 tasks.processResources {
 	val properties = mapOf(
 		"version" to project.version,

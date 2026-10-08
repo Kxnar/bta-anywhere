@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "status": "FAILED",
+  "condition": "jitter-10ms-2ms",
+  "seconds": 2.0,
+  "drain_seconds": 30.0,
+  "pace_ms": 100.0,
+  "block_kib": 4,
+  "streams": 1,
+  "seed": 1701,
+  "samples": [],
+  "ordered_control": false,
+  "qlog_enabled": true,
+  "topology": "Windows loopback userspace UDP bridge; not netem or WAN",
+  "sha256": {
+    "relay": "d4db8487339b8cfff30d73f9209c03ec3b3db0cbd152a34830fdf2000b215973",
+    "tunnel": "4dd8afad29f6ffb172b9f74d4882ac16395704b40e6e7f3d5ec0dd96509c90a1",
+    "harness": "9d2a719df1fa1d95aa1c77f68be0082600c01a0dafce1bf22ae05ed864aa98af",
+    "workload": "70ff313519d088d4a3c6ee8788b34b5cca4b46faf828b3bbf94d03dc16760652",
+    "network": "c70025b64284d802c55e90c0a328e7c8640c7937bdf751c1ad004da55d18dc4f",
+    "bridge": "b4688cf24459548015adaa5d733be12b29227ffea43c06d3da7eaf1a9f8b959f"
+  },
+  "error": {
+    "type": "RuntimeError",
+    "message": "tunnel exited during registration: 1"
+  },
+  "wall_seconds": 1.2306076999811921,
+  "logs": [
+    "relay-out: 2026-10-08T19:47:37.259424Z  INFO relay ready quic=127.0.0.1:50268 tcp_start=57229 tcp_end=57230",
+    "relay-out: 2026-10-08T19:47:37.259561Z  INFO admin endpoint listening address=127.0.0.1:57231",
+    "tunnel-err: Error: Invalid or corrupt jarfile <user>\\AppData\\Local\\Temp\\bta-packet-2026-10-08\\qlog-tunnel.jar"
+  ],
+  "qlog_files": [],
+  "capture_error": "native qlog requested but no nonempty capture produced"
+}

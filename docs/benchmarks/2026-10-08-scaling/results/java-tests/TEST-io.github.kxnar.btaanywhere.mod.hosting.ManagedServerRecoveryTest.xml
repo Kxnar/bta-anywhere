@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kxnar.btaanywhere.mod.hosting.ManagedServerRecoveryTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-08T18:07:37.359Z" hostname="KENARALIENWARE" time="0.372">
+  <properties/>
+  <testcase name="supervisorSupportsReadinessIdentityRecoveryAndGracefulStop()" classname="io.github.kxnar.btaanywhere.mod.hosting.ManagedServerRecoveryTest" time="0.371"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

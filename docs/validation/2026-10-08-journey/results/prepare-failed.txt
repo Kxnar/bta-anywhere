@@ -1,0 +1,44 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.3.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :bta-mod
+Fabric Loom: 1.15.5
+Project directory '<workspace>\bta-mod' is located in OneDrive. This is known to cause issues and slower performance. Consider moving the project to a different location.
+
+> Task :bta-mod:processResources UP-TO-DATE
+> Task :bta-mod:generateLog4jConfig
+> Task :tunnel-client:compileJava UP-TO-DATE
+> Task :tunnel-client:processResources NO-SOURCE
+> Task :tunnel-client:classes UP-TO-DATE
+> Task :tunnel-client:jar UP-TO-DATE
+> Task :bta-mod:compileJava UP-TO-DATE
+> Task :bta-mod:classes UP-TO-DATE
+> Task :bta-mod:generateDLIConfig
+> Task :bta-mod:configureLaunch
+> Task :bta-mod:downloadAssets
+> Task :bta-mod:extractNatives NO-SOURCE
+> Task :bta-mod:configureClientLaunch
+> Task :bta-mod:runClient SKIPPED
+> Task :bta-mod:exportDemoLaunch FAILED
+
+FAILURE: Build failed with an exception.
+
+* Where:
+Initialization script '<workspace>\.local\demo-launch.init.gradle' line: 9
+
+* What went wrong:
+Execution failed for task ':bta-mod:exportDemoLaunch'.
+> Failed to query the value of property 'jvmArguments'.
+   > Could not resolve all files for configuration ':bta-mod:runtimeClasspath'.
+      > Resolved 'org.bouncycastle:bcutil-jdk18on:1.86' which is not part of the dependency lock state
+      > Resolved 'org.bouncycastle:bcpkix-jdk18on:1.86' which is not part of the dependency lock state
+      > Resolved 'org.bouncycastle:bcprov-jdk18on:1.86' which is not part of the dependency lock state
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 16s
+8 actionable tasks: 4 executed, 4 up-to-date

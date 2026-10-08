@@ -1,0 +1,5 @@
+{
+  "command": "wsl --list --quiet",
+  "status": "UNAVAILABLE",
+  "observation": "No distribution list or error returned; the owned hanging WSL processes were terminated. No Linux netem measurements were run in this campaign."
+}

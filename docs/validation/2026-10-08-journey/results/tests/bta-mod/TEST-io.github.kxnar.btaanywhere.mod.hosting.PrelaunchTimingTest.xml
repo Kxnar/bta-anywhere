@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kxnar.btaanywhere.mod.hosting.PrelaunchTimingTest" tests="1" skipped="1" failures="0" errors="0" timestamp="2026-10-08T19:43:59.720Z" hostname="KENARALIENWARE" time="0.004">
+  <properties/>
+  <testcase name="measureToBeforeSupervisorLaunch()" classname="io.github.kxnar.btaanywhere.mod.hosting.PrelaunchTimingTest" time="0.004">
+    <skipped message="org.opentest4j.TestAbortedException: Assumption failed: set BTA_PRELAUNCH_RESULTS to an ignored, unused JSONL path" type="org.opentest4j.TestAbortedException">org.opentest4j.TestAbortedException: Assumption failed: set BTA_PRELAUNCH_RESULTS to an ignored, unused JSONL path
+	at org.junit.jupiter.api.Assumptions.throwAssumptionFailed(Assumptions.java:321)
+	at org.junit.jupiter.api.Assumptions.assumeTrue(Assumptions.java:120)
+	at io.github.kxnar.btaanywhere.mod.hosting.PrelaunchTimingTest.measureToBeforeSupervisorLaunch(PrelaunchTimingTest.java:34)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+</skipped>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,13 @@
+{
+  "os": "Windows-11-10.0.26300-SP0",
+  "windows_build": "10.0.26300",
+  "architecture": "AMD64",
+  "cpu": "Intel64 Family 6 Model 165 Stepping 5, GenuineIntel",
+  "logical_cores": 20,
+  "ram_bytes": 16923529216,
+  "ac_power": true,
+  "java": "openjdk version \"21.0.12.1\" 2026-08-18 LTS",
+  "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "cargo": "cargo 1.97.1 (c980f4866 2026-06-30)",
+  "python": "3.14.6"
+}

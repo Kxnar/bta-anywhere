@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "captures": [
+    {
+      "file": "connection-78a96dee-85fe-4459-9e9a-375535407d12.qlog",
+      "sha256": "7d72c4e59a7f4e9c3db56c5e5430e122edb1767fa1f5fd3222c7b8f11c9c711d",
+      "qlog_version": "0.3",
+      "truncated_final_record": false,
+      "event_counts": {
+        "transport:parameters_set": 2,
+        "transport:packet_sent": 16894,
+        "recovery:metrics_updated": 19532,
+        "transport:packet_received": 15445,
+        "transport:data_moved": 31047,
+        "security:key_updated": 2
+      },
+      "matched_rtt_updates": 4491,
+      "unmatched_rtt_updates": 0,
+      "acks_without_logged_send": 0,
+      "max_native_latest_rtt_ms": 122414.79,
+      "max_native_smoothed_rtt_ms": 122229.59,
+      "matched_send_to_ack_ms": {
+        "p50": 30.630000000004657,
+        "p95": 31.860000000000582,
+        "max": 62.820000000006985
+      },
+      "updates_disagreeing_over_100ms": 4198,
+      "worst_disagreement": {
+        "ack_time_ms": 128405.37,
+        "space": "1RTT",
+        "packet_number": 17483,
+        "send_time_ms": 128374.5,
+        "send_line": 82905,
+        "ack_line": 82908,
+        "ack_delay_ms": 0.017,
+        "logged_send_to_ack_ms": 30.869999999995343,
+        "largest_previously_acked": false,
+        "largest_ack_eliciting": true,
+        "metric_line": 82909,
+        "native_latest_rtt_ms": 122414.79,
+        "native_smoothed_rtt_ms": 122229.59,
+        "difference_ms": 122383.92
+      },
+      "final_metrics": {
+        "min_rtt": 0.0,
+        "smoothed_rtt": 122229.59,
+        "rtt_variance": 200.39226,
+        "congestion_window": 4552,
+        "bytes_in_flight": 4552,
+        "ssthresh": 4552,
+        "latest_rtt": 122414.79,
+        "pacing_rate": 46
+      }
+    }
+  ]
+}

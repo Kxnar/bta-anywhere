@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kxnar.btaanywhere.mod.hosting.CrashFaultCampaignTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-08T18:07:21.519Z" hostname="KENARALIENWARE" time="1.0">
+  <properties/>
+  <testcase name="deterministicDisposableWorldFaultMatrix()" classname="io.github.kxnar.btaanywhere.mod.hosting.CrashFaultCampaignTest" time="0.984"/>
+  <system-out><![CDATA[Disposable fault simulation: 29 scenarios; seeds=1, runs=1, distinct common points=14
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

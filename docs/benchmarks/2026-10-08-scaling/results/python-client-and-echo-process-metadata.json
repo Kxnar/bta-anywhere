@@ -1,0 +1,5 @@
+{
+  "mode": "process-per-echo-connection",
+  "cpu_scope": "parent Python excludes child processes",
+  "wrapper_sha256": "3fb55ebe7a3a1c6c1e1429e12e0c48410d46ae86b09b5f1c73d9d92b4e844821"
+}

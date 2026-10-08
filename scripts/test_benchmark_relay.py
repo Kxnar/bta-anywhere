@@ -439,9 +439,13 @@ class BenchmarkTests(unittest.TestCase):
             thread.start()
             started = benchmark.time.monotonic()
             try:
-                with self.assertRaisesRegex(RuntimeError, "absolute throughput drain deadline"):
+                # The remaining absolute budget also bounds recv(). Depending on
+                # scheduling, either recv times out or the explicit clock check
+                # runs first. Both must end the otherwise endless valid reply.
+                with self.assertRaisesRegex(RuntimeError, "TimeoutError: (absolute throughput drain deadline|timed out)"):
                     benchmark.throughput_stream(server.server_address[1], b"x" * benchmark.CHUNK,
                                                 0.02, 0.5)
+                self.assertGreaterEqual(benchmark.time.monotonic() - started, 0.45)
                 self.assertLess(benchmark.time.monotonic() - started, 3)
             finally:
                 server.shutdown()

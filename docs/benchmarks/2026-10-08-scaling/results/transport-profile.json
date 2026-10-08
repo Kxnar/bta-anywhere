@@ -1,0 +1,281 @@
+{
+  "schema": 1,
+  "status": "PASS",
+  "workload": {
+    "streams": [
+      1,
+      8,
+      16
+    ],
+    "paths": [
+      "relay"
+    ],
+    "seconds": 8.0,
+    "runs": 1,
+    "seed": 1701,
+    "block_bytes": 65536,
+    "java_options": [],
+    "python_profile": false,
+    "jfr": false,
+    "workers": "threads",
+    "transport_profile": true,
+    "benchmark_max_connections_per_session": 32
+  },
+  "sha256": {
+    "relay": "5e90619d74b06ec14a20e7137c47c0e7491195e1fdf60cc7964c7388bb33ca05",
+    "tunnel": "7c9160947275629778a5a3a18e820bea9991474c01f7dee20daa7b2a5de10303",
+    "harness": "108271c99ef965e2a979a7dd4cc798a88cc8136f018fd6a14503cd1d1846ea6d",
+    "workload": "0829f0efb47825f71416279e788ae556a78b1ca0d070cdd8efbd21cb3c29bdae"
+  },
+  "source": {
+    "status": "available",
+    "commit": "97cbdd43f1e549c2300084489b67d0b49ad74217",
+    "dirty": true
+  },
+  "rows": [
+    {
+      "repeat": 0,
+      "streams": 1,
+      "path": "relay",
+      "wall_seconds": 8.03423470002599,
+      "verified_bytes_per_direction": 484179968,
+      "mib_s": 57.472804472404356,
+      "legacy_mib_s": 57.49256275948686,
+      "cpu_seconds": {
+        "relay": 7.15625,
+        "tunnel": 12.71875,
+        "python": 2.859375
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 7.359375,
+          "working_set_bytes": 11362304,
+          "peak_working_set_bytes": 11915264
+        },
+        "tunnel": {
+          "cpu_seconds": 13.828125,
+          "working_set_bytes": 192655360,
+          "peak_working_set_bytes": 195153920
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 8.031473600014579,
+          "guest_to_host_bytes": 484179968,
+          "host_to_guest_bytes": 484179968
+        }
+      ]
+    },
+    {
+      "repeat": 0,
+      "streams": 8,
+      "path": "relay",
+      "wall_seconds": 8.137526700011222,
+      "verified_bytes_per_direction": 179634176,
+      "mib_s": 21.05215826815828,
+      "legacy_mib_s": 21.061295799497383,
+      "cpu_seconds": {
+        "relay": 8.84375,
+        "tunnel": 17.609375,
+        "python": 9.96875
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 16.203125,
+          "working_set_bytes": 11755520,
+          "peak_working_set_bytes": 13336576
+        },
+        "tunnel": {
+          "cpu_seconds": 31.4375,
+          "working_set_bytes": 237420544,
+          "peak_working_set_bytes": 256888832
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 8.127630100003444,
+          "guest_to_host_bytes": 22544384,
+          "host_to_guest_bytes": 22544384
+        },
+        {
+          "seconds": 8.121463999996195,
+          "guest_to_host_bytes": 22544384,
+          "host_to_guest_bytes": 22544384
+        },
+        {
+          "seconds": 8.13148640000145,
+          "guest_to_host_bytes": 22544384,
+          "host_to_guest_bytes": 22544384
+        },
+        {
+          "seconds": 8.133963900007075,
+          "guest_to_host_bytes": 22478848,
+          "host_to_guest_bytes": 22478848
+        },
+        {
+          "seconds": 8.128032000007806,
+          "guest_to_host_bytes": 22413312,
+          "host_to_guest_bytes": 22413312
+        },
+        {
+          "seconds": 8.133222500007832,
+          "guest_to_host_bytes": 22478848,
+          "host_to_guest_bytes": 22478848
+        },
+        {
+          "seconds": 8.128970999998273,
+          "guest_to_host_bytes": 22282240,
+          "host_to_guest_bytes": 22282240
+        },
+        {
+          "seconds": 8.133996199991088,
+          "guest_to_host_bytes": 22347776,
+          "host_to_guest_bytes": 22347776
+        }
+      ]
+    },
+    {
+      "repeat": 0,
+      "streams": 16,
+      "path": "relay",
+      "wall_seconds": 8.297990899998695,
+      "verified_bytes_per_direction": 165150720,
+      "mib_s": 18.9804980383896,
+      "legacy_mib_s": 18.983333187913892,
+      "cpu_seconds": {
+        "relay": 8.484375,
+        "tunnel": 17.25,
+        "python": 11.75
+      },
+      "memory_after": {
+        "relay": {
+          "cpu_seconds": 24.6875,
+          "working_set_bytes": 12873728,
+          "peak_working_set_bytes": 27127808
+        },
+        "tunnel": {
+          "cpu_seconds": 48.6875,
+          "working_set_bytes": 348131328,
+          "peak_working_set_bytes": 348131328
+        }
+      },
+      "stream_results": [
+        {
+          "seconds": 8.294872300000861,
+          "guest_to_host_bytes": 10485760,
+          "host_to_guest_bytes": 10485760
+        },
+        {
+          "seconds": 8.296751599991694,
+          "guest_to_host_bytes": 10485760,
+          "host_to_guest_bytes": 10485760
+        },
+        {
+          "seconds": 8.277209399995627,
+          "guest_to_host_bytes": 10354688,
+          "host_to_guest_bytes": 10354688
+        },
+        {
+          "seconds": 8.293741000001319,
+          "guest_to_host_bytes": 10420224,
+          "host_to_guest_bytes": 10420224
+        },
+        {
+          "seconds": 8.280870099988533,
+          "guest_to_host_bytes": 10354688,
+          "host_to_guest_bytes": 10354688
+        },
+        {
+          "seconds": 8.274944500008132,
+          "guest_to_host_bytes": 10354688,
+          "host_to_guest_bytes": 10354688
+        },
+        {
+          "seconds": 8.28296759998193,
+          "guest_to_host_bytes": 10354688,
+          "host_to_guest_bytes": 10354688
+        },
+        {
+          "seconds": 8.286922400002368,
+          "guest_to_host_bytes": 10354688,
+          "host_to_guest_bytes": 10354688
+        },
+        {
+          "seconds": 8.240327799983788,
+          "guest_to_host_bytes": 10289152,
+          "host_to_guest_bytes": 10289152
+        },
+        {
+          "seconds": 8.29167010000674,
+          "guest_to_host_bytes": 10289152,
+          "host_to_guest_bytes": 10289152
+        },
+        {
+          "seconds": 8.284637699980522,
+          "guest_to_host_bytes": 10354688,
+          "host_to_guest_bytes": 10354688
+        },
+        {
+          "seconds": 8.246014800010016,
+          "guest_to_host_bytes": 10289152,
+          "host_to_guest_bytes": 10289152
+        },
+        {
+          "seconds": 8.283334700012347,
+          "guest_to_host_bytes": 10289152,
+          "host_to_guest_bytes": 10289152
+        },
+        {
+          "seconds": 8.279175200004829,
+          "guest_to_host_bytes": 9961472,
+          "host_to_guest_bytes": 9961472
+        },
+        {
+          "seconds": 8.275231999985408,
+          "guest_to_host_bytes": 10223616,
+          "host_to_guest_bytes": 10223616
+        },
+        {
+          "seconds": 8.282283500011545,
+          "guest_to_host_bytes": 10289152,
+          "host_to_guest_bytes": 10289152
+        }
+      ]
+    }
+  ],
+  "current_case": {
+    "repeat": 0,
+    "streams": 16,
+    "path": "relay"
+  },
+  "logs": [
+    "tunnel-out: Relay selection: static",
+    "tunnel-out: Public endpoint: localhost:56065",
+    "tunnel-out: Press Ctrl+C or type 'stop' to stop.",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":487,\"cwnd\":63282,\"sent\":344822,\"lost\":643,\"congestion\":579,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":500450310,\"udp_rx\":499597025}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":1777,\"cwnd\":51548,\"sent\":472370,\"lost\":827,\"congestion\":746,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":685643548,\"udp_rx\":687890515}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":1847,\"cwnd\":53000,\"sent\":472483,\"lost\":827,\"congestion\":746,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":685807624,\"udp_rx\":688032328}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":1836,\"cwnd\":54452,\"sent\":472516,\"lost\":827,\"congestion\":746,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":685855540,\"udp_rx\":688079478}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":1818,\"cwnd\":54452,\"sent\":472548,\"lost\":827,\"congestion\":746,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":685902004,\"udp_rx\":688126580}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":1777,\"cwnd\":55904,\"sent\":472565,\"lost\":827,\"congestion\":746,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":685926688,\"udp_rx\":688173652}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":1478,\"cwnd\":58808,\"sent\":472656,\"lost\":827,\"congestion\":746,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":686045816,\"udp_rx\":688279102}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":1478,\"cwnd\":58808,\"sent\":472656,\"lost\":827,\"congestion\":746,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":686045816,\"udp_rx\":688279270}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":1206,\"cwnd\":60260,\"sent\":472671,\"lost\":827,\"congestion\":746,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":686051315,\"udp_rx\":688353698}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":2395,\"cwnd\":69030,\"sent\":589492,\"lost\":999,\"congestion\":907,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":855670461,\"udp_rx\":860749902}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":2353,\"cwnd\":48321,\"sent\":589591,\"lost\":1000,\"congestion\":908,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":855814209,\"udp_rx\":860915625}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":2177,\"cwnd\":52677,\"sent\":589946,\"lost\":1000,\"congestion\":908,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":856329669,\"udp_rx\":861436474}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":2231,\"cwnd\":52677,\"sent\":589962,\"lost\":1000,\"congestion\":908,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":856352901,\"udp_rx\":861460317}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":2235,\"cwnd\":54129,\"sent\":590027,\"lost\":1000,\"congestion\":908,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":856447281,\"udp_rx\":861550800}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":2241,\"cwnd\":55581,\"sent\":590044,\"lost\":1000,\"congestion\":908,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":856471965,\"udp_rx\":861579041}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":2307,\"cwnd\":55581,\"sent\":590060,\"lost\":1000,\"congestion\":908,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":856495197,\"udp_rx\":861596885}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":2364,\"cwnd\":55581,\"sent\":590076,\"lost\":1000,\"congestion\":908,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":856518429,\"udp_rx\":861626746}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":2247,\"cwnd\":57033,\"sent\":590125,\"lost\":1000,\"congestion\":908,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":856589577,\"udp_rx\":861686583}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":2247,\"cwnd\":57033,\"sent\":590125,\"lost\":1000,\"congestion\":908,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":856589577,\"udp_rx\":861686752}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":2247,\"cwnd\":57033,\"sent\":590125,\"lost\":1000,\"congestion\":908,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":856589577,\"udp_rx\":861697628}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":1799,\"cwnd\":59937,\"sent\":590192,\"lost\":1000,\"congestion\":908,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":856685673,\"udp_rx\":861741344}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":1863,\"cwnd\":62841,\"sent\":590244,\"lost\":1000,\"congestion\":908,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":856750095,\"udp_rx\":861852147}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":1820,\"cwnd\":62841,\"sent\":590247,\"lost\":1000,\"congestion\":908,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":856750236,\"udp_rx\":861859596}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":1740,\"cwnd\":62841,\"sent\":590270,\"lost\":1000,\"congestion\":908,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":856762893,\"udp_rx\":861906287}",
+    "relay-err: BTA_TRANSPORT_PROFILE {\"rtt_us\":1586,\"cwnd\":62841,\"sent\":590277,\"lost\":1000,\"congestion\":908,\"tx_blocked\":0,\"rx_blocked\":0,\"tx_stream_blocked\":0,\"rx_stream_blocked\":0,\"udp_tx\":856763216,\"udp_rx\":861928025}"
+  ]
+}

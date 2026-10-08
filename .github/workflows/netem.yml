@@ -1,0 +1,52 @@
+name: Linux netem validation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  netem:
+    name: Linux x86-64 / ${{ matrix.condition }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        condition: [clean, jitter, loss]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install isolated test prerequisites
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y iproute2 openssl
+          rustup toolchain install 1.85.0 --profile minimal
+          rustup default 1.85.0
+      - name: Build and verify before measuring
+        run: |
+          cargo build --locked --release --package bta-anywhere-relay
+          bash gradlew --no-daemon -PtunnelOnly=true check build
+          java -jar tunnel-client/build/libs/bta-anywhere-tunnel-0.1.0-all.jar doctor
+          python3 -m unittest discover -s scripts -p test_analyze_qlog.py
+          python3 -m unittest discover -s scripts -p 'test_benchmark*.py'
+      - name: Run three independent sessions
+        run: |
+          sudo python3 scripts/benchmark_netem.py \
+            --relay-binary target/release/bta-anywhere-relay \
+            --tunnel-jar tunnel-client/build/libs/bta-anywhere-tunnel-0.1.0-all.jar \
+            --java "$JAVA_HOME/bin/java" \
+            --condition '${{ matrix.condition }}' --sessions 3 \
+            --output-directory 'benchmark-results/${{ matrix.condition }}'
+      - name: Retain successful and failed evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: linux-netem-${{ matrix.condition }}
+          path: benchmark-results/
+          if-no-files-found: warn
+          retention-days: 90

@@ -1,0 +1,48 @@
+[versions]
+java = "17"
+gradleJava = "21"
+loom = "1.15.5"
+bta = "8.0.1"
+btaChannel = "release"
+loader = "0.18.4-bta.11"
+halplibe = "6.2.0+8.0.1"
+modMenu = "5.0.2"
+legacyLwjgl = "1.0.6"
+lwjgl = "3.3.3"
+joml = "1.10.8"
+jomlPrimitives = "1.10.0"
+slf4j = "2.0.17"
+slf4jLegacy = "1.7.21"
+netty = "4.1.122.Final"
+nettyQuic = "0.0.73.Final"
+gson = "2.13.1"
+junit = "5.13.4"
+
+[libraries]
+loader = { group = "net.fabricmc", name = "fabric-loader", version.ref = "loader" }
+halplibe = { group = "turniplabs", name = "halplibe", version.ref = "halplibe" }
+modMenu = { group = "turniplabs", name = "modmenu-bta", version.ref = "modMenu" }
+legacyLwjgl = { group = "com.github.Better-than-Adventure", name = "legacy-lwjgl3", version.ref = "legacyLwjgl" }
+slf4jApi = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
+slf4j-legacy-nop = { group = "org.slf4j", name = "slf4j-nop", version.ref = "slf4jLegacy" }
+clientJar = { group = "objects", name = "client", version = "43db9b498cb67058d2e12d394e6507722e71bb45" }
+joml = { group = "org.joml", name = "joml", version.ref = "joml" }
+joml-primitives = { group = "org.joml", name = "joml-primitives", version.ref = "jomlPrimitives" }
+lwjgl = { group = "org.lwjgl", name = "lwjgl", version.ref = "lwjgl" }
+lwjgl-glfw = { group = "org.lwjgl", name = "lwjgl-glfw", version.ref = "lwjgl" }
+lwjgl-openal = { group = "org.lwjgl", name = "lwjgl-openal", version.ref = "lwjgl" }
+lwjgl-opengl = { group = "org.lwjgl", name = "lwjgl-opengl", version.ref = "lwjgl" }
+lwjgl-stb = { group = "org.lwjgl", name = "lwjgl-stb", version.ref = "lwjgl" }
+netty-handler = { group = "io.netty", name = "netty-handler", version.ref = "netty" }
+netty-transport = { group = "io.netty", name = "netty-transport", version.ref = "netty" }
+netty-quic = { group = "io.netty.incubator", name = "netty-incubator-codec-native-quic", version.ref = "nettyQuic" }
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "junit" }
+junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter" }
+junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }
+
+[bundles]
+btaLwjgl = ["lwjgl", "lwjgl-glfw", "lwjgl-openal", "lwjgl-opengl", "lwjgl-stb", "legacyLwjgl"]
+
+[plugins]
+loom = { id = "net.fabricmc.fabric-loom", version.ref = "loom" }

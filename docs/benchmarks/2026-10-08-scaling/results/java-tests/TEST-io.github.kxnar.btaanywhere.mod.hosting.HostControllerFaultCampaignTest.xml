@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kxnar.btaanywhere.mod.hosting.HostControllerFaultCampaignTest" tests="1" skipped="1" failures="0" errors="0" timestamp="2026-10-08T18:07:26.097Z" hostname="KENARALIENWARE" time="0.002">
+  <properties/>
+  <testcase name="realControllerFaultCampaign()" classname="io.github.kxnar.btaanywhere.mod.hosting.HostControllerFaultCampaignTest" time="0.002">
+    <skipped message="org.opentest4j.TestAbortedException: Assumption failed: set BTA_CONTROLLER_CAMPAIGN=smoke or full explicitly" type="org.opentest4j.TestAbortedException">org.opentest4j.TestAbortedException: Assumption failed: set BTA_CONTROLLER_CAMPAIGN=smoke or full explicitly
+	at org.junit.jupiter.api.Assumptions.throwAssumptionFailed(Assumptions.java:321)
+	at org.junit.jupiter.api.Assumptions.assumeTrue(Assumptions.java:120)
+	at io.github.kxnar.btaanywhere.mod.hosting.HostControllerFaultCampaignTest.realControllerFaultCampaign(HostControllerFaultCampaignTest.java:46)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+</skipped>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

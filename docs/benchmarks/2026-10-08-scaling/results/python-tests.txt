@@ -1,0 +1,49 @@
+...usage: python.exe -m unittest [-h] --relay-binary RELAY_BINARY
+                              --tunnel-jar TUNNEL_JAR [--java JAVA]
+                              --output OUTPUT [--seed SEED]
+                              [--existing-stream-observation-seconds EXISTING_STREAM_OBSERVATION_SECONDS]
+python.exe -m unittest: error: --existing-stream-observation-seconds must be between 1 and 180
+usage: python.exe -m unittest [-h] --relay-binary RELAY_BINARY
+                              --tunnel-jar TUNNEL_JAR [--java JAVA]
+                              --output OUTPUT [--seed SEED]
+                              [--existing-stream-observation-seconds EXISTING_STREAM_OBSERVATION_SECONDS]
+python.exe -m unittest: error: --existing-stream-observation-seconds must be between 1 and 180
+usage: python.exe -m unittest [-h] --relay-binary RELAY_BINARY
+                              --tunnel-jar TUNNEL_JAR [--java JAVA]
+                              --output OUTPUT [--seed SEED]
+                              [--existing-stream-observation-seconds EXISTING_STREAM_OBSERVATION_SECONDS]
+python.exe -m unittest: error: --existing-stream-observation-seconds must be between 1 and 180
+usage: python.exe -m unittest [-h] --relay-binary RELAY_BINARY
+                              --tunnel-jar TUNNEL_JAR [--java JAVA]
+                              --output OUTPUT [--seed SEED]
+                              [--existing-stream-observation-seconds EXISTING_STREAM_OBSERVATION_SECONDS]
+python.exe -m unittest: error: --existing-stream-observation-seconds must be between 1 and 180
+...........................F..............{'type': 'OSError', 'message': 'missing java'}
+...............................................
+======================================================================
+FAIL: test_continuous_valid_reply_cannot_extend_absolute_drain_deadline (test_benchmark_relay.BenchmarkTests.test_continuous_valid_reply_cannot_extend_absolute_drain_deadline)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<user>\OneDrive\Documents\ChatGPT\bta anywhere\scripts\benchmark_relay.py", line 353, in throughput_stream
+    chunk = sock.recv(CHUNK)
+TimeoutError: timed out
+
+The above exception was the direct cause of the following exception:
+
+RuntimeError: throughput socket failed after 0.533s sent=6094848 received=416284672: TimeoutError: timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<user>\OneDrive\Documents\ChatGPT\bta anywhere\scripts\test_benchmark_relay.py", line 442, in test_continuous_valid_reply_cannot_extend_absolute_drain_deadline
+    with self.assertRaisesRegex(RuntimeError, "absolute throughput drain deadline"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "absolute throughput drain deadline" does not match "throughput socket failed after 0.533s sent=6094848 received=416284672: TimeoutError: timed out"
+
+----------------------------------------------------------------------
+Ran 92 tests in 9.371s
+
+FAILED (failures=1)
+FAILED: <user>\AppData\Local\Temp\tmpalo571ci\result.json
+FAILED: <user>\AppData\Local\Temp\tmpn2_4h5bg\failed.json and <user>\AppData\Local\Temp\tmpn2_4h5bg\failed.md
+<user>\AppData\Local\Temp\tmpj9qbpfmc\summary\summary.md

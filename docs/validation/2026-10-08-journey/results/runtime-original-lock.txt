@@ -1,0 +1,26 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.3.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :bta-mod
+Fabric Loom: 1.15.5
+Project directory '<workspace>\bta-mod' is located in OneDrive. This is known to cause issues and slower performance. Consider moving the project to a different location.
+
+> Task :bta-mod:checkClientRuntime FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':bta-mod:checkClientRuntime'.
+> Could not resolve all files for configuration ':bta-mod:runtimeClasspath'.
+   > Resolved 'org.bouncycastle:bcpkix-jdk18on:1.86' which is not part of the dependency lock state
+   > Resolved 'org.bouncycastle:bcprov-jdk18on:1.86' which is not part of the dependency lock state
+   > Resolved 'org.bouncycastle:bcutil-jdk18on:1.86' which is not part of the dependency lock state
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 11s
+1 actionable task: 1 executed

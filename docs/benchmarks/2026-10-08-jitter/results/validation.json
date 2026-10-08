@@ -1,0 +1,38 @@
+[
+  {
+    "name": "python-tests",
+    "exit_code": 0
+  },
+  {
+    "name": "rust-format",
+    "exit_code": 0
+  },
+  {
+    "name": "rust-clippy",
+    "exit_code": 0
+  },
+  {
+    "name": "rust-tests",
+    "exit_code": 0
+  },
+  {
+    "name": "java-check-build",
+    "exit_code": 0
+  },
+  {
+    "name": "native-doctor",
+    "exit_code": 0
+  },
+  {
+    "name": "cross-language",
+    "exit_code": 0
+  },
+  {
+    "name": "half-close",
+    "exit_code": 0
+  },
+  {
+    "name": "prior-archive",
+    "exit_code": 0
+  }
+]

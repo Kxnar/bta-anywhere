@@ -1,0 +1,161 @@
+diff --git a/scripts/benchmark_jitter_diagnostics.py b/scripts/benchmark_jitter_diagnostics.py
+index 7ba45c9..286c7f7 100644
+--- a/scripts/benchmark_jitter_diagnostics.py
++++ b/scripts/benchmark_jitter_diagnostics.py
+@@ -14,10 +14,11 @@ from local_impairment import ImpairmentBridge
+ 
+ 
+ class DiagnosticRig(NetworkRig):
+-    def __init__(self, *args, ordered=False, **kwargs):
++    def __init__(self, *args, ordered=False, qlog_directory=None, **kwargs):
+         super().__init__(*args, **kwargs)
+         self.diagnostics = collections.deque(maxlen=20000)
+         self.ordered = ordered
++        self.qlog_directory = qlog_directory
+ 
+     def start_tunnel(self, relay_port):
+         self.bridge = ImpairmentBridge(relay_port, *self.impairment, seed=self.seed,
+@@ -29,6 +30,8 @@ class DiagnosticRig(NetworkRig):
+             env = dict(env or os.environ, BTA_TRANSPORT_PROFILE='1')
+         if label == 'tunnel':
+             command.insert(1, '-Dbta.transportProfile=true')
++            if self.qlog_directory is not None:
++                command.insert(1, '-Dbta.qlogDirectory=' + str(self.qlog_directory.resolve()))
+         return super().launch(command, label, stdin, env)
+ 
+     def reader(self, stream, label):
+@@ -58,9 +61,13 @@ def main():
+     parser.add_argument('--streams', type=int, default=8)
+     parser.add_argument('--seed', type=int, default=1701)
+     parser.add_argument('--ordered', action='store_true', help='control: clamp per-direction departure times to preserve ingress order')
++    parser.add_argument('--qlog', action='store_true', help='capture native QUIC packet metadata in a fresh sibling directory')
+     args = parser.parse_args()
+     if args.output.exists() or args.output.with_suffix('.checkpoint.json').exists():
+         parser.error('use a fresh output path')
++    qlog_directory = args.output.with_suffix('.qlog') if args.qlog else None
++    if qlog_directory is not None and qlog_directory.exists():
++        parser.error('qlog output directory already exists')
+     if not (1 <= args.streams <= 8 and 0 < args.seconds <= 60 and 30 <= args.drain <= 180
+             and 0 <= args.pace_ms <= 1000 and 1 <= args.block_kib <= 64):
+         parser.error('invalid workload bounds')
+@@ -69,6 +76,7 @@ def main():
+               'block_kib': args.block_kib,
+               'streams': args.streams, 'seed': args.seed, 'samples': [],
+               'ordered_control': args.ordered,
++              'qlog_enabled': args.qlog,
+               'topology': 'Windows loopback userspace UDP bridge; not netem or WAN',
+               'sha256': {name: hashlib.sha256(path.read_bytes()).hexdigest() for name, path in {
+                   'relay': args.relay_binary, 'tunnel': args.tunnel_jar, 'harness': Path(__file__),
+@@ -79,9 +87,12 @@ def main():
+     sampler = None
+     started = time.monotonic()
+     args.output.parent.mkdir(parents=True, exist_ok=True)
++    if qlog_directory is not None:
++        qlog_directory.mkdir()
+     try:
+         with DiagnosticRig(args.relay_binary.resolve(), args.tunnel_jar.resolve(), 'java', logs,
+-                           impairment=CONDITIONS[args.condition], seed=args.seed, ordered=args.ordered) as rig:
++                           impairment=CONDITIONS[args.condition], seed=args.seed, ordered=args.ordered,
++                           qlog_directory=qlog_directory) as rig:
+             progress = b.ThroughputProgress(args.streams)
+             rig.echo.diagnostic_progress = progress
+             rig.echo.diagnostic_timeout = args.seconds + args.drain + 10
+@@ -128,6 +139,13 @@ def main():
+             sampler.join(2)
+         result['wall_seconds'] = time.monotonic() - started
+         result['logs'] = list(logs)
++        if qlog_directory is not None:
++            result['qlog_files'] = [{'file': path.name, 'bytes': path.stat().st_size,
++                                    'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}
++                                   for path in sorted(qlog_directory.glob('*.qlog'))]
++            if not any(row['bytes'] for row in result['qlog_files']):
++                result['status'] = 'FAILED'
++                result['capture_error'] = 'native qlog requested but no nonempty capture produced'
+         b.checkpoint_result(result, args.output)
+         args.output.write_text(json.dumps(result, indent=2), encoding='utf-8')
+     print(json.dumps({key: result[key] for key in ('status', 'condition', 'pace_ms', 'wall_seconds')}))
+diff --git a/tunnel-client/src/main/java/io/github/kxnar/btaanywhere/internal/NettyTunnelSession.java b/tunnel-client/src/main/java/io/github/kxnar/btaanywhere/internal/NettyTunnelSession.java
+index ed803cd..77b170c 100644
+--- a/tunnel-client/src/main/java/io/github/kxnar/btaanywhere/internal/NettyTunnelSession.java
++++ b/tunnel-client/src/main/java/io/github/kxnar/btaanywhere/internal/NettyTunnelSession.java
+@@ -24,6 +24,8 @@ import io.netty.channel.EventLoopGroup;
+ import io.netty.channel.nio.NioEventLoopGroup;
+ import io.netty.channel.socket.nio.NioDatagramChannel;
+ import io.netty.incubator.codec.quic.QuicChannel;
++import io.netty.incubator.codec.quic.QuicChannelOption;
++import io.netty.incubator.codec.quic.QLogConfiguration;
+ import io.netty.incubator.codec.quic.QuicClientCodecBuilder;
+ import io.netty.incubator.codec.quic.QuicSslContext;
+ import io.netty.incubator.codec.quic.QuicSslContextBuilder;
+@@ -148,6 +150,7 @@ public final class NettyTunnelSession implements TunnelSession {
+ 		}
+ 		RelayDescriptor descriptor = selection.descriptor();
+ 		try {
++			QLogConfiguration qlog = TransportDiagnostics.qlogConfiguration();
+ 			QuicSslContext sslContext = QuicSslContextBuilder.forClient()
+ 				.trustManager(descriptor.trustedCertificate().toFile())
+ 				.applicationProtocols(encrypted == null ? ProtocolFrames.ALPN : "bta-anywhere/2")
+@@ -189,7 +192,7 @@ public final class NettyTunnelSession implements TunnelSession {
+ 					return;
+ 				}
+ 				datagramChannel = bound.channel();
+-				connectQuic(descriptor, bound.channel(), currentGeneration);
++				connectQuic(descriptor, bound.channel(), currentGeneration, qlog);
+ 			});
+ 		} catch (RuntimeException failure) {
+ 			scheduleReconnect(failure, currentGeneration);
+@@ -199,7 +202,8 @@ public final class NettyTunnelSession implements TunnelSession {
+ 	private void connectQuic(
+ 		RelayDescriptor descriptor,
+ 		Channel datagram,
+-		long currentGeneration
++		long currentGeneration,
++		QLogConfiguration qlog
+ 	) {
+ 		Future<QuicChannel> future = QuicChannel.newBootstrap(datagram)
+ 			.streamHandler(new ChannelInitializer<QuicStreamChannel>() {
+@@ -229,6 +233,7 @@ public final class NettyTunnelSession implements TunnelSession {
+ 			})
+ 			.streamOption(ChannelOption.AUTO_READ, false)
+ 			.streamOption(ChannelOption.ALLOW_HALF_CLOSURE, true)
++			.option(QuicChannelOption.QLOG, qlog)
+ 			.option(ChannelOption.CONNECT_TIMEOUT_MILLIS,
+ 				(int) Math.max(1, Math.min(Integer.MAX_VALUE, config.connectTimeout().toMillis())))
+ 			.remoteAddress(new InetSocketAddress(descriptor.host(), descriptor.port()))
+diff --git a/tunnel-client/src/main/java/io/github/kxnar/btaanywhere/internal/TransportDiagnostics.java b/tunnel-client/src/main/java/io/github/kxnar/btaanywhere/internal/TransportDiagnostics.java
+index 3a85e84..608cb5f 100644
+--- a/tunnel-client/src/main/java/io/github/kxnar/btaanywhere/internal/TransportDiagnostics.java
++++ b/tunnel-client/src/main/java/io/github/kxnar/btaanywhere/internal/TransportDiagnostics.java
+@@ -6,7 +6,11 @@ import io.netty.channel.ChannelDuplexHandler;
+ import io.netty.channel.ChannelHandlerContext;
+ import io.netty.channel.ChannelPromise;
+ import io.netty.incubator.codec.quic.QuicChannel;
++import io.netty.incubator.codec.quic.QLogConfiguration;
+ import io.netty.incubator.codec.quic.QuicStreamChannel;
++import java.nio.file.Files;
++import java.nio.file.Path;
++import java.util.UUID;
+ import java.util.concurrent.TimeUnit;
+ 
+ /** Opt-in numeric diagnostics: no payloads, endpoints, tokens or session IDs. */
+@@ -15,6 +19,20 @@ final class TransportDiagnostics extends ChannelDuplexHandler {
+ 	private long pendingBytes;
+ 	private long writtenBytes;
+ 
++	/** Packet metadata only; opt-in captures can be large and include peer addresses. */
++	static QLogConfiguration qlogConfiguration() {
++		String directory = System.getProperty("bta.qlogDirectory");
++		if (directory == null) { return null; }
++		Path root = Path.of(directory).toAbsolutePath();
++		if (!Files.isDirectory(root)) {
++			throw new IllegalArgumentException("bta.qlogDirectory must be an existing directory");
++		}
++		// Native qlog requires a nonexistent path. Separate files also preserve
++		// old connections when a diagnostic run reconnects with an empty local CID.
++		return new QLogConfiguration(root.resolve("connection-" + UUID.randomUUID() + ".qlog").toString(),
++			"BTA Anywhere tunnel", "Opt-in native QUIC packet and recovery events");
++	}
++
+ 	static void start(QuicChannel channel) {
+ 		if (Boolean.getBoolean("bta.transportProfile")) {
+ 			sampleConnection(channel, System.nanoTime() + 500_000_000L);

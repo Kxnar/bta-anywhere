@@ -1,0 +1,3 @@
+[21:55:29] [LogUtils/INFO]: logged in with session name: <host-account>
+[21:55:29] [LogUtils/INFO]: Receiving 687 recipes from server..
+[21:55:29] [LogUtils/INFO]: All recipes received!

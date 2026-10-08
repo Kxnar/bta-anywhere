@@ -1,0 +1,1115 @@
+{
+  "schema": 1,
+  "status": "PASS",
+  "session": 2,
+  "condition": "clean",
+  "seed": 1703,
+  "transactions": [
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1024,
+      "repeat": 0,
+      "status": "PASS",
+      "latency_ms": 13.990066000019397
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1024,
+      "repeat": 1,
+      "status": "PASS",
+      "latency_ms": 8.730108999998265
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1024,
+      "repeat": 2,
+      "status": "PASS",
+      "latency_ms": 3.4307299999909446
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1024,
+      "repeat": 3,
+      "status": "PASS",
+      "latency_ms": 2.767568000024312
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1024,
+      "repeat": 4,
+      "status": "PASS",
+      "latency_ms": 2.8865449999671
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1024,
+      "repeat": 5,
+      "status": "PASS",
+      "latency_ms": 2.850629000022309
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1024,
+      "repeat": 6,
+      "status": "PASS",
+      "latency_ms": 3.008451999960471
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1024,
+      "repeat": 7,
+      "status": "PASS",
+      "latency_ms": 2.539734000038152
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1024,
+      "repeat": 8,
+      "status": "PASS",
+      "latency_ms": 2.208370999994713
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1024,
+      "repeat": 9,
+      "status": "PASS",
+      "latency_ms": 2.6269850000062434
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 65536,
+      "repeat": 0,
+      "status": "PASS",
+      "latency_ms": 14.991694999991978
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 65536,
+      "repeat": 1,
+      "status": "PASS",
+      "latency_ms": 12.204179000036675
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 65536,
+      "repeat": 2,
+      "status": "PASS",
+      "latency_ms": 10.972113999969224
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 65536,
+      "repeat": 3,
+      "status": "PASS",
+      "latency_ms": 8.31238600000006
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 65536,
+      "repeat": 4,
+      "status": "PASS",
+      "latency_ms": 7.8678899999999885
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 65536,
+      "repeat": 5,
+      "status": "PASS",
+      "latency_ms": 7.621362000008958
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 65536,
+      "repeat": 6,
+      "status": "PASS",
+      "latency_ms": 7.839692000004561
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 65536,
+      "repeat": 7,
+      "status": "PASS",
+      "latency_ms": 6.928944999970099
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 65536,
+      "repeat": 8,
+      "status": "PASS",
+      "latency_ms": 6.817347000037444
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 65536,
+      "repeat": 9,
+      "status": "PASS",
+      "latency_ms": 6.112762999975985
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1048576,
+      "repeat": 0,
+      "status": "PASS",
+      "latency_ms": 62.403809999977966
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1048576,
+      "repeat": 1,
+      "status": "PASS",
+      "latency_ms": 51.50854900000468
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1048576,
+      "repeat": 2,
+      "status": "PASS",
+      "latency_ms": 43.21381400001201
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1048576,
+      "repeat": 3,
+      "status": "PASS",
+      "latency_ms": 40.71427799999583
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1048576,
+      "repeat": 4,
+      "status": "PASS",
+      "latency_ms": 40.34126900000956
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1048576,
+      "repeat": 5,
+      "status": "PASS",
+      "latency_ms": 40.05855899998778
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1048576,
+      "repeat": 6,
+      "status": "PASS",
+      "latency_ms": 41.63449300000366
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1048576,
+      "repeat": 7,
+      "status": "PASS",
+      "latency_ms": 34.90851599997313
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1048576,
+      "repeat": 8,
+      "status": "PASS",
+      "latency_ms": 33.07065799998554
+    },
+    {
+      "mode": "request_response",
+      "bytes_each_direction": 1048576,
+      "repeat": 9,
+      "status": "PASS",
+      "latency_ms": 34.460263000028135
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1024,
+      "repeat": 0,
+      "status": "PASS",
+      "latency_ms": 2.1959669999773723
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1024,
+      "repeat": 1,
+      "status": "PASS",
+      "latency_ms": 1.5504169999758233
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1024,
+      "repeat": 2,
+      "status": "PASS",
+      "latency_ms": 1.3389900000220223
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1024,
+      "repeat": 3,
+      "status": "PASS",
+      "latency_ms": 1.553441999988081
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1024,
+      "repeat": 4,
+      "status": "PASS",
+      "latency_ms": 2.479909999976826
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1024,
+      "repeat": 5,
+      "status": "PASS",
+      "latency_ms": 1.2101590000384022
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1024,
+      "repeat": 6,
+      "status": "PASS",
+      "latency_ms": 1.2450240000134727
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1024,
+      "repeat": 7,
+      "status": "PASS",
+      "latency_ms": 1.3176699999917219
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1024,
+      "repeat": 8,
+      "status": "PASS",
+      "latency_ms": 1.1030990000335805
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1024,
+      "repeat": 9,
+      "status": "PASS",
+      "latency_ms": 1.10663499998509
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 65536,
+      "repeat": 0,
+      "status": "PASS",
+      "latency_ms": 2.4994059999698948
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 65536,
+      "repeat": 1,
+      "status": "PASS",
+      "latency_ms": 3.4534019999910015
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 65536,
+      "repeat": 2,
+      "status": "PASS",
+      "latency_ms": 4.754213000012442
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 65536,
+      "repeat": 3,
+      "status": "PASS",
+      "latency_ms": 3.3328680000295208
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 65536,
+      "repeat": 4,
+      "status": "PASS",
+      "latency_ms": 3.510309999967376
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 65536,
+      "repeat": 5,
+      "status": "PASS",
+      "latency_ms": 3.4650259999580157
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 65536,
+      "repeat": 6,
+      "status": "PASS",
+      "latency_ms": 2.7517760000250746
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 65536,
+      "repeat": 7,
+      "status": "PASS",
+      "latency_ms": 5.287672999997994
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 65536,
+      "repeat": 8,
+      "status": "PASS",
+      "latency_ms": 3.8039419999904567
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 65536,
+      "repeat": 9,
+      "status": "PASS",
+      "latency_ms": 5.678204999981062
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1048576,
+      "repeat": 0,
+      "status": "PASS",
+      "latency_ms": 29.24735999999939
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1048576,
+      "repeat": 1,
+      "status": "PASS",
+      "latency_ms": 30.62740899997607
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1048576,
+      "repeat": 2,
+      "status": "PASS",
+      "latency_ms": 30.789672000025803
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1048576,
+      "repeat": 3,
+      "status": "PASS",
+      "latency_ms": 30.370425999990402
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1048576,
+      "repeat": 4,
+      "status": "PASS",
+      "latency_ms": 27.277823000019907
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1048576,
+      "repeat": 5,
+      "status": "PASS",
+      "latency_ms": 30.196762000002764
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1048576,
+      "repeat": 6,
+      "status": "PASS",
+      "latency_ms": 24.329731000023003
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1048576,
+      "repeat": 7,
+      "status": "PASS",
+      "latency_ms": 29.249782999954732
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1048576,
+      "repeat": 8,
+      "status": "PASS",
+      "latency_ms": 26.184758999988844
+    },
+    {
+      "mode": "half_close",
+      "bytes_each_direction": 1048576,
+      "repeat": 9,
+      "status": "PASS",
+      "latency_ms": 25.45354800002997
+    }
+  ],
+  "resources": [
+    {
+      "at_seconds": 0.6079490779999901,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5362,
+        "cpu_seconds": 0.0,
+        "rss_bytes": 8343552
+      },
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 0.88,
+        "rss_bytes": 92549120
+      }
+    },
+    {
+      "at_seconds": 1.1084380460000034,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5362,
+        "cpu_seconds": 0.16,
+        "rss_bytes": 9863168
+      },
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 2.17,
+        "rss_bytes": 123211776
+      }
+    },
+    {
+      "at_seconds": 1.6118436720000204,
+      "phase": "transactions",
+      "relay": {
+        "pid": 5362,
+        "cpu_seconds": 0.36,
+        "rss_bytes": 10539008
+      },
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 3.46,
+        "rss_bytes": 138100736
+      }
+    },
+    {
+      "at_seconds": 2.1160148839999806,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5362,
+        "cpu_seconds": 0.57,
+        "rss_bytes": 16244736
+      },
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 4.7,
+        "rss_bytes": 140812288
+      }
+    },
+    {
+      "at_seconds": 2.6251902060000134,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5362,
+        "cpu_seconds": 0.8,
+        "rss_bytes": 15650816
+      },
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 5.5,
+        "rss_bytes": 140943360
+      }
+    },
+    {
+      "at_seconds": 3.1291781689999993,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5362,
+        "cpu_seconds": 1.04,
+        "rss_bytes": 15728640
+      },
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 6.22,
+        "rss_bytes": 143896576
+      }
+    },
+    {
+      "at_seconds": 3.6335921749999898,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5362,
+        "cpu_seconds": 1.29,
+        "rss_bytes": 15446016
+      },
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 6.73,
+        "rss_bytes": 146038784
+      }
+    },
+    {
+      "at_seconds": 4.137536338000018,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5362,
+        "cpu_seconds": 1.53,
+        "rss_bytes": 15446016
+      },
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 7.23,
+        "rss_bytes": 150278144
+      }
+    },
+    {
+      "at_seconds": 4.64319954299998,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5362,
+        "cpu_seconds": 1.79,
+        "rss_bytes": 15839232
+      },
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 7.73,
+        "rss_bytes": 156569600
+      }
+    },
+    {
+      "at_seconds": 5.148906903000011,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5362,
+        "cpu_seconds": 2.03,
+        "rss_bytes": 15429632
+      },
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 8.34,
+        "rss_bytes": 160894976
+      }
+    },
+    {
+      "at_seconds": 5.659727625000016,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5362,
+        "cpu_seconds": 2.27,
+        "rss_bytes": 15847424
+      },
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 8.84,
+        "rss_bytes": 159088640
+      }
+    },
+    {
+      "at_seconds": 6.163450424000018,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5362,
+        "cpu_seconds": 2.53,
+        "rss_bytes": 15634432
+      },
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 9.33,
+        "rss_bytes": 163360768
+      }
+    },
+    {
+      "at_seconds": 6.669856510999978,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5362,
+        "cpu_seconds": 2.78,
+        "rss_bytes": 15888384
+      },
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 9.81,
+        "rss_bytes": 169668608
+      }
+    },
+    {
+      "at_seconds": 7.173756244999993,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5362,
+        "cpu_seconds": 3.03,
+        "rss_bytes": 16019456
+      },
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 10.3,
+        "rss_bytes": 169668608
+      }
+    },
+    {
+      "at_seconds": 7.680419572999995,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5362,
+        "cpu_seconds": 3.28,
+        "rss_bytes": 15859712
+      },
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 10.8,
+        "rss_bytes": 169668608
+      }
+    },
+    {
+      "at_seconds": 8.187954880999996,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5362,
+        "cpu_seconds": 3.53,
+        "rss_bytes": 15859712
+      },
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 11.33,
+        "rss_bytes": 169668608
+      }
+    },
+    {
+      "at_seconds": 8.697036491000006,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5362,
+        "cpu_seconds": 3.78,
+        "rss_bytes": 15859712
+      },
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 11.86,
+        "rss_bytes": 169668608
+      }
+    },
+    {
+      "at_seconds": 9.200972990000025,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5362,
+        "cpu_seconds": 4.02,
+        "rss_bytes": 15859712
+      },
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 12.39,
+        "rss_bytes": 169668608
+      }
+    },
+    {
+      "at_seconds": 9.70517573699999,
+      "phase": "throughput",
+      "relay": {
+        "pid": 5362,
+        "cpu_seconds": 4.26,
+        "rss_bytes": 15859712
+      },
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 12.87,
+        "rss_bytes": 169668608
+      }
+    },
+    {
+      "at_seconds": 10.205671138000014,
+      "phase": "relay_restart",
+      "relay": {
+        "pid": 5362,
+        "cpu_seconds": 4.48,
+        "rss_bytes": 15990784
+      },
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 13.32,
+        "rss_bytes": 170106880
+      }
+    },
+    {
+      "at_seconds": 10.706040659999985,
+      "phase": "relay_restart",
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 13.32,
+        "rss_bytes": 170106880
+      }
+    },
+    {
+      "at_seconds": 11.20635937000003,
+      "phase": "relay_restart",
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 13.32,
+        "rss_bytes": 170106880
+      }
+    },
+    {
+      "at_seconds": 11.706704057000024,
+      "phase": "relay_restart",
+      "relay": {
+        "pid": 5485,
+        "cpu_seconds": 0.0,
+        "rss_bytes": 8110080
+      },
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 13.33,
+        "rss_bytes": 174743552
+      }
+    },
+    {
+      "at_seconds": 12.207061269000008,
+      "phase": "relay_restart",
+      "relay": {
+        "pid": 5485,
+        "cpu_seconds": 0.0,
+        "rss_bytes": 8110080
+      },
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 13.33,
+        "rss_bytes": 174743552
+      }
+    },
+    {
+      "at_seconds": 12.707402719000015,
+      "phase": "relay_restart",
+      "relay": {
+        "pid": 5485,
+        "cpu_seconds": 0.0,
+        "rss_bytes": 8110080
+      },
+      "tunnel": {
+        "pid": 5370,
+        "cpu_seconds": 13.33,
+        "rss_bytes": 174743552
+      }
+    },
+    {
+      "at_seconds": 13.207500132999996,
+      "phase": "relay_restart"
+    }
+  ],
+  "failures": [],
+  "workload": {
+    "transaction_timeout_seconds": 15,
+    "transaction_repeats_per_cell": 10,
+    "streams": 8,
+    "throughput_send_seconds": 8,
+    "drain_seconds": 120,
+    "restart_deadline_seconds": 100
+  },
+  "topology": "Linux-only QUIC campaign in two disposable namespaces; requires root.\n\nGuest and echo workload run in the host namespace, relay in the peer namespace.\nOnly UDP traverses netem: guest-to-relay TCP and readiness HTTP are unshaped.\nThis is a kernel impairment experiment on one machine, not a WAN or game demo.",
+  "netem_seed": null,
+  "netem_seed_note": "kernel random impairment; independent runs, not identical packet replay",
+  "sha256": {
+    "relay": "78588b64024aba0592ad100d4d519061b8b13d7a3090a58d0a59e299e165935b",
+    "tunnel": "dda39f601105d9565224e32fd247a40ccf5edfcb129388928c60f4d8cbde29e5",
+    "driver": "35437e09c21b9b00f2ee7afb40187655c1a4385ac11706dcff806ea46ce86a15",
+    "workload": "9683e43580847a24e862ecf338c349f66bb046b95443810d78a83ba1bbf2cffc"
+  },
+  "throughput": [
+    {
+      "seconds": 8.34922540399998,
+      "guest_to_host_bytes": 29360128,
+      "host_to_guest_bytes": 29360128,
+      "receive_calls_including_eof": 6764
+    },
+    {
+      "seconds": 8.395130514999948,
+      "guest_to_host_bytes": 28835840,
+      "host_to_guest_bytes": 28835840,
+      "receive_calls_including_eof": 6699
+    },
+    {
+      "seconds": 8.383247369999992,
+      "guest_to_host_bytes": 29687808,
+      "host_to_guest_bytes": 29687808,
+      "receive_calls_including_eof": 7008
+    },
+    {
+      "seconds": 8.455788701000017,
+      "guest_to_host_bytes": 30015488,
+      "host_to_guest_bytes": 30015488,
+      "receive_calls_including_eof": 6971
+    },
+    {
+      "seconds": 8.406022258999997,
+      "guest_to_host_bytes": 28704768,
+      "host_to_guest_bytes": 28704768,
+      "receive_calls_including_eof": 6641
+    },
+    {
+      "seconds": 8.439139952999994,
+      "guest_to_host_bytes": 28704768,
+      "host_to_guest_bytes": 28704768,
+      "receive_calls_including_eof": 6524
+    },
+    {
+      "seconds": 8.454641485999957,
+      "guest_to_host_bytes": 29884416,
+      "host_to_guest_bytes": 29884416,
+      "receive_calls_including_eof": 7015
+    },
+    {
+      "seconds": 8.399552045000007,
+      "guest_to_host_bytes": 28835840,
+      "host_to_guest_bytes": 28835840,
+      "receive_calls_including_eof": 6688
+    }
+  ],
+  "throughput_wall_seconds": 8.45957759800001,
+  "progress": [
+    {
+      "stream": 0,
+      "guest_send_bytes": 29360128,
+      "guest_receive_bytes": 29360128,
+      "echo_receive_bytes": 29360128,
+      "echo_send_bytes": 29360128,
+      "guest_connected": true,
+      "guest_write_closed": true,
+      "guest_read_eof": true,
+      "echo_connected": true,
+      "echo_read_eof": true,
+      "echo_write_closed": true,
+      "guest_error": null,
+      "echo_error": null
+    },
+    {
+      "stream": 1,
+      "guest_send_bytes": 28835840,
+      "guest_receive_bytes": 28835840,
+      "echo_receive_bytes": 28835840,
+      "echo_send_bytes": 28835840,
+      "guest_connected": true,
+      "guest_write_closed": true,
+      "guest_read_eof": true,
+      "echo_connected": true,
+      "echo_read_eof": true,
+      "echo_write_closed": true,
+      "guest_error": null,
+      "echo_error": null
+    },
+    {
+      "stream": 2,
+      "guest_send_bytes": 29687808,
+      "guest_receive_bytes": 29687808,
+      "echo_receive_bytes": 29687808,
+      "echo_send_bytes": 29687808,
+      "guest_connected": true,
+      "guest_write_closed": true,
+      "guest_read_eof": true,
+      "echo_connected": true,
+      "echo_read_eof": true,
+      "echo_write_closed": true,
+      "guest_error": null,
+      "echo_error": null
+    },
+    {
+      "stream": 3,
+      "guest_send_bytes": 30015488,
+      "guest_receive_bytes": 30015488,
+      "echo_receive_bytes": 30015488,
+      "echo_send_bytes": 30015488,
+      "guest_connected": true,
+      "guest_write_closed": true,
+      "guest_read_eof": true,
+      "echo_connected": true,
+      "echo_read_eof": true,
+      "echo_write_closed": true,
+      "guest_error": null,
+      "echo_error": null
+    },
+    {
+      "stream": 4,
+      "guest_send_bytes": 28704768,
+      "guest_receive_bytes": 28704768,
+      "echo_receive_bytes": 28704768,
+      "echo_send_bytes": 28704768,
+      "guest_connected": true,
+      "guest_write_closed": true,
+      "guest_read_eof": true,
+      "echo_connected": true,
+      "echo_read_eof": true,
+      "echo_write_closed": true,
+      "guest_error": null,
+      "echo_error": null
+    },
+    {
+      "stream": 5,
+      "guest_send_bytes": 28704768,
+      "guest_receive_bytes": 28704768,
+      "echo_receive_bytes": 28704768,
+      "echo_send_bytes": 28704768,
+      "guest_connected": true,
+      "guest_write_closed": true,
+      "guest_read_eof": true,
+      "echo_connected": true,
+      "echo_read_eof": true,
+      "echo_write_closed": true,
+      "guest_error": null,
+      "echo_error": null
+    },
+    {
+      "stream": 6,
+      "guest_send_bytes": 29884416,
+      "guest_receive_bytes": 29884416,
+      "echo_receive_bytes": 29884416,
+      "echo_send_bytes": 29884416,
+      "guest_connected": true,
+      "guest_write_closed": true,
+      "guest_read_eof": true,
+      "echo_connected": true,
+      "echo_read_eof": true,
+      "echo_write_closed": true,
+      "guest_error": null,
+      "echo_error": null
+    },
+    {
+      "stream": 7,
+      "guest_send_bytes": 28835840,
+      "guest_receive_bytes": 28835840,
+      "echo_receive_bytes": 28835840,
+      "echo_send_bytes": 28835840,
+      "guest_connected": true,
+      "guest_write_closed": true,
+      "guest_read_eof": true,
+      "echo_connected": true,
+      "echo_read_eof": true,
+      "echo_write_closed": true,
+      "guest_error": null,
+      "echo_error": null
+    }
+  ],
+  "recovery": {
+    "status": "PASS",
+    "attempts": [
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "FAILED",
+        "type": "ConnectionRefusedError",
+        "message": "[Errno 111] Connection refused"
+      },
+      {
+        "status": "PASS",
+        "latency_ms": 2.8348769999979595
+      }
+    ],
+    "fault_to_verified_ms": 2974.8490640000114,
+    "relay_ready_ms": 1265.8381910000003,
+    "old_endpoint_verified": true
+  },
+  "echo_errors_including_restart_probes": [],
+  "wall_seconds": 13.606008250999992,
+  "logs": [
+    "relay-out: \u001b[2m2026-10-08T20:09:38.504327Z\u001b[0m \u001b[32m INFO\u001b[0m relay ready \u001b[3mquic\u001b[0m\u001b[2m=\u001b[0m10.203.0.1:60635 \u001b[3mtcp_start\u001b[0m\u001b[2m=\u001b[0m46247 \u001b[3mtcp_end\u001b[0m\u001b[2m=\u001b[0m46248",
+    "relay-out: \u001b[2m2026-10-08T20:09:38.504353Z\u001b[0m \u001b[32m INFO\u001b[0m admin endpoint listening \u001b[3maddress\u001b[0m\u001b[2m=\u001b[0m10.203.0.1:53543",
+    "relay-out: \u001b[2m2026-10-08T20:09:39.084185Z\u001b[0m \u001b[32m INFO\u001b[0m registered relay session \u001b[3mport\u001b[0m\u001b[2m=\u001b[0m46247",
+    "relay-out: \u001b[2m2026-10-08T20:09:39.084259Z\u001b[0m \u001b[32m INFO\u001b[0m host control stream active \u001b[3mport\u001b[0m\u001b[2m=\u001b[0m46247 \u001b[3mresumed\u001b[0m\u001b[2m=\u001b[0mfalse \u001b[3mremote\u001b[0m\u001b[2m=\u001b[0m10.203.0.2:35073",
+    "tunnel-out: Relay selection: static",
+    "tunnel-out: Public endpoint: 10.203.0.1:46247",
+    "tunnel-out: Press Ctrl+C or type 'stop' to stop.",
+    "relay-out: \u001b[2m2026-10-08T20:09:48.621599Z\u001b[0m \u001b[32m INFO\u001b[0m shutdown requested",
+    "relay-out: \u001b[2m2026-10-08T20:09:48.621882Z\u001b[0m \u001b[33m WARN\u001b[0m control stream ended \u001b[3mport\u001b[0m\u001b[2m=\u001b[0m46247 \u001b[3merror\u001b[0m\u001b[2m=\u001b[0mI/O while reading or writing a frame: connection lost",
+    "relay-out: \u001b[2m2026-10-08T20:09:48.621909Z\u001b[0m \u001b[33m WARN\u001b[0m host control connection rejected or closed \u001b[3merror\u001b[0m\u001b[2m=\u001b[0mI/O while reading or writing a frame: connection lost",
+    "tunnel-err: Relay unavailable; retrying in 1239 ms: relay control stream closed",
+    "relay-out: \u001b[2m2026-10-08T20:09:49.789244Z\u001b[0m \u001b[32m INFO\u001b[0m relay ready \u001b[3mquic\u001b[0m\u001b[2m=\u001b[0m10.203.0.1:60635 \u001b[3mtcp_start\u001b[0m\u001b[2m=\u001b[0m46247 \u001b[3mtcp_end\u001b[0m\u001b[2m=\u001b[0m46248",
+    "relay-out: \u001b[2m2026-10-08T20:09:49.789270Z\u001b[0m \u001b[32m INFO\u001b[0m admin endpoint listening \u001b[3maddress\u001b[0m\u001b[2m=\u001b[0m10.203.0.1:53543",
+    "relay-out: \u001b[2m2026-10-08T20:09:49.894476Z\u001b[0m \u001b[33m WARN\u001b[0m host control connection rejected or closed \u001b[3merror\u001b[0m\u001b[2m=\u001b[0mresume token is invalid or expired",
+    "tunnel-err: Relay unavailable; retrying in 1652 ms: resume_rejected: resume token is invalid or expired",
+    "relay-out: \u001b[2m2026-10-08T20:09:51.556478Z\u001b[0m \u001b[32m INFO\u001b[0m registered relay session \u001b[3mport\u001b[0m\u001b[2m=\u001b[0m46247",
+    "relay-out: \u001b[2m2026-10-08T20:09:51.556544Z\u001b[0m \u001b[32m INFO\u001b[0m host control stream active \u001b[3mport\u001b[0m\u001b[2m=\u001b[0m46247 \u001b[3mresumed\u001b[0m\u001b[2m=\u001b[0mfalse \u001b[3mremote\u001b[0m\u001b[2m=\u001b[0m10.203.0.2:46828",
+    "relay-out: \u001b[2m2026-10-08T20:09:51.599298Z\u001b[0m \u001b[32m INFO\u001b[0m host closed session \u001b[3mport\u001b[0m\u001b[2m=\u001b[0m46247 \u001b[3mreason_length\u001b[0m\u001b[2m=\u001b[0m15",
+    "relay-out: \u001b[2m2026-10-08T20:09:51.599343Z\u001b[0m \u001b[32m INFO\u001b[0m released relay session \u001b[3mport\u001b[0m\u001b[2m=\u001b[0m46247",
+    "relay-out: \u001b[2m2026-10-08T20:09:51.628503Z\u001b[0m \u001b[32m INFO\u001b[0m shutdown requested"
+  ],
+  "lifecycle": {
+    "observed_cli_reconnect_attempts": 2,
+    "owned_process_exits": [
+      {
+        "label": "relay",
+        "started_utc": "2026-10-08T20:09:38.501378+00:00",
+        "returncode": 0,
+        "running": false
+      },
+      {
+        "label": "tunnel",
+        "started_utc": "2026-10-08T20:09:38.603169+00:00",
+        "returncode": 0,
+        "running": false
+      },
+      {
+        "label": "relay",
+        "started_utc": "2026-10-08T20:09:49.786155+00:00",
+        "returncode": 0,
+        "running": false
+      }
+    ]
+  },
+  "cleanup": {
+    "tunnel_clean": true,
+    "relay_clean": true,
+    "errors": []
+  }
+}

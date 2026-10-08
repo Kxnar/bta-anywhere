@@ -190,7 +190,10 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 
 	private void connectLocal(ChannelHandlerContext quicContext) {
 		ChannelFuture future = new Bootstrap()
-			.group(session.eventLoopGroup())
+			// A QUIC connection already serializes all its streams on this loop.
+			// Keep each paired TCP socket there too, avoiding a cross-thread wakeup
+			// for every payload write and the next manual read.
+			.group(quicContext.channel().eventLoop())
 			.channel(NioSocketChannel.class)
 			.handler(new LocalToQuicHandler(session, connectionGeneration, quicContext.channel(), connectionId, traceId))
 			.option(ChannelOption.AUTO_READ, false)

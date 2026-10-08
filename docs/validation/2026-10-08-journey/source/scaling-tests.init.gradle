@@ -1,0 +1,8 @@
+allprojects {
+    tasks.withType(Test).configureEach {
+        def base = new File(System.getenv('BTA_TEST_RESULTS'), project.name)
+        binaryResultsDirectory = new File(base, 'binary')
+        reports.junitXml.outputLocation = new File(base, 'xml')
+        reports.html.outputLocation = new File(base, 'html')
+    }
+}

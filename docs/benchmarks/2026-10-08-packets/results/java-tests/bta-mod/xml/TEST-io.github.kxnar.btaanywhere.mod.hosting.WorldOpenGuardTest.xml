@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kxnar.btaanywhere.mod.hosting.WorldOpenGuardTest" tests="6" skipped="1" failures="0" errors="0" timestamp="2026-10-08T19:54:36.919Z" hostname="KENARALIENWARE" time="0.104">
+  <properties/>
+  <testcase name="showcaseJournalLeavesOriginalAvailable()" classname="io.github.kxnar.btaanywhere.mod.hosting.WorldOpenGuardTest" time="0.019"/>
+  <testcase name="malformedOrInterruptedJournalBlocksEveryWorld()" classname="io.github.kxnar.btaanywhere.mod.hosting.WorldOpenGuardTest" time="0.018"/>
+  <testcase name="unsafeRecordedPathBlocksEveryWorld()" classname="io.github.kxnar.btaanywhere.mod.hosting.WorldOpenGuardTest" time="0.015"/>
+  <testcase name="normalWorldsOpenWithoutRecoveryArtifacts()" classname="io.github.kxnar.btaanywhere.mod.hosting.WorldOpenGuardTest" time="0.012"/>
+  <testcase name="symlinkAliasToOriginalIsBlockedWhenWindowsAllowsCreatingOne()" classname="io.github.kxnar.btaanywhere.mod.hosting.WorldOpenGuardTest" time="0.016">
+    <skipped message="org.opentest4j.TestAbortedException: Assumption failed: directory symlink creation is unavailable: <user>\AppData\Local\Temp\junit-11697396694331755323\game\saves\alias: A required privilege is not held by the client" type="org.opentest4j.TestAbortedException">org.opentest4j.TestAbortedException: Assumption failed: directory symlink creation is unavailable: <user>\AppData\Local\Temp\junit-11697396694331755323\game\saves\alias: A required privilege is not held by the client
+	at org.junit.jupiter.api.Assumptions.throwAssumptionFailed(Assumptions.java:321)
+	at org.junit.jupiter.api.Assumptions.assumeTrue(Assumptions.java:120)
+	at io.github.kxnar.btaanywhere.mod.hosting.WorldOpenGuardTest.symlinkAliasToOriginalIsBlockedWhenWindowsAllowsCreatingOne(WorldOpenGuardTest.java:87)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+</skipped>
+  </testcase>
+  <testcase name="liveJournalBlocksOnlyItsOriginalUntilRecoveryClearsIt()" classname="io.github.kxnar.btaanywhere.mod.hosting.WorldOpenGuardTest" time="0.022"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

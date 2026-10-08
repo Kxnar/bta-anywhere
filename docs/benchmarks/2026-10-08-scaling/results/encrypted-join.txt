@@ -1,0 +1,1 @@
+Encrypted join smoke passed: status, half-close, replay, pin/capability/session/expiry/revocation/plaintext rejection, admission before local sockets, guest shutdown, active host disconnect and listener cleanup.

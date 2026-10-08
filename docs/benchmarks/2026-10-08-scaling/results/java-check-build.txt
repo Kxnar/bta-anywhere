@@ -1,0 +1,47 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.3.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :bta-mod
+Fabric Loom: 1.15.5
+Project directory '<user>\OneDrive\Documents\ChatGPT\bta anywhere\bta-mod' is located in OneDrive. This is known to cause issues and slower performance. Consider moving the project to a different location.
+
+> Task :check UP-TO-DATE
+> Task :assemble UP-TO-DATE
+> Task :build UP-TO-DATE
+> Task :tunnel-client:compileJava UP-TO-DATE
+> Task :bta-mod:processResources UP-TO-DATE
+> Task :bta-mod:processIncludeJars UP-TO-DATE
+> Task :tunnel-client:processResources NO-SOURCE
+> Task :tunnel-client:classes UP-TO-DATE
+> Task :tunnel-client:shadowJar UP-TO-DATE
+> Task :bta-mod:compileJava UP-TO-DATE
+> Task :bta-mod:classes UP-TO-DATE
+> Task :bta-mod:jar UP-TO-DATE
+> Task :tunnel-client:jar
+> Task :tunnel-client:sourcesJar
+> Task :tunnel-client:compileTestJava UP-TO-DATE
+> Task :tunnel-client:processTestResources NO-SOURCE
+> Task :tunnel-client:testClasses UP-TO-DATE
+> Task :bta-mod:shadowJar
+> Task :bta-mod:sourcesJar UP-TO-DATE
+> Task :bta-mod:compileTestJava UP-TO-DATE
+> Task :bta-mod:processTestResources NO-SOURCE
+> Task :bta-mod:testClasses UP-TO-DATE
+> Task :tunnel-client:test
+> Task :tunnel-client:check
+> Task :tunnel-client:startScripts
+> Task :tunnel-client:distTar
+> Task :tunnel-client:distZip
+> Task :tunnel-client:startShadowScripts
+> Task :tunnel-client:shadowDistTar
+> Task :tunnel-client:shadowDistZip
+> Task :tunnel-client:assemble
+> Task :tunnel-client:build
+> Task :bta-mod:test
+> Task :bta-mod:validateAccessWidener NO-SOURCE
+> Task :bta-mod:check
+> Task :bta-mod:assemble
+> Task :bta-mod:build
+
+BUILD SUCCESSFUL in 32s
+20 actionable tasks: 11 executed, 9 up-to-date

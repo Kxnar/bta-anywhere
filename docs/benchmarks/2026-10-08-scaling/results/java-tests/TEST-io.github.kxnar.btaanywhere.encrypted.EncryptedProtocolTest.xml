@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.kxnar.btaanywhere.encrypted.EncryptedProtocolTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-08T18:07:19.997Z" hostname="KENARALIENWARE" time="0.013">
+  <properties/>
+  <testcase name="authIsStrictAndDoesNotRevealCapabilities()" classname="io.github.kxnar.btaanywhere.encrypted.EncryptedProtocolTest" time="0.005"/>
+  <testcase name="encryptedFramesRejectUnknownOversizedAndTruncatedBodies()" classname="io.github.kxnar.btaanywhere.encrypted.EncryptedProtocolTest" time="0.003"/>
+  <testcase name="statusClassifierCoversBothBtaVariantsAndRejectsMalformedInput()" classname="io.github.kxnar.btaanywhere.encrypted.EncryptedProtocolTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
