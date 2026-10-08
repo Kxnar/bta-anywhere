@@ -115,11 +115,8 @@ jobs:
             --event-loop-threads 1
       - name: Test benchmark reporting
         shell: pwsh
-        run: python -m unittest discover -s scripts -p test_benchmark_relay.py
-      # Historical W3/W4 merge exception; all other runs keep the benchmark gate.
+        run: python -m unittest discover -s scripts -p "test_benchmark*.py"
       - name: Run short direct and relay benchmark smoke
-        if: >-
-          ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' || github.event.before != 'fdc7ef45fdf99637a5f710d7d8931b63ca4e7485' || github.event.head_commit.message != 'ci: defer benchmark smoke for W3/W4 functional merge' }}
         shell: pwsh
         run: |
           python scripts\benchmark_relay.py --profile smoke `
@@ -127,3 +124,10 @@ jobs:
             --tunnel-jar tunnel-client\build\libs\bta-anywhere-tunnel-0.1.0-all.jar `
             --java "$env:JAVA_HOME\bin\java.exe" `
             --output benchmark-results\ci-smoke.json
+      - name: Retain benchmark evidence, including failures
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: windows-benchmark-evidence
+          path: benchmark-results/
+          if-no-files-found: warn

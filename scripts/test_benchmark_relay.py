@@ -296,6 +296,276 @@ class BenchmarkTests(unittest.TestCase):
             finally:
                 bridge.close()
 
+    def test_summary_labels_latency_counts_and_paired_delta(self):
+        report = benchmark.markdown({"status": "PASS", "profile": "full", "latency": [{
+            "concurrency": 8, "payload_bytes": 1024, "mode": "half_close",
+            "paths": {"direct": {"latency_ms": {"count": 240, "p50": 1, "p95": 3}},
+                      "relay": {"latency_ms": {"count": 240, "p50": 2, "p95": 5}}},
+            "relay_added_ms": {"count": 240, "p95": 4}}]})
+        self.assertIn("transaction completion time", report)
+        self.assertIn("Direct n | Direct p50 ms | Direct p95 ms", report)
+        self.assertIn("Paired delta n | Paired delta p95 ms", report)
+        self.assertIn("| 240 | 1.00 | 3.00 | 240 | 2.00 | 5.00 | 240 | 4.00 |", report)
+        self.assertIn("p99 is exploratory", report)
+        self.assertIn("not summed", report)
+
+    def test_soak_summary_retains_failure_counts_and_pending_review(self):
+        report = benchmark.markdown({"status": "FAILED", "profile": "soak",
+                                     "soak_partial": {"completed_waves": 3, "duration_seconds": 180,
+                                                      "memory_samples": [{}, {}]},
+                                     "failure_counts": {"failed_transfers": 2}})
+        self.assertIn("Soak completed waves: 3", report)
+        self.assertIn("failed transfers: 2", report)
+        self.assertIn("PENDING_MANUAL_REVIEW", report)
+
+    def test_recovery_probe_rejects_corruption_as_non_retryable(self):
+        for message in ("byte mismatch", "byte mismatch: surplus response bytes after exact reply"):
+            with self.subTest(message=message), \
+                 mock.patch.object(benchmark, "transfer", side_effect=AssertionError(message)):
+                with self.assertRaisesRegex(AssertionError, "byte mismatch"):
+                    benchmark.reconnect_probe(123, b"expected")
+        with mock.patch.object(benchmark, "transfer", side_effect=AssertionError("early EOF")):
+            self.assertFalse(benchmark.reconnect_probe(123, b"expected"))
+
+    def test_startup_failure_preserves_original_when_cleanup_also_fails(self):
+        class BrokenRig:
+            def _start(self):
+                raise ValueError("startup original")
+            def __exit__(self, exception_type, *_):
+                self.exception_type = exception_type
+                if exception_type is None:
+                    raise RuntimeError("cleanup mask")
+        rig = BrokenRig()
+        with self.assertRaisesRegex(ValueError, "startup original"):
+            benchmark.Rig.__enter__(rig)
+        self.assertIs(rig.exception_type, ValueError)
+
+    def test_continuous_valid_reply_cannot_extend_absolute_drain_deadline(self):
+        class EndlessReply(socketserver.BaseRequestHandler):
+            def handle(self):
+                self.request.settimeout(1)
+                benchmark.read_exact(self.request, 1)
+                try:
+                    while self.request.recv(benchmark.CHUNK):
+                        pass
+                    while True:
+                        self.request.sendall(b"x" * benchmark.CHUNK)
+                except OSError:
+                    pass
+
+        with socketserver.ThreadingTCPServer(("127.0.0.1", 0), EndlessReply) as server:
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            started = benchmark.time.monotonic()
+            try:
+                with self.assertRaisesRegex(RuntimeError, "absolute throughput drain deadline"):
+                    benchmark.throughput_stream(server.server_address[1], b"x" * benchmark.CHUNK,
+                                                0.02, 0.5)
+                self.assertLess(benchmark.time.monotonic() - started, 3)
+            finally:
+                server.shutdown()
+                thread.join(timeout=2)
+
+    def test_latency_retains_first_path_when_second_path_fails(self):
+        rig = SimpleNamespace(echo=SimpleNamespace(server_address=("127.0.0.1", 100)),
+                              public_port=200, assert_idle=lambda: None)
+        result = {}
+        failure = benchmark.ConcurrentTransferError("second path", [(0, TimeoutError("stalled"))], [])
+        # Warmup direct/relay, then measured relay succeeds and direct fails.
+        with mock.patch.object(benchmark, "run_concurrent", side_effect=[[1], [2], [3], failure]):
+            with self.assertRaises(benchmark.ConcurrentTransferError):
+                benchmark.run_latency(rig, "smoke", 1701, result)
+        progress = result["latency_in_progress"]
+        self.assertEqual(progress["completed_samples_ms"]["relay"], [3])
+        self.assertEqual(progress["wave_progress"][1]["paths"]["relay"]["status"], "COMPLETE")
+        self.assertEqual(progress["denominators"]["relay"], {
+            "attempted": 2, "completed": 2, "failed": 0,
+            "warmup_attempted": 1, "warmup_completed": 1, "warmup_failed": 0})
+        self.assertEqual(progress["denominators"]["direct"]["failed"], 1)
+
+    def test_throughput_failed_run_records_individual_denominators(self):
+        echo = SimpleNamespace(server_address=("127.0.0.1", 100), event_lock=threading.Lock(),
+                               current_case={}, events=[])
+        rig = SimpleNamespace(echo=echo, public_port=200, assert_idle=lambda: None)
+        failure = benchmark.ConcurrentTransferError("failed", [(0, TimeoutError("stall"))], [])
+        result = {}
+        with mock.patch.object(benchmark, "run_concurrent", side_effect=failure):
+            with self.assertRaises(benchmark.ConcurrentTransferError):
+                benchmark.run_throughput(rig, "smoke", 1701, result)
+        self.assertEqual(result["throughput_partial"][0]["denominators"]["direct"], {
+            "attempted": 1, "completed": 0, "failed": 1,
+            "warmup_attempted": 0, "warmup_completed": 0, "warmup_failed": 0})
+
+    def test_cleanup_attempts_remaining_resources_after_stop_failure(self):
+        calls = []
+        def action(name):
+            return lambda: calls.append(name)
+        rig = SimpleNamespace(tunnel=object(), relay=object(),
+                              bridge=SimpleNamespace(close=action("bridge")),
+                              echo=SimpleNamespace(shutdown=action("echo shutdown"),
+                                                   server_close=action("echo close")),
+                              echo_thread=SimpleNamespace(join=lambda **_: calls.append("thread")),
+                              temporary=SimpleNamespace(cleanup=action("temporary")))
+        with mock.patch.object(benchmark, "stop_process", side_effect=[OSError("stop failed"), True]):
+            with self.assertRaisesRegex(RuntimeError, "cleanup failed"):
+                benchmark.Rig.__exit__(rig)
+        self.assertEqual(calls, ["bridge", "echo shutdown", "echo close", "thread", "temporary"])
+        self.assertEqual(rig.cleanup_errors[0]["resource"], "tunnel")
+        self.assertTrue(rig.relay_clean)
+
+    def test_final_only_checkpoint_failure_cannot_pass_soak(self):
+        clock = [0.0]
+        rig = SimpleNamespace(public_port=200, relay=object(), tunnel=object(),
+                              assert_idle=lambda: None, metric=lambda _: 0)
+        result = {}
+        def transfer(*_):
+            clock[0] = 7200
+            return [{"guest_to_host_bytes": 1, "host_to_guest_bytes": 1}] * 8
+        def checkpoint(record, _output):
+            if record["soak_partial"]["memory_samples"][-1]["phase"] == "final":
+                raise OSError("final disk failure")
+        with mock.patch.object(benchmark.time, "monotonic", side_effect=lambda: clock[0]), \
+             mock.patch.object(benchmark.time, "sleep", side_effect=lambda seconds: clock.__setitem__(0, clock[0] + seconds)), \
+             mock.patch.object(benchmark, "run_concurrent", side_effect=transfer), \
+             mock.patch.object(benchmark, "soak_sample", side_effect=lambda _rig, _started, phase: {"phase": phase}), \
+             mock.patch.object(benchmark, "checkpoint_result", side_effect=checkpoint):
+            with self.assertRaisesRegex(RuntimeError, "checkpoint failed"):
+                benchmark.run_soak(rig, 1701, 7200, result, Path("unused.json"))
+        self.assertEqual(result["soak_partial"]["completed_waves"], 1)
+
+    def test_sender_deadline_begins_after_delayed_thread_start(self):
+        import time
+        with benchmark.EchoServer(("127.0.0.1", 0), benchmark.EchoHandler) as server:
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            original_start = threading.Thread.start
+
+            def delayed_start(worker):
+                if worker.name == "benchmark-sender":
+                    time.sleep(0.06)
+                return original_start(worker)
+
+            try:
+                with mock.patch.object(threading.Thread, "start", delayed_start):
+                    measured = benchmark.throughput_stream(server.server_address[1],
+                                                          b"x" * benchmark.CHUNK, 0.02, 2)
+                self.assertGreater(measured["guest_to_host_bytes"], 0)
+                self.assertEqual(measured["guest_to_host_bytes"], measured["host_to_guest_bytes"])
+            finally:
+                server.shutdown()
+                thread.join(timeout=2)
+
+    def test_udp_timing_distinguishes_gate_restore_from_delayed_observer(self):
+        bridge = SimpleNamespace()
+        with mock.patch.object(benchmark.time, "monotonic", side_effect=[100.0, 102.5]), \
+             mock.patch.object(benchmark.time, "sleep"):
+            benchmark.UdpBridge.drop_for(bridge, 2)
+        self.assertEqual(bridge.drop_started, 100.0)
+        self.assertEqual(bridge.drop_restored, 102.0)
+        self.assertEqual(bridge.drop_wait_finished, 102.5)
+
+    def test_udp_recovery_excludes_late_resume_log_observation(self):
+        import queue
+        clock = [10.0]
+
+        class LateEvents:
+            def empty(self):
+                return True
+
+            def get(self, timeout):
+                if timeout == 0.2:
+                    raise queue.Empty()
+                clock[0] += 2
+                return 123
+
+        bridge = SimpleNamespace(dropped=0, forwarded=0, drop_started=1.0,
+                                 drop_restored=2.0, drop_wait_finished=2.0,
+                                 drop_for=lambda _: None)
+        rig = SimpleNamespace(bridge=bridge, tunnel=SimpleNamespace(poll=lambda: None),
+                              public_port=123, relay_events=LateEvents())
+        with mock.patch.object(benchmark.time, "monotonic", side_effect=lambda: clock[0]), \
+             mock.patch.object(benchmark.time, "perf_counter", side_effect=lambda: clock[0]), \
+             mock.patch.object(benchmark, "reconnect_probe", return_value=True):
+            measured = benchmark.Rig.interrupt_tunnel_link(rig, 1, 3)
+        self.assertEqual(measured["availability_monotonic"], 10.0)
+        self.assertEqual(measured["recovery_after_forwarding_restored_ms"], 8000.0)
+        self.assertEqual(measured["recovery_after_drop_onset_ms"], 9000.0)
+        self.assertEqual(measured["observation_window_ms"], 2000.0)
+        self.assertEqual(measured["completion_ms"], 2000.0)
+
+    def test_failed_udp_recovery_has_null_recovery_timing(self):
+        import queue
+        bridge = SimpleNamespace(dropped=0, forwarded=0, drop_started=1.0,
+                                 drop_restored=2.0, drop_wait_finished=2.5,
+                                 drop_for=lambda _: None)
+        rig = SimpleNamespace(bridge=bridge, tunnel=SimpleNamespace(poll=lambda: 1),
+                              public_port=123, relay_events=queue.Queue())
+        measured = benchmark.Rig.interrupt_tunnel_link(rig, 1, 3)
+        self.assertFalse(measured["available"])
+        self.assertIsNone(measured["recovery_after_forwarding_restored_ms"])
+        self.assertGreaterEqual(measured["observation_window_ms"], 0)
+        self.assertEqual(measured["observer_wakeup_delay_seconds"], 0.5)
+
+    def test_checkpoint_failure_is_observable_and_fails_soak(self):
+        rig = SimpleNamespace(public_port=200, relay=object(), tunnel=object(),
+                              assert_idle=lambda: None)
+        result = {}
+        with mock.patch.object(benchmark, "soak_sample", return_value={}), \
+             mock.patch.object(benchmark, "checkpoint_result", side_effect=OSError("disk full")):
+            with self.assertRaisesRegex(RuntimeError, "checkpoint failed"):
+                benchmark.run_soak(rig, 1701, 7200, result, Path("unused.json"))
+        self.assertEqual(result["soak_partial"]["checkpoint_error"]["type"], "OSError")
+
+    def test_checkpoint_retains_latest_progress_without_final_output(self):
+        import json
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "soak.json"
+            benchmark.checkpoint_result({"status": "FAILED", "completed_waves": 1}, output)
+            benchmark.checkpoint_result({"status": "FAILED", "completed_waves": 2}, output)
+            self.assertEqual(json.loads(output.with_suffix(".checkpoint.json").read_text())[
+                "completed_waves"], 2)
+            self.assertFalse(output.exists())
+            self.assertFalse(output.with_suffix(".checkpoint.json.tmp").exists())
+
+    def test_soak_failure_retains_completed_wave_and_samples(self):
+        rig = SimpleNamespace(public_port=200, relay=object(), tunnel=object(),
+                              assert_idle=lambda: None)
+        result = {}
+        streams = [{"guest_to_host_bytes": 123, "host_to_guest_bytes": 123}] * 8
+        failure = benchmark.ConcurrentTransferError("wave", [(0, TimeoutError("stalled"))],
+                                                    [{"stream": 1, "result": streams[1]}])
+        with mock.patch.object(benchmark, "run_concurrent", side_effect=[streams, failure]), \
+             mock.patch.object(benchmark, "soak_sample", return_value={"phase": "sample"}):
+            with self.assertRaises(benchmark.ConcurrentTransferError):
+                benchmark.run_soak(rig, 1701, 7200, result)
+        soak = result["soak_partial"]
+        self.assertEqual(soak["completed_waves"], 1)
+        self.assertEqual(soak["totals"]["guest_to_host_bytes"], 984)
+        self.assertGreaterEqual(len(soak["memory_samples"]), 3)
+        self.assertEqual(soak["failed_wave_successes"], failure.successes)
+
+    def test_main_metadata_failure_writes_failed_outputs(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            relay, tunnel = directory / "relay.exe", directory / "tunnel.jar"
+            relay.write_bytes(b"relay")
+            tunnel.write_bytes(b"tunnel")
+            output = directory / "failed.json"
+            args = SimpleNamespace(profile="smoke", relay_binary=relay, tunnel_jar=tunnel,
+                                   output=output, java="missing-java", seed=1701, soak_seconds=7200)
+            with mock.patch.object(benchmark, "parse_args", return_value=args), \
+                 mock.patch.object(benchmark.sys, "platform", "win32"), \
+                 mock.patch.object(benchmark.platform, "machine", return_value="AMD64"), \
+                 mock.patch.object(benchmark, "machine_info", side_effect=OSError("missing java")):
+                self.assertEqual(benchmark.main(), 1)
+                import json
+                result = json.loads(output.read_text())
+                self.assertEqual(result["current_case"]["phase"], "metadata")
+                self.assertEqual(len(result["artifacts"]["harness_sha256"]), 64)
+                self.assertTrue(output.with_suffix(".md").exists())
+                with self.assertRaisesRegex(SystemExit, "overwrite"):
+                    benchmark.main()
+
     def test_soak_rejects_unbounded_duration_before_starting_processes(self):
         for duration in (math.inf, math.nan, 7199, 14401):
             with self.subTest(duration=duration), self.assertRaises(ValueError):

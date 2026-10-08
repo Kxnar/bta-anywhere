@@ -8,6 +8,9 @@ cargo test --locked --all
 cargo build --locked --package bta-anywhere-relay
 ```
 
+For measured relay runs, build the release executable and follow the
+[benchmark procedure](benchmarking.md). Debug builds are for development only.
+
 To run the mod in a development client:
 
 ```powershell

@@ -14,9 +14,12 @@ import io.netty.channel.socket.ChannelInputShutdownReadComplete;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.incubator.codec.quic.QuicStreamChannel;
 import io.netty.util.ReferenceCountUtil;
+import java.util.concurrent.RejectedExecutionException;
 
 /** Parses one connection header and then bridges the remaining stream to the local service. */
 final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
+	// Match the negotiated receive credit for each bidirectional stream.
+	static final int MAX_PENDING_PAYLOAD = 2 * 1024 * 1024;
 	private final NettyTunnelSession session;
 	private final long connectionGeneration;
 	private ByteBuf headerBuffer;
@@ -53,9 +56,14 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 			return;
 		}
 		try {
+			if (headerBuffer == null) {
+				// One manual read may deliver more buffers while the local connect is pending.
+				appendPending(context, input);
+				return;
+			}
 			copyHeaderBytes(input);
 			if (expectedLength >= 0 && headerBuffer.readableBytes() >= expectedLength && input.isReadable()) {
-				pendingPayload = input.readRetainedSlice(input.readableBytes());
+				appendPending(context, input);
 			}
 		} finally {
 			input.release();
@@ -63,6 +71,24 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 		if (!parseHeader(context)) {
 			requestRead(context);
 		}
+	}
+
+	private synchronized void appendPending(ChannelHandlerContext context, ByteBuf input) {
+		int buffered = pendingPayload == null ? 0 : pendingPayload.readableBytes();
+		int incoming = input.readableBytes();
+		if (incoming > MAX_PENDING_PAYLOAD - buffered) {
+			throw new IllegalArgumentException("pending local connection payload exceeds stream receive credit");
+		}
+		if (incoming == 0) {
+			return;
+		}
+		ByteBuf combined = context.alloc().buffer(buffered + incoming, MAX_PENDING_PAYLOAD);
+		if (pendingPayload != null) {
+			combined.writeBytes(pendingPayload);
+			pendingPayload.release();
+		}
+		combined.writeBytes(input);
+		pendingPayload = combined;
 	}
 
 	private void copyHeaderBytes(ByteBuf input) {
@@ -98,7 +124,7 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 		connectionId = ProtocolFrames.requiredString(header, "connectionId");
 		traceId = EofTrace.id(connectionId);
 		if (headerBuffer.isReadable()) {
-			pendingPayload = headerBuffer.readRetainedSlice(headerBuffer.readableBytes());
+			appendPending(context, headerBuffer);
 		}
 		headerBuffer.release();
 		headerBuffer = null;
@@ -171,28 +197,40 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 			.option(ChannelOption.ALLOW_HALF_CLOSURE, true)
 			.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10_000)
 			.connect(session.localTarget());
-		future.addListener(result -> {
-			if (!result.isSuccess()) {
-				releasePending();
-				quicContext.close();
-				return;
-			}
-			if (!quicContext.channel().isActive()) {
-				future.channel().close();
-				releasePending();
-				return;
-			}
-			localChannel = future.channel();
-			if (pendingPayload != null) {
-				ByteBuf payload = pendingPayload;
-				pendingPayload = null;
-				writeToLocal(quicContext, payload);
-			} else if (quicInputShutdown) {
-				scheduleLocalOutputShutdown();
-			} else {
-				requestRead(quicContext);
-			}
-		});
+		future.addListener(result -> dispatchLocalConnect(quicContext, future));
+	}
+
+	private void dispatchLocalConnect(ChannelHandlerContext quicContext, ChannelFuture future) {
+		try {
+			quicContext.executor().execute(() -> completeLocalConnect(quicContext, future));
+		} catch (RejectedExecutionException rejected) {
+			// The QUIC loop can stop while the local socket's connect is completing.
+			future.channel().close();
+			releasePending();
+			quicContext.close();
+		}
+	}
+
+	private void completeLocalConnect(ChannelHandlerContext quicContext, ChannelFuture future) {
+		if (!future.isSuccess()) {
+			releasePending();
+			quicContext.close();
+			return;
+		}
+		if (!quicContext.channel().isActive()) {
+			future.channel().close();
+			releasePending();
+			return;
+		}
+		localChannel = future.channel();
+		ByteBuf payload = takePending();
+		if (payload != null) {
+			writeToLocal(quicContext, payload);
+		} else if (quicInputShutdown) {
+			scheduleLocalOutputShutdown();
+		} else {
+			requestRead(quicContext);
+		}
 	}
 
 	private void writeToLocal(ChannelHandlerContext quicContext, ByteBuf payload) {
@@ -288,10 +326,16 @@ final class IncomingTunnelHandler extends ChannelInboundHandlerAdapter {
 	}
 
 	private void releasePending() {
-		if (pendingPayload != null) {
-			pendingPayload.release();
-			pendingPayload = null;
+		ByteBuf pending = takePending();
+		if (pending != null) {
+			pending.release();
 		}
+	}
+
+	private synchronized ByteBuf takePending() {
+		ByteBuf payload = pendingPayload;
+		pendingPayload = null;
+		return payload;
 	}
 
 	private static final class LocalToQuicHandler extends ChannelInboundHandlerAdapter {
